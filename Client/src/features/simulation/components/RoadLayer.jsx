@@ -2,62 +2,43 @@ import React from 'react';
 import TrafficLight from './TrafficLight';
 import Vehicle from './Vehicle';
 
-const RoadLayer = ({ lanes, lightState }) => {
-  // Helper to parse backend state (e.g. "NS_YELLOW") to "YELLOW"
-  const getLightColor = (direction) => {
-    // direction is 'NS' or 'EW'
-    if (lightState.startsWith(direction)) {
-      if (lightState.includes("GREEN")) return "GREEN";
-      if (lightState.includes("YELLOW")) return "YELLOW";
-    }
-    return "RED";
-  };
-
-  const LaneMarkings = ({ vertical }) => (
-    <div className={`absolute border-dashed border-slate-500/30 ${vertical ? 'h-full border-l-2 left-1/2' : 'w-full border-t-2 top-1/2'}`} />
-  );
-
+const RoadLayer = ({ roads, lightState, weather }) => {
   return (
-    <div className="relative w-[800px] h-[600px] bg-[#0f172a] rounded-xl border border-slate-800 shadow-2xl overflow-hidden">
-      <div className="absolute inset-0 opacity-20 bg-[radial-gradient(#475569_1px,transparent_1px)] [background-size:32px_32px]"></div>
+    <div className="relative w-[800px] h-[800px] bg-[#0f172a] rounded-xl border border-slate-800 shadow-2xl overflow-hidden">
+      {weather === 'rain' && <div className="absolute inset-0 z-50 pointer-events-none bg-blue-900/10 backdrop-blur-[1px]"></div>}
 
-      {/* --- HIGHWAY NORTH-SOUTH (WIDER) --- */}
-      <div className="absolute left-1/2 -translate-x-1/2 w-48 h-full bg-[#1e293b] shadow-2xl border-x border-slate-700">
-        <LaneMarkings vertical />
-        {/* Stop Lines */}
-        <div className="absolute top-[42%] w-full h-3 bg-slate-500/50"></div>
-        <div className="absolute bottom-[42%] w-full h-3 bg-slate-500/50"></div>
-      </div>
-
-      {/* --- HIGHWAY EAST-WEST (WIDER) --- */}
-      <div className="absolute top-1/2 -translate-y-1/2 h-48 w-full bg-[#1e293b] shadow-2xl border-y border-slate-700">
-        <LaneMarkings />
-        {/* Stop Lines */}
-        <div className="absolute left-[42%] h-full w-3 bg-slate-500/50"></div>
-        <div className="absolute right-[42%] h-full w-3 bg-slate-500/50"></div>
+      {/* N-S ROAD */}
+      <div className="absolute left-1/2 -translate-x-1/2 w-64 h-full bg-[#1e293b] border-x border-slate-600">
+         <div className="absolute left-1/2 h-full border-l-2 border-yellow-500/50"></div>
+         <div className="absolute left-1/4 h-full border-l border-dashed border-slate-500/30"></div>
+         <div className="absolute right-1/4 h-full border-l border-dashed border-slate-500/30"></div>
+         {/* STOP LINES */}
+         <div className="absolute top-[32%] w-full h-4 bg-slate-500/50"></div>
+         <div className="absolute bottom-[32%] w-full h-4 bg-slate-500/50"></div>
       </div>
 
-      {/* --- INTERSECTION BOX --- */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-[#1e293b] z-0" />
-
-      {/* --- LIGHTS --- */}
-      <div className="absolute top-[38%] left-[38%] -translate-x-full -translate-y-full z-30">
-         <TrafficLight state={getLightColor('NS')} />
-      </div>
-      <div className="absolute top-[38%] right-[38%] translate-x-full -translate-y-full z-30">
-         <TrafficLight state={getLightColor('EW')} />
-      </div>
-      <div className="absolute bottom-[38%] right-[38%] translate-x-full translate-y-full z-30">
-         <TrafficLight state={getLightColor('NS')} />
-      </div>
-      <div className="absolute bottom-[38%] left-[38%] -translate-x-full translate-y-full z-30">
-         <TrafficLight state={getLightColor('EW')} />
+      {/* E-W ROAD */}
+      <div className="absolute top-1/2 -translate-y-1/2 h-64 w-full bg-[#1e293b] border-y border-slate-600">
+         <div className="absolute top-1/2 w-full border-t-2 border-yellow-500/50"></div>
+         <div className="absolute top-1/4 w-full border-t border-dashed border-slate-500/30"></div>
+         <div className="absolute bottom-1/4 w-full border-t border-dashed border-slate-500/30"></div>
+         {/* STOP LINES */}
+         <div className="absolute left-[32%] h-full w-4 bg-slate-500/50"></div>
+         <div className="absolute right-[32%] h-full w-4 bg-slate-500/50"></div>
       </div>
 
-      {/* --- CARS --- */}
-      <div className="absolute inset-0 z-10 pointer-events-none">
-        {Object.entries(lanes).map(([dir, cars]) => 
-          cars.map(c => <Vehicle key={c.id} data={c} direction={dir} />)
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-[#1e293b] z-0" />
+
+      {/* LIGHTS */}
+      <div className="absolute top-[30%] left-[30%] z-40"><TrafficLight state={lightState.includes('NS') ? "GREEN" : "RED"} /></div>
+      <div className="absolute top-[30%] right-[30%] z-40"><TrafficLight state={lightState.includes('EW') ? "GREEN" : "RED"} /></div>
+
+      {/* CARS */}
+      <div className="absolute inset-0 z-10">
+        {Object.entries(roads).map(([dir, lanes]) => 
+          lanes.map((cars, laneIdx) => 
+            cars.map(c => <Vehicle key={c.id} data={c} direction={dir} laneIndex={laneIdx} />)
+          )
         )}
       </div>
     </div>
