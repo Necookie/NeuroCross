@@ -3,65 +3,63 @@ import TrafficLight from './TrafficLight';
 import Vehicle from './Vehicle';
 
 const RoadLayer = ({ lanes, lightState }) => {
-  const isNSGreen = lightState === 'NS_GREEN';
+  // Helper to parse backend state (e.g. "NS_YELLOW") to "YELLOW"
+  const getLightColor = (direction) => {
+    // direction is 'NS' or 'EW'
+    if (lightState.startsWith(direction)) {
+      if (lightState.includes("GREEN")) return "GREEN";
+      if (lightState.includes("YELLOW")) return "YELLOW";
+    }
+    return "RED";
+  };
 
-  // Helper for the dashed lane markers
-  const LaneDivider = ({ vertical }) => (
-    <div className={`absolute border-dashed border-slate-600/40 ${vertical ? 'h-full border-l-2 left-1/2 -ml-[1px]' : 'w-full border-t-2 top-1/2 -mt-[1px]'}`} />
-  );
-
-  // Helper for the thick white stop bars
-  const StopLine = ({ className }) => (
-    <div className={`absolute bg-slate-400/50 ${className}`} />
+  const LaneMarkings = ({ vertical }) => (
+    <div className={`absolute border-dashed border-slate-500/30 ${vertical ? 'h-full border-l-2 left-1/2' : 'w-full border-t-2 top-1/2'}`} />
   );
 
   return (
-    <div className="relative w-[600px] h-[600px] bg-[#0B1120] rounded-2xl border border-slate-800 shadow-2xl overflow-hidden">
-      {/* Background Texture (Subtle grid) */}
-      <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#334155_1px,transparent_1px)] [background-size:20px_20px]"></div>
+    <div className="relative w-[800px] h-[600px] bg-[#0f172a] rounded-xl border border-slate-800 shadow-2xl overflow-hidden">
+      <div className="absolute inset-0 opacity-20 bg-[radial-gradient(#475569_1px,transparent_1px)] [background-size:32px_32px]"></div>
 
-      {/* --- NORTH-SOUTH ROAD --- */}
-      <div className="absolute left-1/2 -translate-x-1/2 w-48 h-full bg-[#1e293b] shadow-inner">
-        <LaneDivider vertical />
+      {/* --- HIGHWAY NORTH-SOUTH (WIDER) --- */}
+      <div className="absolute left-1/2 -translate-x-1/2 w-48 h-full bg-[#1e293b] shadow-2xl border-x border-slate-700">
+        <LaneMarkings vertical />
         {/* Stop Lines */}
-        <StopLine className="w-full h-2 top-[34%]" /> {/* North Stop */}
-        <StopLine className="w-full h-2 bottom-[34%]" /> {/* South Stop */}
+        <div className="absolute top-[42%] w-full h-3 bg-slate-500/50"></div>
+        <div className="absolute bottom-[42%] w-full h-3 bg-slate-500/50"></div>
       </div>
 
-      {/* --- EAST-WEST ROAD --- */}
-      <div className="absolute top-1/2 -translate-y-1/2 h-48 w-full bg-[#1e293b] shadow-inner">
-        <LaneDivider />
+      {/* --- HIGHWAY EAST-WEST (WIDER) --- */}
+      <div className="absolute top-1/2 -translate-y-1/2 h-48 w-full bg-[#1e293b] shadow-2xl border-y border-slate-700">
+        <LaneMarkings />
         {/* Stop Lines */}
-        <StopLine className="h-full w-2 left-[34%]" /> {/* West Stop */}
-        <StopLine className="h-full w-2 right-[34%]" /> {/* East Stop */}
+        <div className="absolute left-[42%] h-full w-3 bg-slate-500/50"></div>
+        <div className="absolute right-[42%] h-full w-3 bg-slate-500/50"></div>
       </div>
 
-      {/* --- INTERSECTION SHADOW --- */}
-      {/* Darkens the intersection center slightly for depth */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-black/10 pointer-events-none" />
+      {/* --- INTERSECTION BOX --- */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-[#1e293b] z-0" />
 
-      {/* --- TRAFFIC LIGHTS --- */}
-      {/* Positioned at corners with a distinct 'arm' or housing look */}
-      <div className="absolute top-[32%] left-[32%] -translate-x-full -translate-y-full z-20">
-         <TrafficLight active={isNSGreen} label="S" />
+      {/* --- LIGHTS --- */}
+      <div className="absolute top-[38%] left-[38%] -translate-x-full -translate-y-full z-30">
+         <TrafficLight state={getLightColor('NS')} />
       </div>
-      <div className="absolute top-[32%] right-[32%] translate-x-full -translate-y-full z-20">
-         <TrafficLight active={!isNSGreen} label="W" />
+      <div className="absolute top-[38%] right-[38%] translate-x-full -translate-y-full z-30">
+         <TrafficLight state={getLightColor('EW')} />
       </div>
-      <div className="absolute bottom-[32%] right-[32%] translate-x-full translate-y-full z-20">
-         <TrafficLight active={isNSGreen} label="N" />
+      <div className="absolute bottom-[38%] right-[38%] translate-x-full translate-y-full z-30">
+         <TrafficLight state={getLightColor('NS')} />
       </div>
-      <div className="absolute bottom-[32%] left-[32%] -translate-x-full translate-y-full z-20">
-         <TrafficLight active={!isNSGreen} label="E" />
+      <div className="absolute bottom-[38%] left-[38%] -translate-x-full translate-y-full z-30">
+         <TrafficLight state={getLightColor('EW')} />
       </div>
 
-      {/* --- VEHICLES LAYER --- */}
-      <div className="absolute inset-0 z-10">
+      {/* --- CARS --- */}
+      <div className="absolute inset-0 z-10 pointer-events-none">
         {Object.entries(lanes).map(([dir, cars]) => 
           cars.map(c => <Vehicle key={c.id} data={c} direction={dir} />)
         )}
       </div>
-
     </div>
   );
 };
