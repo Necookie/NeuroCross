@@ -1,112 +1,192 @@
 import uvicorn
 import numpy as np
+import random
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 app = FastAPI()
 
-# Enable React to talk to Python
 app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
+    CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"],
 )
 
 class SimParams(BaseModel):
     arrival_rate_ns: float
     arrival_rate_ew: float
     mode: str
+    weather: str
+
+# --- PHYSICS CONSTANTS (SCALED FOR WIDER ROADS) ---
+ROAD_LENGTH = 400
+STOP_LINE = 100        # FIXED: 25% of 400 = 100. Stops exactly at the white line.
+INTERSECTION_EXIT = 280 # FIXED: Exit point of the 320px wide intersection box.
+SAFE_HEADWAY = 2.0   
+MIN_GAP = 4.0        
+ACCEL_MAX = 3.0
+DECEL_COMF = 2.5
+
+# Vehicle Specs
+VEHICLE_SPECS = {
+    'car':      {'len': 6,  'v_max': 60, 'prob': 0.45},
+    'suv':      {'len': 7,  'v_max': 55, 'prob': 0.25},
+    'truck':    {'len': 14, 'v_max': 40, 'prob': 0.10},
+    'bus':      {'len': 12, 'v_max': 35, 'prob': 0.05},
+    'jeepney':  {'len': 8,  'v_max': 45, 'prob': 0.10},
+    'bike':     {'len': 3,  'v_max': 70, 'prob': 0.05}
+}
+
+class VehicleAgent:
+    def __init__(self, v_id, type_name, lane_idx):
+        self.id = v_id
+        self.type = type_name
+        self.lane = lane_idx 
+        self.pos = 0 
+        self.length = VEHICLE_SPECS[type_name]['len']
+        
+        # Human Behavior
+        self.aggression = np.random.uniform(0.1, 0.9)
+        self.v_desired = VEHICLE_SPECS[type_name]['v_max'] * (0.8 + (self.aggression * 0.3))
+        self.speed = self.v_desired * 0.6 
+        
+        self.status = "moving"
+
+    def update_physics(self, dt, leader, stop_target, friction):
+        gap = 1000
+        target_speed = 0
+
+        # Check Car Ahead
+        if leader:
+            dist_to_leader = leader.pos - self.pos - leader.length
+            if dist_to_leader < gap:
+                gap = dist_to_leader
+                target_speed = leader.speed
+
+        # Check Stop Target
+        if stop_target is not None:
+            dist_to_line = stop_target - self.pos
+            if 0 < dist_to_line < gap:
+                gap = dist_to_line
+                target_speed = 0
+
+        # IDM Calculation
+        s0 = MIN_GAP + (1.0 - self.aggression)
+        delta_v = self.speed - target_speed
+        s_star = s0 + (self.speed * SAFE_HEADWAY) + \
+                 (self.speed * delta_v) / (2 * np.sqrt(ACCEL_MAX * DECEL_COMF))
+        
+        safe_gap = max(0.1, gap)
+        acc = ACCEL_MAX * (1 - (self.speed / self.v_desired)**4 - (s_star / safe_gap)**2)
+        
+        if acc < 0: acc *= friction 
+
+        self.speed += acc * dt
+        self.speed = max(0, self.speed)
+        self.pos += self.speed * dt
+
+        # Status & Anti-Ghosting
+        if gap < 0.5:
+            self.speed = 0
+            self.pos -= (0.5 - gap) 
+            self.status = "crashed"
+        elif self.speed < 1:
+            self.status = "stopped"
+        elif acc < -1.5:
+            self.status = "slowing"
+        else:
+            self.status = "moving"
 
 class IntersectionSim:
     def __init__(self):
-        self.lanes = {'north': [], 'south': [], 'east': [], 'west': []}
-        self.light_state = "NS_GREEN"
-        self.light_timer = 0
-        self.car_id_counter = 0
+        self.roads = {d: [[], []] for d in ['north', 'south', 'east', 'west']}
+        self.state = "NS_GREEN"
+        self.timer = 0
+        self.global_id = 0
+        self.metrics = {"accidents": 0, "throughput": 0, "avg_speed": 0}
 
     def step(self, params: SimParams):
-        dt = 0.1 # 100ms per step
+        dt = 0.1
+        self.timer += dt
+        friction = 0.6 if params.weather == "rain" else 1.0
 
-        # 1. Spawn Cars (Poisson Process)
-        for lane in ['north', 'south']:
-            if np.random.random() < (params.arrival_rate_ns * dt): self.spawn_car(lane)
-        for lane in ['east', 'west']:
-            if np.random.random() < (params.arrival_rate_ew * dt): self.spawn_car(lane)
+        if self.timer > 8:
+            self.state = "EW_GREEN" if "NS" in self.state else "NS_GREEN"
+            self.timer = 0
 
-        # 2. Traffic Light Logic
-        self.light_timer += dt
-        q_ns = self.count_queue('north') + self.count_queue('south')
-        q_ew = self.count_queue('east') + self.count_queue('west')
+        for direction in self.roads.keys():
+            rate = params.arrival_rate_ns if direction in ['north', 'south'] else params.arrival_rate_ew
+            if params.weather == "rain": rate *= 0.8
+            if np.random.random() < (rate * dt):
+                self.try_spawn(direction, random.choice([0, 1]))
 
-        if params.mode == "fixed":
-            if self.light_timer > 5: self.toggle_light()
-        else:
-            # Smart Logic
-            if self.light_timer > 2:
-                if self.light_state == "NS_GREEN" and q_ew > q_ns * 1.5: self.toggle_light()
-                elif self.light_state == "EW_GREEN" and q_ns > q_ew * 1.5: self.toggle_light()
+        total_speed = 0
+        car_count = 0
 
-        # 3. Move Cars
-        for lane, cars in self.lanes.items():
-            is_green = (self.light_state == "NS_GREEN" and lane in ['north', 'south']) or \
-                       (self.light_state == "EW_GREEN" and lane in ['east', 'west'])
+        for direction, lanes in self.roads.items():
+            is_green = self.check_light(direction)
+            
+            for lane_idx, cars in enumerate(lanes):
+                cars.sort(key=lambda x: x.pos, reverse=True)
+                
+                stop_target = STOP_LINE if not is_green else None
+                # Gridlock Prevention
+                if is_green and len(cars) > 1:
+                    for car in cars:
+                        if STOP_LINE < car.pos < INTERSECTION_EXIT and car.speed < 5:
+                            stop_target = STOP_LINE
+                            break
 
-            cars.sort(key=lambda x: x['pos'], reverse=True)
-            next_obs = 200 # Virtual obstacle
+                for i, car in enumerate(cars):
+                    leader = cars[i-1] if i > 0 else None
+                    car.update_physics(dt, leader, stop_target, friction)
+                    total_speed += car.speed
+                    car_count += 1
 
-            for car in cars:
-                # Stop line logic (Line is at pos 90)
-                if not is_green and car['pos'] < 85:
-                    dist_to_stop = 90 - car['pos']
-                    if dist_to_stop < (next_obs - car['pos']): next_obs = 90
+                finished = [c for c in cars if c.pos >= ROAD_LENGTH]
+                self.metrics["throughput"] += len(finished)
+                self.roads[direction][lane_idx] = [c for c in cars if c.pos < ROAD_LENGTH]
 
-                dist = next_obs - car['pos']
+        if car_count > 0:
+            self.metrics["avg_speed"] = int(total_speed / car_count)
 
-                if dist < 6: # Stop
-                    car['speed'] = 0
-                    car['status'] = 'stopped'
-                elif dist < 20: # Slow
-                    car['speed'] *= 0.9
-                    car['status'] = 'slowing'
-                    car['pos'] += car['speed'] * dt
-                else: # Go
-                    if car['speed'] < 40: car['speed'] += 2
-                    car['status'] = 'moving'
-                    car['pos'] += car['speed'] * dt
+        return self.get_state()
 
-                next_obs = car['pos']
+    def check_light(self, direction):
+        if "NS" in self.state and direction in ['north', 'south']: return True
+        if "EW" in self.state and direction in ['east', 'west']: return True
+        return False
 
-            # Cleanup cars that left map
-            self.lanes[lane] = [c for c in cars if c['pos'] < 190]
+    def try_spawn(self, direction, lane_idx):
+        lane_cars = self.roads[direction][lane_idx]
+        for car in lane_cars:
+            if car.pos < 30: return 
 
-        return {
-            "light_state": self.light_state,
-            "lanes": self.lanes,
-            "stats": {"q_ns": q_ns, "q_ew": q_ew}
-        }
+        self.global_id += 1
+        types = list(VEHICLE_SPECS.keys())
+        probs = [VEHICLE_SPECS[t]['prob'] for t in types]
+        v_type = np.random.choice(types, p=probs)
+        self.roads[direction][lane_idx].append(VehicleAgent(self.global_id, v_type, lane_idx))
 
-    def spawn_car(self, lane):
-        self.car_id_counter += 1
-        v_type = "truck" if np.random.random() < 0.2 else "sedan"
-        self.lanes[lane].append({"id": self.car_id_counter, "pos": 0, "speed": 30, "type": v_type, "status": "moving"})
-
-    def count_queue(self, lane):
-        return sum(1 for c in self.lanes[lane] if c['speed'] < 1)
-
-    def toggle_light(self):
-        self.light_state = "EW_GREEN" if self.light_state == "NS_GREEN" else "NS_GREEN"
-        self.light_timer = 0
+    def get_state(self):
+        json_roads = {d: [[], []] for d in self.roads}
+        for d, lanes in self.roads.items():
+            for i, lane in enumerate(lanes):
+                json_roads[d][i] = [{
+                    "id": c.id, "pos": c.pos, "type": c.type, 
+                    "status": c.status, "lane": c.lane
+                } for c in lane]
+        return { "light_state": self.state, "roads": json_roads, "metrics": self.metrics }
 
 sim = IntersectionSim()
 
 @app.post("/step")
-def step(params: SimParams):
-    return sim.step(params)
+def step(params: SimParams): return sim.step(params)
 
 @app.post("/reset")
 def reset():
     global sim
     sim = IntersectionSim()
     return {"msg": "ok"}
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8000)

@@ -22,23 +22,20 @@ const Vehicle = ({ data, direction, laneIndex }) => {
     }
   };
 
+  // RESCALED DIMENSIONS
   const getDimensions = () => {
-     if (data.type === 'bus') return 'w-24 h-8';     
-     if (data.type === 'truck') return 'w-28 h-9';   
-     if (data.type === 'jeepney') return 'w-16 h-7'; 
-     if (data.type === 'suv') return 'w-14 h-7';     
-     if (data.type === 'bike') return 'w-8 h-4';     
-     return 'w-12 h-6';                              
+     if (data.type === 'bus') return 'w-14 h-5';      
+     if (data.type === 'truck') return 'w-16 h-6';    
+     if (data.type === 'jeepney') return 'w-10 h-4';  
+     if (data.type === 'suv') return 'w-9 h-4';       
+     if (data.type === 'bike') return 'w-5 h-3';      
+     return 'w-8 h-4';                                
   };
 
   const progress = (data.pos / 400) * 100;
 
-  // --- FIXED LANE ALIGNMENT ---
-  // Canvas = 800px. Road = 256px (w-64).
-  // Inner Lane Center = 4% (32px)
-  // Outer Lane Center = 12% (96px)
-  // This leaves 16px buffer from the road edge.
-  let laneOffset = laneIndex === 1 ? 4 : 12;
+  // FIXED LANE OFFSETS (Inner: 5%, Outer: 15%)
+  let laneOffset = laneIndex === 1 ? 5 : 15;
 
   const getPos = () => {
     const lo = `${laneOffset}%`;
@@ -55,7 +52,7 @@ const Vehicle = ({ data, direction, laneIndex }) => {
 
   return (
     <motion.div
-      initial={style} 
+      initial={style} // PREVENTS FLYING BUG
       animate={style}
       transition={{ duration: 0.1, ease: 'linear' }}
       style={{ transform: 'translate(-50%, -50%)' }}
