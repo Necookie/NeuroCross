@@ -25,7 +25,7 @@ const Vehicle = ({ data, direction, laneIndex }) => {
   // RESCALED DIMENSIONS
   const getDimensions = () => {
      if (data.type === 'bus') return 'w-14 h-5';      
-     if (data.type === 'truck') return 'w-16 h-6';    
+     if (data.type === 'truck') return 'w-16 h-5';    
      if (data.type === 'jeepney') return 'w-10 h-4';  
      if (data.type === 'suv') return 'w-9 h-4';       
      if (data.type === 'bike') return 'w-5 h-3';      
@@ -34,8 +34,11 @@ const Vehicle = ({ data, direction, laneIndex }) => {
 
   const progress = (data.pos / 400) * 100;
 
-  // FIXED LANE OFFSETS (Inner: 5%, Outer: 15%)
-  let laneOffset = laneIndex === 1 ? 5 : 15;
+  // LANE OFFSETS - calculated from road geometry:
+  // Road is 320px on 800px canvas. Each direction has 2x 80px lanes.
+  // Inner lane center = 40px from middle = 5% of 800px
+  // Outer lane center = 120px from middle = 15% of 800px
+  const laneOffset = laneIndex === 1 ? 5 : 15;
 
   const getPos = () => {
     const lo = `${laneOffset}%`;

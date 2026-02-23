@@ -1,11 +1,12 @@
 import React from 'react';
 import TrafficLight from './TrafficLight';
 import Vehicle from './Vehicle';
+import RainEffect from './RainEffect';
 
 const RoadLayer = ({ roads, lightState, weather }) => {
   return (
     <div className="relative w-[800px] h-[800px] bg-[#0f172a] rounded-xl border border-slate-800 shadow-2xl overflow-hidden">
-      {weather === 'rain' && <div className="absolute inset-0 z-50 pointer-events-none bg-blue-900/10 backdrop-blur-[1px]"></div>}
+      {weather === 'rain' && <RainEffect />}
 
       {/* N-S ROAD (Wider 320px) */}
       <div className="absolute left-1/2 -translate-x-1/2 w-80 h-full bg-[#1e293b] border-x border-slate-600">
