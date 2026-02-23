@@ -26,14 +26,14 @@ MIN_GAP = 4.0
 ACCEL_MAX = 3.0
 DECEL_COMF = 2.5
 
-# Vehicle Specs
+# Vehicle Specs (Lengths updated to match visual pixel sizes: 1 unit = 2px)
 VEHICLE_SPECS = {
-    'car':      {'len': 6,  'v_max': 60, 'prob': 0.45},
-    'suv':      {'len': 7,  'v_max': 55, 'prob': 0.25},
-    'truck':    {'len': 14, 'v_max': 40, 'prob': 0.10},
-    'bus':      {'len': 12, 'v_max': 35, 'prob': 0.05},
-    'jeepney':  {'len': 8,  'v_max': 45, 'prob': 0.10},
-    'bike':     {'len': 3,  'v_max': 70, 'prob': 0.05}
+    'car':      {'len': 16, 'v_max': 60, 'prob': 0.45},
+    'suv':      {'len': 18, 'v_max': 55, 'prob': 0.25},
+    'truck':    {'len': 32, 'v_max': 40, 'prob': 0.10},
+    'bus':      {'len': 28, 'v_max': 35, 'prob': 0.05},
+    'jeepney':  {'len': 20, 'v_max': 45, 'prob': 0.10},
+    'bike':     {'len': 10, 'v_max': 70, 'prob': 0.05}
 }
 
 class VehicleAgent:
@@ -57,14 +57,16 @@ class VehicleAgent:
 
         # Check Car Ahead
         if leader:
-            dist_to_leader = leader.pos - self.pos - leader.length
+            # Calculate gap between front of self and back of leader
+            dist_to_leader = (leader.pos - leader.length / 2) - (self.pos + self.length / 2)
             if dist_to_leader < gap:
                 gap = dist_to_leader
                 target_speed = leader.speed
 
         # Check Stop Target
         if stop_target is not None:
-            dist_to_line = stop_target - self.pos
+            # Stop target is a line. The front of the car should stop at the line.
+            dist_to_line = stop_target - (self.pos + self.length / 2)
             if 0 < dist_to_line < gap:
                 gap = dist_to_line
                 target_speed = 0
@@ -84,12 +86,25 @@ class VehicleAgent:
         self.speed = max(0, self.speed)
         self.pos += self.speed * dt
 
-        # Status & Anti-Ghosting
-        if gap < 0.5:
-            self.speed = 0
-            self.pos -= (0.5 - gap) 
-            self.status = "crashed"
-        elif self.speed < 1:
+        # Recalculate gap after position update to prevent overlapping
+        if leader:
+            actual_gap = (leader.pos - leader.length / 2) - (self.pos + self.length / 2)
+            if actual_gap < 0.5:
+                self.speed = 0
+                self.pos = leader.pos - leader.length / 2 - self.length / 2 - 0.5
+                self.status = "stopped"
+                return
+
+        if stop_target is not None:
+            dist_to_line = stop_target - (self.pos + self.length / 2)
+            if 0 > dist_to_line > -2.0: # slightly crossed the line
+                self.speed = 0
+                self.pos = stop_target - self.length / 2
+                self.status = "stopped"
+                return
+
+        # Status
+        if self.speed < 1:
             self.status = "stopped"
         elif acc < -1.5:
             self.status = "slowing"
@@ -109,9 +124,43 @@ class IntersectionSim:
         self.timer += dt
         friction = 0.6 if params.weather == "rain" else 1.0
 
-        if self.timer > 8:
-            self.state = "EW_GREEN" if "NS" in self.state else "NS_GREEN"
+        # Traffic Light Logic with Clearance Phase
+        if self.state == "NS_GREEN" and self.timer > 8:
+            self.state = "NS_YELLOW"
             self.timer = 0
+        elif self.state == "NS_YELLOW" and self.timer > 2:
+            self.state = "ALL_RED_NS_TO_EW"
+            self.timer = 0
+        elif self.state == "ALL_RED_NS_TO_EW":
+            # Wait until intersection is clear of NS traffic
+            is_clear = True
+            for d in ['north', 'south']:
+                for lane in self.roads[d]:
+                    for car in lane:
+                        if STOP_LINE < car.pos < INTERSECTION_EXIT:
+                            is_clear = False
+                            break
+            if is_clear or self.timer > 5: # Max wait time 5s
+                self.state = "EW_GREEN"
+                self.timer = 0
+        elif self.state == "EW_GREEN" and self.timer > 8:
+            self.state = "EW_YELLOW"
+            self.timer = 0
+        elif self.state == "EW_YELLOW" and self.timer > 2:
+            self.state = "ALL_RED_EW_TO_NS"
+            self.timer = 0
+        elif self.state == "ALL_RED_EW_TO_NS":
+            # Wait until intersection is clear of EW traffic
+            is_clear = True
+            for d in ['east', 'west']:
+                for lane in self.roads[d]:
+                    for car in lane:
+                        if STOP_LINE < car.pos < INTERSECTION_EXIT:
+                            is_clear = False
+                            break
+            if is_clear or self.timer > 5: # Max wait time 5s
+                self.state = "NS_GREEN"
+                self.timer = 0
 
         for direction in self.roads.keys():
             rate = params.arrival_rate_ns if direction in ['north', 'south'] else params.arrival_rate_ew
@@ -152,14 +201,15 @@ class IntersectionSim:
         return self.get_state()
 
     def check_light(self, direction):
-        if "NS" in self.state and direction in ['north', 'south']: return True
-        if "EW" in self.state and direction in ['east', 'west']: return True
+        if self.state == "NS_GREEN" and direction in ['north', 'south']: return True
+        if self.state == "EW_GREEN" and direction in ['east', 'west']: return True
+        # Yellow lights mean stop if you haven't crossed the line yet
         return False
 
     def try_spawn(self, direction, lane_idx):
         lane_cars = self.roads[direction][lane_idx]
         for car in lane_cars:
-            if car.pos < 30: return 
+            if (car.pos - car.length / 2) < 25: return 
 
         self.global_id += 1
         types = list(VEHICLE_SPECS.keys())

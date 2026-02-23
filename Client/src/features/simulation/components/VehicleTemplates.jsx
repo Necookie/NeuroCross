@@ -25,7 +25,7 @@ export const Jeepney = ({ className }) => (
   </svg>
 );
 
-export const Bus = ({ color, className }) => (
+export const Bus = ({ className }) => (
   <svg viewBox="0 0 80 26" className={`drop-shadow-xl ${className}`}>
     <rect x="0" y="0" width="80" height="26" rx="3" fill="#3b82f6" />
     <rect x="65" y="2" width="12" height="22" fill="#1e293b" />

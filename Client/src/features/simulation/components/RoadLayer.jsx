@@ -33,8 +33,13 @@ const RoadLayer = ({ roads, lightState, weather }) => {
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-[#1e293b] z-0" />
 
       {/* LIGHTS */}
-      <div className="absolute top-[24%] left-[24%] z-40"><TrafficLight state={lightState.includes('NS') ? "GREEN" : "RED"} /></div>
-      <div className="absolute top-[24%] right-[24%] z-40"><TrafficLight state={lightState.includes('EW') ? "GREEN" : "RED"} /></div>
+      {/* North-South Lights */}
+      <div className="absolute top-[24%] left-[24%] z-40"><TrafficLight state={lightState === 'NS_GREEN' ? "GREEN" : lightState === 'NS_YELLOW' ? "YELLOW" : "RED"} /></div>
+      <div className="absolute bottom-[24%] right-[24%] z-40"><TrafficLight state={lightState === 'NS_GREEN' ? "GREEN" : lightState === 'NS_YELLOW' ? "YELLOW" : "RED"} /></div>
+      
+      {/* East-West Lights */}
+      <div className="absolute top-[24%] right-[24%] z-40"><TrafficLight state={lightState === 'EW_GREEN' ? "GREEN" : lightState === 'EW_YELLOW' ? "YELLOW" : "RED"} /></div>
+      <div className="absolute bottom-[24%] left-[24%] z-40"><TrafficLight state={lightState === 'EW_GREEN' ? "GREEN" : lightState === 'EW_YELLOW' ? "YELLOW" : "RED"} /></div>
 
       {/* CARS */}
       <div className="absolute inset-0 z-10">
