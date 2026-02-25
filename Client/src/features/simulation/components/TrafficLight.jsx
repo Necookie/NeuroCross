@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 
 const TrafficLight = ({ state }) => {
   // state is "GREEN", "YELLOW", or "RED"
@@ -28,4 +28,5 @@ const TrafficLight = ({ state }) => {
     </div>
   );
 };
-export default TrafficLight;
+
+export default memo(TrafficLight);

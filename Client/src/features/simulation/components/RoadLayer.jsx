@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import TrafficLight from './TrafficLight';
 import Vehicle from './Vehicle';
 import RainEffect from './RainEffect';
@@ -62,4 +62,5 @@ const RoadLayer = ({ roads, lightState, weather, speedFactor }) => {
     </div>
   );
 };
-export default RoadLayer;
+
+export default memo(RoadLayer);

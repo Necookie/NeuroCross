@@ -9,7 +9,7 @@ Realtime traffic intersection simulation with a FastAPI physics engine and a Rea
 
 **Tech Stack**
 - **Frontend**: React 19, Vite 7, Tailwind CSS, Framer Motion, Lucide icons, Axios
-- **Backend**: Python, FastAPI, Uvicorn, NumPy
+- **Backend**: Python, FastAPI, Uvicorn
 - **Styling**: Tailwind + custom CSS variables (`Client/src/index.css`)
 
 **Architecture**
@@ -92,7 +92,7 @@ Vite dev server runs on `http://localhost:5173` by default.
 - Rain applies friction (`0.6`) and reduces arrival rates by `20%`.
 
 **Vehicle Types**
-Defined in `Server/main.py`:
+Defined in `Server/config.py`:
 - `car`, `suv`, `truck`, `bus`, `jeepney`, `bike`
 - Each type has a length, max speed, and spawn probability.
 
@@ -108,7 +108,9 @@ Rendered in the UI in `Client/src/features/simulation/components/VehicleTemplate
 - `accidents`: currently static (placeholder for future collision logic).
 
 **Project Structure**
-- `Server/main.py` — FastAPI app + simulation logic
+- `Server/main.py` — entry point
+- `Server/app.py` — FastAPI app + routes
+- `Server/sim/` — simulation core (vehicles + intersection)
 - `Server/requirements.txt` — backend dependencies
 - `Client/src/App.jsx` — UI state, controls, and polling
 - `Client/src/features/simulation/components` — rendering primitives (roads, vehicles, rain, signals)
@@ -120,7 +122,7 @@ Rendered in the UI in `Client/src/features/simulation/components/VehicleTemplate
 - Two lanes per direction, with stop line at 25% of road length.
 
 **CORS**
-- CORS is open to all origins for local development in `Server/main.py`.
+- CORS is open to all origins for local development in `Server/app.py`.
 
 **Known Limitations**
 - `mode` does not currently change behavior.
