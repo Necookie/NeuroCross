@@ -1,3 +1,7 @@
+import asyncio
+import urllib.request
+from contextlib import asynccontextmanager
+
 import uvicorn
 import numpy as np
 import random
@@ -5,7 +9,23 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-app = FastAPI()
+async def keep_alive():
+    url = "https://neurocross-backend.onrender.com/ping"
+    while True:
+        await asyncio.sleep(14 * 60) # ping every 14 minutes
+        try:
+            urllib.request.urlopen(url)
+            print("Ping successful")
+        except Exception as e:
+            print(f"Ping failed: {e}")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    task = asyncio.create_task(keep_alive())
+    yield
+    task.cancel()
+
+app = FastAPI(lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"],
@@ -237,6 +257,10 @@ def reset():
     global sim
     sim = IntersectionSim()
     return {"msg": "ok"}
+
+@app.get("/ping")
+def ping():
+    return {"status": "alive"}
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)

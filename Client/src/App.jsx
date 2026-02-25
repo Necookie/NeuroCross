@@ -4,19 +4,19 @@ import { Play, Pause, RotateCcw, CloudRain, Sun } from 'lucide-react';
 import RoadLayer from './features/simulation/components/RoadLayer';
 
 function App() {
-  const [data, setData] = useState({ 
-    roads: { north: [[],[]], south: [[],[]], east: [[],[]], west: [[],[]] }, 
-    light_state: 'NS_GREEN', 
+  const [data, setData] = useState({
+    roads: { north: [[], []], south: [[], []], east: [[], []], west: [[], []] },
+    light_state: 'NS_GREEN',
     metrics: { accidents: 0, avg_speed: 0, throughput: 0 }
   });
 
-  const [params, setParams] = useState({ 
-    arrival_rate_ns: 0.8, 
-    arrival_rate_ew: 0.4, 
+  const [params, setParams] = useState({
+    arrival_rate_ns: 0.8,
+    arrival_rate_ew: 0.4,
     mode: 'smart',
-    weather: 'sunny' 
+    weather: 'sunny'
   });
-  
+
   const [running, setRunning] = useState(false);
   const [simSpeed, setSimSpeed] = useState(1.0);
   const [phase, setPhase] = useState(0);
@@ -26,7 +26,7 @@ function App() {
     if (running) {
       const tickMs = Math.max(30, 100 / simSpeed);
       interval = setInterval(() => {
-        axios.post('http://localhost:8000/step', params)
+        axios.post('https://neurocross-backend.onrender.com/step', params)
           .then(res => setData(res.data))
           .catch(err => console.error(err));
       }, tickMs);
@@ -51,11 +51,11 @@ function App() {
   }, [running]);
 
   const reset = async () => {
-    await axios.post('http://localhost:8000/reset');
-    setData({ 
-        roads: { north: [[],[]], south: [[],[]], east: [[],[]], west: [[],[]] }, 
-        light_state: 'NS_GREEN', 
-        metrics: { accidents: 0, avg_speed: 0, throughput: 0 }
+    await axios.post('https://neurocross-backend.onrender.com/reset');
+    setData({
+      roads: { north: [[], []], south: [[], []], east: [[], []], west: [[], []] },
+      light_state: 'NS_GREEN',
+      metrics: { accidents: 0, avg_speed: 0, throughput: 0 }
     });
   };
 
@@ -132,7 +132,7 @@ function App() {
           </div>
         </div>
 
-          <div className="grid gap-8 lg:grid-cols-[320px_1fr] items-start">
+        <div className="grid gap-8 lg:grid-cols-[320px_1fr] items-start">
           {/* SIDEBAR */}
           <div className="space-y-6">
             <div className="glass-panel rounded-3xl p-5 space-y-5">
@@ -143,22 +143,20 @@ function App() {
               <div className="flex bg-mono-950/70 p-1 rounded-full border border-mono-800/70">
                 <button
                   onClick={() => setParams({ ...params, weather: 'sunny' })}
-                  className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-full text-xs font-medium transition-all duration-300 ease-soft-ease ${
-                    params.weather === 'sunny'
+                  className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-full text-xs font-medium transition-all duration-300 ease-soft-ease ${params.weather === 'sunny'
                       ? 'bg-mono-200 text-mono-900 shadow-lift'
                       : 'text-mono-400 hover:text-mono-200'
-                  }`}
+                    }`}
                 >
                   <Sun size={14} />
                   Clear
                 </button>
                 <button
                   onClick={() => setParams({ ...params, weather: 'rain' })}
-                  className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-full text-xs font-medium transition-all duration-300 ease-soft-ease ${
-                    params.weather === 'rain'
+                  className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-full text-xs font-medium transition-all duration-300 ease-soft-ease ${params.weather === 'rain'
                       ? 'bg-mono-200 text-mono-900 shadow-lift'
                       : 'text-mono-400 hover:text-mono-200'
-                  }`}
+                    }`}
                 >
                   <CloudRain size={14} />
                   Rain
@@ -167,21 +165,19 @@ function App() {
               <div className="flex bg-mono-950/70 p-1 rounded-full border border-mono-800/70">
                 <button
                   onClick={() => setParams({ ...params, mode: 'smart' })}
-                  className={`flex-1 py-2 rounded-full text-xs font-medium transition-all duration-300 ease-soft-ease ${
-                    params.mode === 'smart'
+                  className={`flex-1 py-2 rounded-full text-xs font-medium transition-all duration-300 ease-soft-ease ${params.mode === 'smart'
                       ? 'bg-mono-200 text-mono-900 shadow-lift'
                       : 'text-mono-400 hover:text-mono-200'
-                  }`}
+                    }`}
                 >
                   Smart
                 </button>
                 <button
                   onClick={() => setParams({ ...params, mode: 'fixed' })}
-                  className={`flex-1 py-2 rounded-full text-xs font-medium transition-all duration-300 ease-soft-ease ${
-                    params.mode === 'fixed'
+                  className={`flex-1 py-2 rounded-full text-xs font-medium transition-all duration-300 ease-soft-ease ${params.mode === 'fixed'
                       ? 'bg-mono-200 text-mono-900 shadow-lift'
                       : 'text-mono-400 hover:text-mono-200'
-                  }`}
+                    }`}
                 >
                   Fixed
                 </button>
@@ -230,11 +226,10 @@ function App() {
             <div className="flex gap-3">
               <button
                 onClick={() => setRunning(!running)}
-                className={`flex-1 py-3 rounded-2xl font-semibold flex justify-center items-center gap-2 transition-all duration-300 ease-soft-ease shadow-lift ${
-                  running
+                className={`flex-1 py-3 rounded-2xl font-semibold flex justify-center items-center gap-2 transition-all duration-300 ease-soft-ease shadow-lift ${running
                     ? 'bg-mono-800 text-mono-200 border border-mono-600/50 hover:bg-mono-700'
                     : 'bg-mono-200 text-mono-950 hover:bg-mono-100'
-                }`}
+                  }`}
               >
                 {running ? <><Pause size={16} /> Pause</> : <><Play size={16} /> Start</>}
               </button>
