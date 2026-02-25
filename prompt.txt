@@ -1,0 +1,31 @@
+codex -p "
+Generate a React + Tailwind UI for a real-time traffic simulation dashboard 
+with a monochromatic cozy aesthetic.
+
+Design direction:
+- Use a single base hue (warm slate blue).
+- Build all UI elements using lighter and darker variations of this hue.
+- No bright colors, no neon, no pure white or pure black.
+- Use soft shadows, subtle gradients, and glassmorphism.
+- Rounded corners (16px+).
+- Calm, minimal, warm atmosphere.
+
+Main layout:
+- Large intersection canvas centered with subtle asphalt texture.
+- Vehicles styled in slightly lighter/darker tones of the same base hue.
+- Traffic lights should glow softly using desaturated red/green variations.
+- Smooth animation transitions (ease-in-out, cubic-bezier).
+- Sidebar controls with:
+  - Toggle buttons styled as pill buttons
+  - Sliders with animated fill bars
+  - Metrics cards with soft background blur and layered depth
+- Typography: Inter or similar modern font.
+- Proper spacing using 8px system.
+
+Generate:
+- Complete component structure
+- Tailwind config with custom monochrome color palette
+- CSS variables for shade scaling
+- Example animation logic
+- Comments explaining styling decisions
+"

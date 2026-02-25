@@ -2,7 +2,56 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  background-color: #020617; /* Force Dark Background */
-  color: white;
+@layer base {
+  :root {
+    /* Warm slate blue base hue */
+    --mono-50: 222 28% 92%;
+    --mono-100: 222 24% 86%;
+    --mono-200: 221 22% 78%;
+    --mono-300: 221 20% 68%;
+    --mono-400: 220 18% 56%;
+    --mono-500: 220 16% 45%;
+    --mono-600: 220 16% 36%;
+    --mono-700: 220 18% 28%;
+    --mono-800: 221 20% 20%;
+    --mono-900: 222 22% 14%;
+    --mono-950: 224 24% 10%;
+
+    /* Desaturated signal tones */
+    --signal-red: 6 34% 42%;
+    --signal-amber: 36 32% 52%;
+    --signal-green: 142 22% 40%;
+  }
+
+  body {
+    background: hsl(var(--mono-950));
+    color: hsl(var(--mono-100));
+    font-feature-settings: "ss01", "ss02";
+  }
+
+  #root {
+    min-height: 100%;
+  }
+}
+
+@layer utilities {
+  .glass-panel {
+    background: hsl(var(--mono-900) / 0.55);
+    border: 1px solid hsl(var(--mono-700) / 0.5);
+    box-shadow: 0 20px 40px hsl(var(--mono-950) / 0.5);
+    backdrop-filter: blur(16px);
+  }
+
+  .asphalt {
+    background-color: hsl(var(--mono-900));
+    background-image:
+      radial-gradient(circle at 20% 15%, hsl(var(--mono-800) / 0.55) 0, transparent 45%),
+      radial-gradient(circle at 80% 70%, hsl(var(--mono-800) / 0.35) 0, transparent 50%),
+      linear-gradient(135deg, hsl(var(--mono-950) / 0.35), transparent 60%);
+    background-blend-mode: soft-light;
+  }
+
+  .inset-shadow {
+    box-shadow: inset 0 1px 0 hsl(var(--mono-100) / 0.06), inset 0 -12px 30px hsl(var(--mono-950) / 0.6);
+  }
 }
