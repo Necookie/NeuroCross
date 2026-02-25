@@ -20,18 +20,41 @@ function App() {
   const [running, setRunning] = useState(false);
   const [simSpeed, setSimSpeed] = useState(1.0);
   const [phase, setPhase] = useState(0);
+  const [hasConnected, setHasConnected] = useState(false);
 
   useEffect(() => {
-    let interval;
+    let active = true;
+    let timeoutId;
+
+    const tick = async () => {
+      if (!active || !running) return;
+      try {
+        const url = import.meta.env.VITE_API_URL || 'https://neurocross-backend.onrender.com';
+        const res = await axios.post(`${url}/step`, params);
+        if (active && res.data) {
+          setData(res.data);
+          setHasConnected(true);
+        }
+      } catch (err) {
+        console.error("Backend error:", err);
+      }
+
+      if (active && running) {
+        const tickMs = Math.max(30, 100 / simSpeed);
+        timeoutId = setTimeout(tick, tickMs);
+      }
+    };
+
     if (running) {
-      const tickMs = Math.max(30, 100 / simSpeed);
-      interval = setInterval(() => {
-        axios.post('https://neurocross-backend.onrender.com/step', params)
-          .then(res => setData(res.data))
-          .catch(err => console.error(err));
-      }, tickMs);
+      tick();
+    } else {
+      setHasConnected(false);
     }
-    return () => clearInterval(interval);
+
+    return () => {
+      active = false;
+      clearTimeout(timeoutId);
+    };
   }, [running, params, simSpeed]);
 
   // Example animation logic: drive a subtle UI shimmer off a lightweight RAF loop.
@@ -51,12 +74,17 @@ function App() {
   }, [running]);
 
   const reset = async () => {
-    await axios.post('https://neurocross-backend.onrender.com/reset');
-    setData({
-      roads: { north: [[], []], south: [[], []], east: [[], []], west: [[], []] },
-      light_state: 'NS_GREEN',
-      metrics: { accidents: 0, avg_speed: 0, throughput: 0 }
-    });
+    try {
+      const url = import.meta.env.VITE_API_URL || 'https://neurocross-backend.onrender.com';
+      await axios.post(`${url}/reset`);
+      setData({
+        roads: { north: [[], []], south: [[], []], east: [[], []], west: [[], []] },
+        light_state: 'NS_GREEN',
+        metrics: { accidents: 0, avg_speed: 0, throughput: 0 }
+      });
+    } catch (err) {
+      console.error("Backend error on reset:", err);
+    }
   };
 
   const MetricCard = ({ label, value, unit }) => (
@@ -144,8 +172,8 @@ function App() {
                 <button
                   onClick={() => setParams({ ...params, weather: 'sunny' })}
                   className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-full text-xs font-medium transition-all duration-300 ease-soft-ease ${params.weather === 'sunny'
-                      ? 'bg-mono-200 text-mono-900 shadow-lift'
-                      : 'text-mono-400 hover:text-mono-200'
+                    ? 'bg-mono-200 text-mono-900 shadow-lift'
+                    : 'text-mono-400 hover:text-mono-200'
                     }`}
                 >
                   <Sun size={14} />
@@ -154,8 +182,8 @@ function App() {
                 <button
                   onClick={() => setParams({ ...params, weather: 'rain' })}
                   className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-full text-xs font-medium transition-all duration-300 ease-soft-ease ${params.weather === 'rain'
-                      ? 'bg-mono-200 text-mono-900 shadow-lift'
-                      : 'text-mono-400 hover:text-mono-200'
+                    ? 'bg-mono-200 text-mono-900 shadow-lift'
+                    : 'text-mono-400 hover:text-mono-200'
                     }`}
                 >
                   <CloudRain size={14} />
@@ -166,8 +194,8 @@ function App() {
                 <button
                   onClick={() => setParams({ ...params, mode: 'smart' })}
                   className={`flex-1 py-2 rounded-full text-xs font-medium transition-all duration-300 ease-soft-ease ${params.mode === 'smart'
-                      ? 'bg-mono-200 text-mono-900 shadow-lift'
-                      : 'text-mono-400 hover:text-mono-200'
+                    ? 'bg-mono-200 text-mono-900 shadow-lift'
+                    : 'text-mono-400 hover:text-mono-200'
                     }`}
                 >
                   Smart
@@ -175,8 +203,8 @@ function App() {
                 <button
                   onClick={() => setParams({ ...params, mode: 'fixed' })}
                   className={`flex-1 py-2 rounded-full text-xs font-medium transition-all duration-300 ease-soft-ease ${params.mode === 'fixed'
-                      ? 'bg-mono-200 text-mono-900 shadow-lift'
-                      : 'text-mono-400 hover:text-mono-200'
+                    ? 'bg-mono-200 text-mono-900 shadow-lift'
+                    : 'text-mono-400 hover:text-mono-200'
                     }`}
                 >
                   Fixed
@@ -227,11 +255,13 @@ function App() {
               <button
                 onClick={() => setRunning(!running)}
                 className={`flex-1 py-3 rounded-2xl font-semibold flex justify-center items-center gap-2 transition-all duration-300 ease-soft-ease shadow-lift ${running
-                    ? 'bg-mono-800 text-mono-200 border border-mono-600/50 hover:bg-mono-700'
-                    : 'bg-mono-200 text-mono-950 hover:bg-mono-100'
-                  }`}
+                  ? 'bg-mono-800 text-mono-200 border border-mono-600/50 hover:bg-mono-700'
+                  : 'bg-mono-200 text-mono-950 hover:bg-mono-100'
+                  } ${running && !hasConnected ? 'opacity-80' : ''}`}
               >
-                {running ? <><Pause size={16} /> Pause</> : <><Play size={16} /> Start</>}
+                {running ? (
+                  hasConnected ? <><Pause size={16} /> Pause</> : <><div className="animate-spin w-4 h-4 border-2 border-mono-200 border-t-transparent rounded-full" /> Waking Server...</>
+                ) : <><Play size={16} /> Start</>}
               </button>
               <button
                 onClick={reset}
