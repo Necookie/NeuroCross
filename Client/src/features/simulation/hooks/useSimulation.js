@@ -3,8 +3,6 @@ import { useCallback, useEffect, useState, useRef } from 'react';
 import { IntersectionSim } from '../engine/IntersectionSim';
 import { DEFAULT_PARAMS, createDefaultData } from '../constants';
 
-const toJson = (value) => JSON.stringify(value);
-
 export const useSimulation = () => {
   const [data, setData] = useState(createDefaultData);
   const [params, setParams] = useState(DEFAULT_PARAMS);
@@ -17,7 +15,7 @@ export const useSimulation = () => {
   const paramsRef = useRef(params);
   const simSpeedRef = useRef(simSpeed);
 
-  // Keep refs in sync with state
+  // Keep refs in sync with state so the tick loop always reads fresh values.
   useEffect(() => {
     paramsRef.current = params;
     simSpeedRef.current = simSpeed;
@@ -32,7 +30,7 @@ export const useSimulation = () => {
     let active = true;
     setHasConnected(true); // Always immediately 'connected' because it's local
 
-    // Function to schedule the next tick
+    // Function to schedule the next tick.
     const tick = () => {
       if (!active || !running) return;
 
@@ -45,7 +43,7 @@ export const useSimulation = () => {
       }
 
       // Schedule next tick based on speed
-      const tickMs = Math.max(16, 100 / simSpeedRef.current); // Allow up to ~60FPS
+      const tickMs = Math.max(16, 100 / simSpeedRef.current); // Cap at ~60FPS.
       timeoutRef.current = setTimeout(tick, tickMs);
     };
 

@@ -1,7 +1,7 @@
-import React, { memo, useState } from 'react';
+import React, { memo, useMemo } from 'react';
 
 const RainEffect = () => {
-  const [drops] = useState(() =>
+  const drops = useMemo(() =>
     Array.from({ length: 100 }).map((_, i) => ({
       id: i,
       left: `${Math.random() * 100}%`,
@@ -9,7 +9,7 @@ const RainEffect = () => {
       animationDelay: `${Math.random() * 2}s`,
       opacity: 0.3 + Math.random() * 0.4
     }))
-  );
+  , []);
 
   return (
     <div className="absolute inset-0 z-50 pointer-events-none overflow-hidden">
@@ -20,27 +20,15 @@ const RainEffect = () => {
       {drops.map((drop) => (
         <div
           key={drop.id}
-          className="absolute top-[-20px] w-[2px] h-[20px] bg-mono-200/40 rounded-full"
+          className="absolute top-[-20px] w-[2px] h-[20px] bg-mono-200/40 rounded-full rain-drop"
           style={{
             left: drop.left,
             opacity: drop.opacity,
-            animation: `fall ${drop.animationDuration} linear infinite`,
-            animationDelay: drop.animationDelay,
+            animationDuration: drop.animationDuration,
+            animationDelay: drop.animationDelay
           }}
         />
       ))}
-      
-      {/* CSS Animation for falling rain */}
-      <style>{`
-        @keyframes fall {
-          0% {
-            transform: translateY(-20px) rotate(15deg);
-          }
-          100% {
-            transform: translateY(120%) rotate(15deg);
-          }
-        }
-      `}</style>
     </div>
   );
 };

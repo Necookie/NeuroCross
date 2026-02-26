@@ -82,7 +82,7 @@ const Vehicle = ({ data, speedFactor }) => {
       initial={style} // PREVENTS FLYING BUG
       animate={style}
       transition={{ duration: 0.18 / speed, ease: [0.4, 0, 0.2, 1] }}
-      style={{ transform: 'translate(-50%, -50%)' }}
+      style={{ transform: 'translate3d(-50%, -50%, 0)', willChange: 'transform' }}
       className="absolute z-20 origin-center pointer-events-none"
     >
       <Template color={color} className={dimensions} />

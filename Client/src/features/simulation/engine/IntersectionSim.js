@@ -28,6 +28,7 @@ export class IntersectionSim {
             east: [[], []],
             west: [[], []],
         };
+        this.roadKeys = ['north', 'south', 'east', 'west'];
         this.state = 'N_GREEN';
         this.timer = 0.0;
         this.globalId = 0;
@@ -45,15 +46,19 @@ export class IntersectionSim {
         let totalSpeed = 0.0;
         let carCount = 0;
 
-        for (const [direction, lanes] of Object.entries(this.roads)) {
+        // Update vehicle physics and remove vehicles that exit the road.
+        for (let d = 0; d < this.roadKeys.length; d += 1) {
+            const direction = this.roadKeys[d];
+            const lanes = this.roads[direction];
             const isGreen = this._isGreen(direction);
             const intersectionBlocked = this._isIntersectionBlockedGroup([direction]);
 
-            lanes.forEach((cars, laneIdx) => {
+            for (let laneIdx = 0; laneIdx < lanes.length; laneIdx += 1) {
+                const cars = lanes[laneIdx];
                 const stopTarget = (!isGreen || intersectionBlocked) ? STOP_LINE : null;
 
                 let leader = null;
-                for (let i = 0; i < cars.length; i++) {
+                for (let i = 0; i < cars.length; i += 1) {
                     const car = cars[i];
                     car.updatePhysics(dt, leader, stopTarget, friction);
                     totalSpeed += car.speed;
@@ -63,7 +68,7 @@ export class IntersectionSim {
 
                 if (cars.length > 0) {
                     let finishedCount = 0;
-                    for (let i = 0; i < cars.length; i++) {
+                    for (let i = 0; i < cars.length; i += 1) {
                         if (cars[i].pos >= ROAD_LENGTH) {
                             finishedCount += 1;
                         } else {
@@ -76,7 +81,7 @@ export class IntersectionSim {
                         this.roads[direction][laneIdx] = cars.slice(finishedCount);
                     }
                 }
-            });
+            }
         }
 
         if (carCount > 0) {
@@ -149,8 +154,11 @@ export class IntersectionSim {
     }
 
     _spawnTraffic(params, dt) {
-        for (const direction of Object.keys(this.roads)) {
-            let rate = ['north', 'south'].includes(direction) ? params.arrival_rate_ns : params.arrival_rate_ew;
+        for (let i = 0; i < this.roadKeys.length; i += 1) {
+            const direction = this.roadKeys[i];
+            let rate = (direction === 'north' || direction === 'south')
+                ? params.arrival_rate_ns
+                : params.arrival_rate_ew;
             if (params.weather === 'rain') {
                 rate *= 0.8;
             }
@@ -205,21 +213,30 @@ export class IntersectionSim {
     }
 
     getState() {
+        // Build a plain JSON snapshot for React rendering.
         const jsonRoads = { north: [[], []], south: [[], []], east: [[], []], west: [[], []] };
-        for (const [d, lanes] of Object.entries(this.roads)) {
-            lanes.forEach((lane, i) => {
-                jsonRoads[d][i] = lane.map(c => ({
-                    id: c.id,
-                    pos: c.pos,
-                    type: c.type,
-                    status: c.status,
-                    lane: c.lane,
-                    x: c.x,
-                    y: c.y,
-                    angle: c.angle,
-                    route: c.route
-                }));
-            });
+        for (let d = 0; d < this.roadKeys.length; d += 1) {
+            const dir = this.roadKeys[d];
+            const lanes = this.roads[dir];
+            for (let i = 0; i < lanes.length; i += 1) {
+                const lane = lanes[i];
+                const out = new Array(lane.length);
+                for (let j = 0; j < lane.length; j += 1) {
+                    const c = lane[j];
+                    out[j] = {
+                        id: c.id,
+                        pos: c.pos,
+                        type: c.type,
+                        status: c.status,
+                        lane: c.lane,
+                        x: c.x,
+                        y: c.y,
+                        angle: c.angle,
+                        route: c.route
+                    };
+                }
+                jsonRoads[dir][i] = out;
+            }
         }
         return { light_state: this.state, roads: jsonRoads, metrics: this.metrics };
     }

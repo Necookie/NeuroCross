@@ -1,4 +1,4 @@
-import React, { memo } from 'react';
+import React, { memo, useCallback } from 'react';
 import { CloudRain, Play, Pause, RotateCcw, Sun } from 'lucide-react';
 
 import MetricCard from '../../../components/ui/MetricCard';
@@ -14,8 +14,13 @@ const ControlsPanel = ({
   hasConnected,
   onToggleRunning,
   onReset
-}) => (
-  <div className="space-y-6">
+}) => {
+  const updateParam = useCallback((key, value) => {
+    setParams((prev) => ({ ...prev, [key]: value }));
+  }, [setParams]);
+
+  return (
+    <div className="space-y-6">
     <div className="glass-panel rounded-3xl p-5 space-y-5">
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-semibold text-mono-100">Environment</h3>
@@ -23,7 +28,7 @@ const ControlsPanel = ({
       </div>
       <div className="flex bg-mono-950/70 p-1 rounded-full border border-mono-800/70">
         <button
-          onClick={() => setParams({ ...params, weather: 'sunny' })}
+          onClick={() => updateParam('weather', 'sunny')}
           className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-full text-xs font-medium transition-all duration-300 ease-soft-ease ${params.weather === 'sunny'
               ? 'bg-mono-200 text-mono-900 shadow-lift'
               : 'text-mono-400 hover:text-mono-200'
@@ -33,7 +38,7 @@ const ControlsPanel = ({
           Clear
         </button>
         <button
-          onClick={() => setParams({ ...params, weather: 'rain' })}
+          onClick={() => updateParam('weather', 'rain')}
           className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-full text-xs font-medium transition-all duration-300 ease-soft-ease ${params.weather === 'rain'
               ? 'bg-mono-200 text-mono-900 shadow-lift'
               : 'text-mono-400 hover:text-mono-200'
@@ -45,7 +50,7 @@ const ControlsPanel = ({
       </div>
       <div className="flex bg-mono-950/70 p-1 rounded-full border border-mono-800/70">
         <button
-          onClick={() => setParams({ ...params, mode: 'smart' })}
+          onClick={() => updateParam('mode', 'smart')}
           className={`flex-1 py-2 rounded-full text-xs font-medium transition-all duration-300 ease-soft-ease ${params.mode === 'smart'
               ? 'bg-mono-200 text-mono-900 shadow-lift'
               : 'text-mono-400 hover:text-mono-200'
@@ -54,7 +59,7 @@ const ControlsPanel = ({
           Smart
         </button>
         <button
-          onClick={() => setParams({ ...params, mode: 'fixed' })}
+          onClick={() => updateParam('mode', 'fixed')}
           className={`flex-1 py-2 rounded-full text-xs font-medium transition-all duration-300 ease-soft-ease ${params.mode === 'fixed'
               ? 'bg-mono-200 text-mono-900 shadow-lift'
               : 'text-mono-400 hover:text-mono-200'
@@ -70,7 +75,7 @@ const ControlsPanel = ({
           {['dark', 'light', 'coffee', 'candy'].map(t => (
             <button
               key={t}
-              onClick={() => setParams({ ...params, theme: t })}
+              onClick={() => updateParam('theme', t)}
               className={`py-2 rounded-xl text-xs font-medium capitalize transition-all duration-300 ease-soft-ease ${(params.theme || 'dark') === t
                   ? 'bg-mono-200 text-mono-900 shadow-lift scale-105'
                   : 'bg-mono-950/50 text-mono-400 hover:text-mono-200 hover:bg-mono-900/50 border border-mono-800/50'
@@ -91,7 +96,7 @@ const ControlsPanel = ({
         min={0.1}
         max={3.0}
         step={0.1}
-        onChange={(e) => setParams({ ...params, arrival_rate_ns: parseFloat(e.target.value) })}
+        onChange={(e) => updateParam('arrival_rate_ns', parseFloat(e.target.value))}
       />
       <Slider
         label="East / West"
@@ -99,7 +104,7 @@ const ControlsPanel = ({
         min={0.1}
         max={3.0}
         step={0.1}
-        onChange={(e) => setParams({ ...params, arrival_rate_ew: parseFloat(e.target.value) })}
+        onChange={(e) => updateParam('arrival_rate_ew', parseFloat(e.target.value))}
       />
     </div>
 
@@ -154,7 +159,7 @@ const ControlsPanel = ({
         <RotateCcw size={18} />
       </button>
     </div>
-  </div>
-);
+  );
+};
 
 export default memo(ControlsPanel);
