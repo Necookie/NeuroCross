@@ -58,44 +58,22 @@ const getVehicleColor = (id) => {
 
 const getDimensions = (type) => VEHICLE_DIMENSIONS[type] || 'w-8 h-4';
 
-const getPos = (direction, laneOffset, progress, orderIndex) => {
-  const lo = `${laneOffset}%`;
-  const gapPx = Math.min(orderIndex * 6, 24);
-  const gap = { x: 0, y: 0 };
-  switch (direction) {
-    case 'north':
-      gap.y = gapPx;
-      return { top: `${100 - progress}%`, left: `calc(50% + ${lo})`, rotate: -90, ...gap };
-    case 'south':
-      gap.y = -gapPx;
-      return { top: `${progress}%`, left: `calc(50% - ${lo})`, rotate: 90, ...gap };
-    case 'east':
-      gap.x = -gapPx;
-      return { left: `${progress}%`, top: `calc(50% + ${lo})`, rotate: 0, ...gap };
-    case 'west':
-      gap.x = gapPx;
-      return { left: `${100 - progress}%`, top: `calc(50% - ${lo})`, rotate: 180, ...gap };
-    default:
-      return {};
-  }
-};
-
 const MotionDiv = motion.div;
 
-const Vehicle = ({ data, direction, laneIndex, orderIndex, speedFactor }) => {
+const Vehicle = ({ data, speedFactor }) => {
   const color = useMemo(() => getVehicleColor(data.id), [data.id]);
   const dimensions = useMemo(() => getDimensions(data.type), [data.type]);
   const Template = VEHICLE_COMPONENTS[data.type] || Car;
 
-  const progress = (data.pos / 400) * 100;
-
-  // LANE OFFSETS - calculated from road geometry:
-  // Road is 320px on 800px canvas. Each direction has 2x 80px lanes.
-  // Inner lane center = 40px from middle = 5% of 800px
-  // Outer lane center = 120px from middle = 15% of 800px
-  const laneOffset = laneIndex === 1 ? 5 : 15;
-
-  const style = getPos(direction, laneOffset, progress, orderIndex);
+  // The physics engine operates on an 800x800 coordinate system relative to the road length.
+  // We can convert these absolute pixels to percentages for responsive rendering, 
+  // or just use pixels since the Intersection container is a known size.
+  // Converting to % handles container resizing automatically:
+  const style = {
+    top: `${(data.y / 800) * 100}%`,
+    left: `${(data.x / 800) * 100}%`,
+    rotate: data.angle,
+  };
 
   const speed = Math.max(0.5, Math.min(speedFactor ?? 1, 3));
 

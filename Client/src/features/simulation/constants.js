@@ -7,6 +7,6 @@ export const DEFAULT_PARAMS = {
 
 export const createDefaultData = () => ({
   roads: { north: [[], []], south: [[], []], east: [[], []], west: [[], []] },
-  light_state: 'NS_GREEN',
+  light_state: 'N_GREEN',
   metrics: { accidents: 0, avg_speed: 0, throughput: 0 }
 });

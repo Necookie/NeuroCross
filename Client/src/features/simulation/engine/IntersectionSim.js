@@ -28,7 +28,7 @@ export class IntersectionSim {
             east: [[], []],
             west: [[], []],
         };
-        this.state = 'NS_GREEN';
+        this.state = 'N_GREEN';
         this.timer = 0.0;
         this.globalId = 0;
         this.metrics = { accidents: 0, throughput: 0, avg_speed: 0 };
@@ -42,15 +42,12 @@ export class IntersectionSim {
         this._updateLights();
         this._spawnTraffic(params, dt);
 
-        const blockedNs = this._isIntersectionBlockedGroup(['north', 'south']);
-        const blockedEw = this._isIntersectionBlockedGroup(['east', 'west']);
-
         let totalSpeed = 0.0;
         let carCount = 0;
 
         for (const [direction, lanes] of Object.entries(this.roads)) {
             const isGreen = this._isGreen(direction);
-            const intersectionBlocked = ['north', 'south'].includes(direction) ? blockedNs : blockedEw;
+            const intersectionBlocked = this._isIntersectionBlockedGroup([direction]);
 
             lanes.forEach((cars, laneIdx) => {
                 const stopTarget = (!isGreen || intersectionBlocked) ? STOP_LINE : null;
@@ -90,28 +87,50 @@ export class IntersectionSim {
     }
 
     _updateLights() {
-        if (this.state === 'NS_GREEN' && this.timer > 8) {
-            this.state = 'NS_YELLOW';
-            this.timer = 0;
-        } else if (this.state === 'NS_YELLOW' && this.timer > 2) {
-            this.state = 'ALL_RED_NS_TO_EW';
-            this.timer = 0;
-        } else if (this.state === 'ALL_RED_NS_TO_EW') {
-            if (this._isClear(['north', 'south']) || this.timer > 5) {
-                this.state = 'EW_GREEN';
-                this.timer = 0;
-            }
-        } else if (this.state === 'EW_GREEN' && this.timer > 8) {
-            this.state = 'EW_YELLOW';
-            this.timer = 0;
-        } else if (this.state === 'EW_YELLOW' && this.timer > 2) {
-            this.state = 'ALL_RED_EW_TO_NS';
-            this.timer = 0;
-        } else if (this.state === 'ALL_RED_EW_TO_NS') {
-            if (this._isClear(['east', 'west']) || this.timer > 5) {
-                this.state = 'NS_GREEN';
-                this.timer = 0;
-            }
+        const GREEN_DUR = 6;
+        const YELLOW_DUR = 2;
+        const RED_DUR = 4;
+
+        switch (this.state) {
+            case 'N_GREEN':
+                if (this.timer > GREEN_DUR) { this.state = 'N_YELLOW'; this.timer = 0; }
+                break;
+            case 'N_YELLOW':
+                if (this.timer > YELLOW_DUR) { this.state = 'N_ALL_RED'; this.timer = 0; }
+                break;
+            case 'N_ALL_RED':
+                if (this._isClear(['north']) || this.timer > RED_DUR) { this.state = 'S_GREEN'; this.timer = 0; }
+                break;
+
+            case 'S_GREEN':
+                if (this.timer > GREEN_DUR) { this.state = 'S_YELLOW'; this.timer = 0; }
+                break;
+            case 'S_YELLOW':
+                if (this.timer > YELLOW_DUR) { this.state = 'S_ALL_RED'; this.timer = 0; }
+                break;
+            case 'S_ALL_RED':
+                if (this._isClear(['south']) || this.timer > RED_DUR) { this.state = 'E_GREEN'; this.timer = 0; }
+                break;
+
+            case 'E_GREEN':
+                if (this.timer > GREEN_DUR) { this.state = 'E_YELLOW'; this.timer = 0; }
+                break;
+            case 'E_YELLOW':
+                if (this.timer > YELLOW_DUR) { this.state = 'E_ALL_RED'; this.timer = 0; }
+                break;
+            case 'E_ALL_RED':
+                if (this._isClear(['east']) || this.timer > RED_DUR) { this.state = 'W_GREEN'; this.timer = 0; }
+                break;
+
+            case 'W_GREEN':
+                if (this.timer > GREEN_DUR) { this.state = 'W_YELLOW'; this.timer = 0; }
+                break;
+            case 'W_YELLOW':
+                if (this.timer > YELLOW_DUR) { this.state = 'W_ALL_RED'; this.timer = 0; }
+                break;
+            case 'W_ALL_RED':
+                if (this._isClear(['west']) || this.timer > RED_DUR) { this.state = 'N_GREEN'; this.timer = 0; }
+                break;
         }
     }
 
@@ -141,12 +160,10 @@ export class IntersectionSim {
     }
 
     _isGreen(direction) {
-        if (this.state === 'NS_GREEN' && ['north', 'south'].includes(direction)) {
-            return true;
-        }
-        if (this.state === 'EW_GREEN' && ['east', 'west'].includes(direction)) {
-            return true;
-        }
+        if (this.state === 'N_GREEN' && direction === 'north') return true;
+        if (this.state === 'S_GREEN' && direction === 'south') return true;
+        if (this.state === 'E_GREEN' && direction === 'east') return true;
+        if (this.state === 'W_GREEN' && direction === 'west') return true;
         return false;
     }
 
@@ -177,8 +194,13 @@ export class IntersectionSim {
         const types = Object.keys(VEHICLE_SPECS);
         const probs = types.map(t => VEHICLE_SPECS[t].prob);
 
+        // Assign a route based on lane: inner (lane 1) = Left, outer (lane 0) = Right
+        const routes = laneIdx === 1 ? ['straight', 'left'] : ['straight', 'right'];
+        const routeProbs = [0.85, 0.15];
+        const route = weightedRandomChoice(routes, routeProbs);
+
         const vType = weightedRandomChoice(types, probs);
-        laneCars.push(VehicleAgent.spawn(this.globalId, vType, laneIdx));
+        laneCars.push(VehicleAgent.spawn(this.globalId, vType, laneIdx, route, direction));
     }
 
     getState() {
@@ -186,7 +208,15 @@ export class IntersectionSim {
         for (const [d, lanes] of Object.entries(this.roads)) {
             lanes.forEach((lane, i) => {
                 jsonRoads[d][i] = lane.map(c => ({
-                    id: c.id, pos: c.pos, type: c.type, status: c.status, lane: c.lane
+                    id: c.id,
+                    pos: c.pos,
+                    type: c.type,
+                    status: c.status,
+                    lane: c.lane,
+                    x: c.x,
+                    y: c.y,
+                    angle: c.angle,
+                    route: c.route
                 }));
             });
         }

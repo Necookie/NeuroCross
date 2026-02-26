@@ -35,12 +35,12 @@ const RoadLayer = ({ roads, lightState, weather, speedFactor }) => {
 
       {/* LIGHTS */}
       {/* North-South Lights */}
-      <div className="absolute top-[24%] left-[24%] z-40"><TrafficLight state={lightState === 'NS_GREEN' ? "GREEN" : lightState === 'NS_YELLOW' ? "YELLOW" : "RED"} /></div>
-      <div className="absolute bottom-[24%] right-[24%] z-40"><TrafficLight state={lightState === 'NS_GREEN' ? "GREEN" : lightState === 'NS_YELLOW' ? "YELLOW" : "RED"} /></div>
+      <div className="absolute top-[24%] left-[24%] z-40"><TrafficLight state={lightState === 'S_GREEN' ? "GREEN" : lightState === 'S_YELLOW' ? "YELLOW" : "RED"} /></div>
+      <div className="absolute bottom-[24%] right-[24%] z-40"><TrafficLight state={lightState === 'N_GREEN' ? "GREEN" : lightState === 'N_YELLOW' ? "YELLOW" : "RED"} /></div>
 
       {/* East-West Lights */}
-      <div className="absolute top-[24%] right-[24%] z-40"><TrafficLight state={lightState === 'EW_GREEN' ? "GREEN" : lightState === 'EW_YELLOW' ? "YELLOW" : "RED"} /></div>
-      <div className="absolute bottom-[24%] left-[24%] z-40"><TrafficLight state={lightState === 'EW_GREEN' ? "GREEN" : lightState === 'EW_YELLOW' ? "YELLOW" : "RED"} /></div>
+      <div className="absolute top-[24%] right-[24%] z-40"><TrafficLight state={lightState === 'W_GREEN' ? "GREEN" : lightState === 'W_YELLOW' ? "YELLOW" : "RED"} /></div>
+      <div className="absolute bottom-[24%] left-[24%] z-40"><TrafficLight state={lightState === 'E_GREEN' ? "GREEN" : lightState === 'E_YELLOW' ? "YELLOW" : "RED"} /></div>
 
       {/* CARS */}
       <div className="absolute inset-0 z-10">
@@ -50,9 +50,6 @@ const RoadLayer = ({ roads, lightState, weather, speedFactor }) => {
               <Vehicle
                 key={c.id}
                 data={c}
-                direction={dir}
-                laneIndex={laneIdx}
-                orderIndex={carIdx}
                 speedFactor={speedFactor}
               />
             ))
