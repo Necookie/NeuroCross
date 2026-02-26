@@ -45,17 +45,19 @@
 
 /* Coffee Theme - Warm mochas, rich espresso */
 .theme-coffee {
-  --mono-50: 35 40% 92%;
-  --mono-100: 35 35% 85%;
-  --mono-200: 30 30% 75%;
-  --mono-300: 30 25% 60%;
-  --mono-400: 25 25% 48%;
-  --mono-500: 25 25% 38%;
-  --mono-600: 20 28% 28%;
-  --mono-700: 20 30% 20%;
-  --mono-800: 20 35% 14%;
-  --mono-900: 15 40% 10%;
-  --mono-950: 15 45% 8%;
+  /* Base palette from https://colorhunt.co/palette/f9f8f6efe9e3d9cfc7c9b59c */
+  --mono-50: 40 20% 97%;
+  --mono-100: 30 27% 91%;
+  --mono-200: 27 19% 82%;
+  --mono-300: 33 29% 70%;
+  /* Tailored deeper tones to extend the palette */
+  --mono-400: 32 26% 60%;
+  --mono-500: 31 26% 50%;
+  --mono-600: 30 28% 40%;
+  --mono-700: 28 30% 30%;
+  --mono-800: 26 32% 22%;
+  --mono-900: 24 34% 16%;
+  --mono-950: 22 36% 10%;
 
   --signal-red: 355 40% 50%;
   --signal-amber: 30 60% 50%;
