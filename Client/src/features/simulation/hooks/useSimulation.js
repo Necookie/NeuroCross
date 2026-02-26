@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, useRef } from 'react';
 
-import { API_URL } from '../../../config';
+import { API_URL, WS_URL } from '../../../config';
 import { DEFAULT_PARAMS, createDefaultData } from '../constants';
 
 const toJson = (value) => JSON.stringify(value);
@@ -12,54 +12,85 @@ export const useSimulation = () => {
   const [simSpeed, setSimSpeed] = useState(1.0);
   const [hasConnected, setHasConnected] = useState(false);
 
+  const wsRef = useRef(null);
+  const timeoutRef = useRef(null);
+  const paramsRef = useRef(params);
+  const simSpeedRef = useRef(simSpeed);
+
+  // Keep refs in sync with state
+  useEffect(() => {
+    paramsRef.current = params;
+    simSpeedRef.current = simSpeed;
+  }, [params, simSpeed]);
+
   useEffect(() => {
     if (!running) {
-      setHasConnected(false);
+      if (wsRef.current) {
+        wsRef.current.close();
+        wsRef.current = null;
+      }
+      clearTimeout(timeoutRef.current);
       return undefined;
     }
 
     let active = true;
-    let timeoutId;
-    let controller;
 
-    const tick = async () => {
+    // Function to schedule the next tick
+    const scheduleNextTick = () => {
       if (!active || !running) return;
-      controller = new AbortController();
-      try {
-        const res = await fetch(`${API_URL}/step`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: toJson(params),
-          signal: controller.signal
-        });
-        if (!res.ok) {
-          throw new Error(`Backend error ${res.status}`);
+      const tickMs = Math.max(30, 100 / simSpeedRef.current);
+      timeoutRef.current = setTimeout(() => {
+        if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+          wsRef.current.send(toJson(paramsRef.current));
         }
-        const payload = await res.json();
-        if (active) {
-          setData(payload);
-          setHasConnected(true);
-        }
-      } catch (err) {
-        if (err.name !== 'AbortError') {
-          console.error('Backend error:', err);
-        }
-      }
-
-      if (active && running) {
-        const tickMs = Math.max(30, 100 / simSpeed);
-        timeoutId = setTimeout(tick, tickMs);
-      }
+      }, tickMs);
     };
 
-    tick();
+    // Initialize WebSocket
+    if (!wsRef.current || wsRef.current.readyState === WebSocket.CLOSED) {
+      setHasConnected(false);
+      const ws = new WebSocket(`${WS_URL}/ws/step`);
+      wsRef.current = ws;
+
+      ws.onopen = () => {
+        if (!active) return;
+        setHasConnected(true);
+        // Kick off the first step immediately
+        ws.send(toJson(paramsRef.current));
+      };
+
+      ws.onmessage = (event) => {
+        if (!active) return;
+        try {
+          const payload = JSON.parse(event.data);
+          setData(payload);
+          scheduleNextTick();
+        } catch (err) {
+          console.error('Failed to parse WS message:', err);
+        }
+      };
+
+      ws.onerror = (error) => {
+        if (!active) return;
+        console.error('WebSocket error:', error);
+      };
+
+      ws.onclose = () => {
+        if (!active) return;
+        setHasConnected(false);
+      };
+    } else if (wsRef.current.readyState === WebSocket.OPEN) {
+      // If we resumed running while WS was open, kick off the loop again
+      wsRef.current.send(toJson(paramsRef.current));
+    }
 
     return () => {
       active = false;
-      if (controller) controller.abort();
-      clearTimeout(timeoutId);
+      // We don't close the WebSocket here on every params change,
+      // it only gets closed when !running (handled at the top of effect)
+      clearTimeout(timeoutRef.current);
     };
-  }, [running, params, simSpeed]);
+  }, [running]);
 
   const reset = useCallback(async () => {
     try {
