@@ -197,7 +197,7 @@ export class IntersectionSim {
 
         // Assign a route based on lane: inner (lane 1) = Left, outer (lane 0) = Right
         const routes = laneIdx === 1 ? ['straight', 'left'] : ['straight', 'right'];
-        const routeProbs = [0.85, 0.15];
+        const routeProbs = [0.60, 0.40]; // 40% chance of turning
         const route = weightedRandomChoice(routes, routeProbs);
 
         const vType = weightedRandomChoice(types, probs);

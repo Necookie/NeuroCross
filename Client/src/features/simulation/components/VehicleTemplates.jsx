@@ -26,10 +26,18 @@ export const Suv = ({ color, className }) => (
 );
 
 export const Jeepney = ({ color, className }) => (
-  <svg viewBox="0 0 50 22" className={`drop-shadow-lg ${className}`}>
-    <rect x="0" y="2" width="50" height="18" rx="1" fill={color} style={{ stroke: 'hsl(var(--mono-700) / 0.6)' }} />
-    <rect x="2" y="4" width="30" height="14" fill="hsl(var(--mono-950))" opacity="0.35" />
-    <path d="M 38 0 L 50 2 L 50 20 L 38 22 Z" fill="hsl(var(--mono-600))" />
+  <svg viewBox="0 0 54 22" className={`drop-shadow-lg ${className}`}>
+    {/* Main long body */}
+    <rect x="0" y="2" width="42" height="18" rx="1" fill={color} style={{ stroke: 'hsl(var(--mono-700) / 0.6)' }} />
+    {/* Silver roof rack */}
+    <rect x="2" y="3" width="38" height="16" fill="hsl(var(--mono-300))" opacity="0.6" />
+    <line x1="10" y1="3" x2="10" y2="19" stroke="hsl(var(--mono-700))" strokeWidth="1" strokeOpacity="0.4" />
+    <line x1="20" y1="3" x2="20" y2="19" stroke="hsl(var(--mono-700))" strokeWidth="1" strokeOpacity="0.4" />
+    <line x1="30" y1="3" x2="30" y2="19" stroke="hsl(var(--mono-700))" strokeWidth="1" strokeOpacity="0.4" />
+    {/* Front Hood */}
+    <path d="M 42 4 L 54 6 L 54 16 L 42 18 Z" fill={color} />
+    {/* Front Windshield */}
+    <rect x="38" y="5" width="4" height="12" fill="hsl(var(--mono-950))" opacity="0.8" />
   </svg>
 );
 
@@ -43,11 +51,18 @@ export const Bus = ({ color, className }) => (
 );
 
 export const Bike = ({ color, className }) => (
-  <svg viewBox="0 0 20 10" className={`drop-shadow-sm ${className}`}>
-    <rect x="5" y="4" width="10" height="2" fill="hsl(var(--mono-700))" />
-    <circle cx="4" cy="5" r="3" fill="hsl(var(--mono-950))" />
-    <circle cx="16" cy="5" r="3" fill="hsl(var(--mono-950))" />
-    <circle cx="10" cy="5" r="3" fill={color} />
+  // To make the bike visible on the dark road, we'll draw a top-down view of a cyclist
+  <svg viewBox="0 0 20 12" className={`drop-shadow-sm ${className}`}>
+    {/* Bike frame and tires */}
+    <rect x="2" y="5" width="16" height="2" fill="hsl(var(--mono-500))" />
+    <rect x="0" y="4" width="4" height="4" fill="hsl(var(--mono-950))" />
+    <rect x="16" y="4" width="4" height="4" fill="hsl(var(--mono-950))" />
+    {/* Handlebars */}
+    <rect x="14" y="2" width="2" height="8" fill="hsl(var(--mono-400))" />
+    {/* Cyclist (Color represents their shirt) */}
+    <circle cx="10" cy="6" r="4" fill={color} />
+    {/* Cyclist Helmet */}
+    <circle cx="11" cy="6" r="2.5" fill="hsl(var(--mono-200))" />
   </svg>
 );
 
