@@ -2,7 +2,8 @@ export const DEFAULT_PARAMS = {
   arrival_rate_ns: 0.8,
   arrival_rate_ew: 0.4,
   mode: 'smart',
-  weather: 'sunny'
+  weather: 'sunny',
+  theme: 'dark'
 };
 
 export const createDefaultData = () => ({

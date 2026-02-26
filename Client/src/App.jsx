@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 
 import RoadLayer from './features/simulation/components/RoadLayer';
 import ControlsPanel from './features/simulation/components/ControlsPanel';
@@ -18,10 +18,16 @@ function App() {
     reset
   } = useSimulation();
 
+  useEffect(() => {
+    document.body.className = params.theme && params.theme !== 'dark'
+      ? `theme-${params.theme}`
+      : '';
+  }, [params.theme]);
+
   const toggleRunning = () => setRunning((prev) => !prev);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-mono-950 via-mono-900 to-mono-950 text-mono-100 font-sans px-6 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-mono-950 via-mono-900 to-mono-950 text-mono-100 font-sans px-6 py-8 transition-colors duration-700 ease-in-out">
       <div className="max-w-6xl mx-auto space-y-8">
         <StatusHeader mode={params.mode} running={running} />
 

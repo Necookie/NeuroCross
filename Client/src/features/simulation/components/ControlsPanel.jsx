@@ -24,22 +24,20 @@ const ControlsPanel = ({
       <div className="flex bg-mono-950/70 p-1 rounded-full border border-mono-800/70">
         <button
           onClick={() => setParams({ ...params, weather: 'sunny' })}
-          className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-full text-xs font-medium transition-all duration-300 ease-soft-ease ${
-            params.weather === 'sunny'
+          className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-full text-xs font-medium transition-all duration-300 ease-soft-ease ${params.weather === 'sunny'
               ? 'bg-mono-200 text-mono-900 shadow-lift'
               : 'text-mono-400 hover:text-mono-200'
-          }`}
+            }`}
         >
           <Sun size={14} />
           Clear
         </button>
         <button
           onClick={() => setParams({ ...params, weather: 'rain' })}
-          className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-full text-xs font-medium transition-all duration-300 ease-soft-ease ${
-            params.weather === 'rain'
+          className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-full text-xs font-medium transition-all duration-300 ease-soft-ease ${params.weather === 'rain'
               ? 'bg-mono-200 text-mono-900 shadow-lift'
               : 'text-mono-400 hover:text-mono-200'
-          }`}
+            }`}
         >
           <CloudRain size={14} />
           Rain
@@ -48,24 +46,40 @@ const ControlsPanel = ({
       <div className="flex bg-mono-950/70 p-1 rounded-full border border-mono-800/70">
         <button
           onClick={() => setParams({ ...params, mode: 'smart' })}
-          className={`flex-1 py-2 rounded-full text-xs font-medium transition-all duration-300 ease-soft-ease ${
-            params.mode === 'smart'
+          className={`flex-1 py-2 rounded-full text-xs font-medium transition-all duration-300 ease-soft-ease ${params.mode === 'smart'
               ? 'bg-mono-200 text-mono-900 shadow-lift'
               : 'text-mono-400 hover:text-mono-200'
-          }`}
+            }`}
         >
           Smart
         </button>
         <button
           onClick={() => setParams({ ...params, mode: 'fixed' })}
-          className={`flex-1 py-2 rounded-full text-xs font-medium transition-all duration-300 ease-soft-ease ${
-            params.mode === 'fixed'
+          className={`flex-1 py-2 rounded-full text-xs font-medium transition-all duration-300 ease-soft-ease ${params.mode === 'fixed'
               ? 'bg-mono-200 text-mono-900 shadow-lift'
               : 'text-mono-400 hover:text-mono-200'
-          }`}
+            }`}
         >
           Fixed
         </button>
+      </div>
+
+      <div className="pt-2">
+        <div className="mb-3 text-[10px] uppercase tracking-[0.2em] font-semibold text-mono-400">Color Theme</div>
+        <div className="grid grid-cols-2 gap-2">
+          {['dark', 'light', 'coffee', 'candy'].map(t => (
+            <button
+              key={t}
+              onClick={() => setParams({ ...params, theme: t })}
+              className={`py-2 rounded-xl text-xs font-medium capitalize transition-all duration-300 ease-soft-ease ${(params.theme || 'dark') === t
+                  ? 'bg-mono-200 text-mono-900 shadow-lift scale-105'
+                  : 'bg-mono-950/50 text-mono-400 hover:text-mono-200 hover:bg-mono-900/50 border border-mono-800/50'
+                }`}
+            >
+              {t}
+            </button>
+          ))}
+        </div>
       </div>
     </div>
 
@@ -111,11 +125,10 @@ const ControlsPanel = ({
     <div className="flex gap-3">
       <button
         onClick={onToggleRunning}
-        className={`flex-1 py-3 rounded-2xl font-semibold flex justify-center items-center gap-2 transition-all duration-300 ease-soft-ease shadow-lift ${
-          running
+        className={`flex-1 py-3 rounded-2xl font-semibold flex justify-center items-center gap-2 transition-all duration-300 ease-soft-ease shadow-lift ${running
             ? 'bg-mono-800 text-mono-200 border border-mono-600/50 hover:bg-mono-700'
             : 'bg-mono-200 text-mono-950 hover:bg-mono-100'
-        } ${running && !hasConnected ? 'opacity-80' : ''}`}
+          } ${running && !hasConnected ? 'opacity-80' : ''}`}
       >
         {running ? (
           hasConnected ? (

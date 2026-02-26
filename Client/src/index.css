@@ -4,7 +4,7 @@
 
 @layer base {
   :root {
-    /* Warm slate blue base hue */
+    /* Warm slate blue base hue (Default Dark) */
     --mono-50: 222 28% 92%;
     --mono-100: 222 24% 86%;
     --mono-200: 221 22% 78%;
@@ -22,7 +22,66 @@
     --signal-amber: 36 32% 52%;
     --signal-green: 142 22% 40%;
   }
+}
 
+/* Light Theme - Airy and clean white/gray with inverted lightness */
+.theme-light {
+  --mono-50: 210 16% 12%;
+  --mono-100: 210 16% 18%;
+  --mono-200: 210 14% 28%;
+  --mono-300: 210 12% 40%;
+  --mono-400: 210 10% 52%;
+  --mono-500: 210 10% 64%;
+  --mono-600: 210 12% 76%;
+  --mono-700: 210 14% 86%;
+  --mono-800: 210 16% 92%;
+  --mono-900: 210 18% 96%;
+  --mono-950: 210 20% 98%;
+
+  --signal-red: 5 60% 55%;
+  --signal-amber: 35 70% 50%;
+  --signal-green: 145 50% 45%;
+}
+
+/* Coffee Theme - Warm mochas, rich espresso */
+.theme-coffee {
+  --mono-50: 35 40% 92%;
+  --mono-100: 35 35% 85%;
+  --mono-200: 30 30% 75%;
+  --mono-300: 30 25% 60%;
+  --mono-400: 25 25% 48%;
+  --mono-500: 25 25% 38%;
+  --mono-600: 20 28% 28%;
+  --mono-700: 20 30% 20%;
+  --mono-800: 20 35% 14%;
+  --mono-900: 15 40% 10%;
+  --mono-950: 15 45% 8%;
+
+  --signal-red: 355 40% 50%;
+  --signal-amber: 30 60% 50%;
+  --signal-green: 120 20% 45%;
+}
+
+/* Candy Theme - Vibrant neon pastels and deep purple */
+.theme-candy {
+  --mono-50: 320 80% 92%;
+  --mono-100: 310 70% 84%;
+  --mono-200: 290 60% 74%;
+  --mono-300: 280 50% 64%;
+  --mono-400: 270 45% 54%;
+  --mono-500: 260 40% 44%;
+  --mono-600: 260 40% 34%;
+  --mono-700: 260 45% 24%;
+  --mono-800: 260 50% 16%;
+  --mono-900: 270 60% 10%;
+  --mono-950: 280 65% 8%;
+
+  --signal-red: 330 80% 60%;
+  --signal-amber: 45 90% 60%;
+  --signal-green: 160 70% 50%;
+}
+
+@layer base {
   body {
     background: hsl(var(--mono-950));
     color: hsl(var(--mono-100));
@@ -60,12 +119,10 @@
   }
 
   .metric-fill {
-    background: linear-gradient(
-      90deg,
-      hsl(var(--mono-600) / 0.6),
-      hsl(var(--mono-400) / 0.6),
-      hsl(var(--mono-600) / 0.6)
-    );
+    background: linear-gradient(90deg,
+        hsl(var(--mono-600) / 0.6),
+        hsl(var(--mono-400) / 0.6),
+        hsl(var(--mono-600) / 0.6));
     animation: metric-shimmer 2.6s ease-in-out infinite;
   }
 }
@@ -74,9 +131,11 @@
   0% {
     transform: translateX(-6%);
   }
+
   50% {
     transform: translateX(4%);
   }
+
   100% {
     transform: translateX(-6%);
   }
