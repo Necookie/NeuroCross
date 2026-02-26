@@ -55,9 +55,9 @@ const RoadLayer = ({ roads, lightState, weather, speedFactor }) => {
 
       {/* CARS */}
       <div className="absolute inset-0 z-10">
-        {Object.entries(roads).map(([dir, lanes]) =>
-          lanes.map((cars, laneIdx) =>
-            cars.map((c, carIdx) => (
+        {Object.entries(roads).map(([, lanes]) =>
+          lanes.map((cars) =>
+            cars.map((c) => (
               <Vehicle
                 key={c.id}
                 data={c}

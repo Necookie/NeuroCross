@@ -1,15 +1,26 @@
 import React, { memo, useMemo } from 'react';
 
 const RainEffect = () => {
-  const drops = useMemo(() =>
-    Array.from({ length: 100 }).map((_, i) => ({
-      id: i,
-      left: `${Math.random() * 100}%`,
-      animationDuration: `${0.5 + Math.random() * 0.5}s`,
-      animationDelay: `${Math.random() * 2}s`,
-      opacity: 0.3 + Math.random() * 0.4
-    }))
-  , []);
+  // Deterministic pseudo-random generator to keep render pure and stable.
+  const rand = (seed) => {
+    let t = seed + 0x6d2b79f5;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+
+  const drops = useMemo(() => (
+    Array.from({ length: 100 }).map((_, i) => {
+      const s = i * 4;
+      return {
+        id: i,
+        left: `${rand(s + 1) * 100}%`,
+        animationDuration: `${0.5 + rand(s + 2) * 0.5}s`,
+        animationDelay: `${rand(s + 3) * 2}s`,
+        opacity: 0.3 + rand(s + 4) * 0.4
+      };
+    })
+  ), []);
 
   return (
     <div className="absolute inset-0 z-50 pointer-events-none overflow-hidden">

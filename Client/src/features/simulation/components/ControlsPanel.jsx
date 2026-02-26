@@ -21,7 +21,7 @@ const ControlsPanel = ({
 
   return (
     <div className="space-y-6">
-    <div className="glass-panel rounded-3xl p-5 space-y-5">
+      <div className="glass-panel rounded-3xl p-5 space-y-5">
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-semibold text-mono-100">Environment</h3>
         <div className="text-[10px] uppercase tracking-[0.3em] text-mono-400">Controls</div>
@@ -86,9 +86,9 @@ const ControlsPanel = ({
           ))}
         </div>
       </div>
-    </div>
+      </div>
 
-    <div className="glass-panel rounded-3xl p-6 space-y-6">
+      <div className="glass-panel rounded-3xl p-6 space-y-6">
       <div className="text-[10px] uppercase tracking-[0.3em] text-mono-400">Flow Inputs</div>
       <Slider
         label="North / South"
@@ -106,9 +106,9 @@ const ControlsPanel = ({
         step={0.1}
         onChange={(e) => updateParam('arrival_rate_ew', parseFloat(e.target.value))}
       />
-    </div>
+      </div>
 
-    <div className="glass-panel rounded-3xl p-6 space-y-6">
+      <div className="glass-panel rounded-3xl p-6 space-y-6">
       <div className="text-[10px] uppercase tracking-[0.3em] text-mono-400">Simulation</div>
       <Slider
         label="Speed"
@@ -119,15 +119,15 @@ const ControlsPanel = ({
         onChange={(e) => setSimSpeed(parseFloat(e.target.value))}
       />
       <div className="text-xs text-mono-300">Running at {simSpeed.toFixed(1)}x</div>
-    </div>
+      </div>
 
-    <div className="grid gap-4">
+      <div className="grid gap-4">
       <MetricCard label="Throughput" value={data.metrics.throughput} />
       <MetricCard label="Avg Speed" value={data.metrics.avg_speed} unit="km/h" />
       <MetricCard label="Incidents" value={data.metrics.accidents} />
-    </div>
+      </div>
 
-    <div className="flex gap-3">
+      <div className="flex gap-3">
       <button
         onClick={onToggleRunning}
         className={`flex-1 py-3 rounded-2xl font-semibold flex justify-center items-center gap-2 transition-all duration-300 ease-soft-ease shadow-lift ${running
@@ -158,6 +158,7 @@ const ControlsPanel = ({
       >
         <RotateCcw size={18} />
       </button>
+      </div>
     </div>
   );
 };

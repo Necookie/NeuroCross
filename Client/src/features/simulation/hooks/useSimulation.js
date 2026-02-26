@@ -14,6 +14,7 @@ export const useSimulation = () => {
   const timeoutRef = useRef(null);
   const paramsRef = useRef(params);
   const simSpeedRef = useRef(simSpeed);
+  const hasConnectedRef = useRef(false);
 
   // Keep refs in sync with state so the tick loop always reads fresh values.
   useEffect(() => {
@@ -28,13 +29,15 @@ export const useSimulation = () => {
     }
 
     let active = true;
-    setHasConnected(true); // Always immediately 'connected' because it's local
-
     // Function to schedule the next tick.
     const tick = () => {
       if (!active || !running) return;
 
       try {
+        if (!hasConnectedRef.current) {
+          hasConnectedRef.current = true;
+          setHasConnected(true); // Mark connected on first successful tick.
+        }
         // Run a local step
         const result = simRef.current.step(paramsRef.current);
         setData(result);
@@ -58,6 +61,8 @@ export const useSimulation = () => {
 
   const reset = useCallback(() => {
     simRef.current = new IntersectionSim();
+    hasConnectedRef.current = false;
+    setHasConnected(false);
     setData(createDefaultData());
   }, []);
 
