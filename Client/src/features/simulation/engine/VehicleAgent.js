@@ -14,10 +14,10 @@ export class VehicleAgent {
         this.route = route;
         this.direction = direction; // 'north', 'south', 'east', 'west'
 
-        // Derived properties
+        // Derived properties (more human variability, faster overall)
         this.length = VEHICLE_SPECS[typeName].len;
-        this.aggression = 0.1 + Math.random() * 0.8;
-        this.v_desired = VEHICLE_SPECS[typeName].v_max * (0.8 + (this.aggression * 0.3));
+        this.aggression = Math.random(); // 0.0 to 1.0
+        this.v_desired = VEHICLE_SPECS[typeName].v_max * (0.85 + (this.aggression * 0.45));
 
         // Dynamic 1D State (distance traveled along its specific path curve)
         this.pos = 0.0;

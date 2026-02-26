@@ -39,7 +39,7 @@ export class IntersectionSim {
         this.timer += dt;
         const friction = params.weather === 'rain' ? 0.6 : 1.0;
 
-        this._updateLights();
+        this._updateLights(params.mode);
         this._spawnTraffic(params, dt);
 
         let totalSpeed = 0.0;
@@ -86,10 +86,11 @@ export class IntersectionSim {
         return this.getState();
     }
 
-    _updateLights() {
-        const GREEN_DUR = 6;
-        const YELLOW_DUR = 2;
-        const RED_DUR = 4;
+    _updateLights(mode) {
+        const isFixed = mode === 'fixed';
+        const GREEN_DUR = isFixed ? 18 : 12;
+        const YELLOW_DUR = isFixed ? 3 : 2;
+        const RED_DUR = isFixed ? 2 : 4;
 
         switch (this.state) {
             case 'N_GREEN':
@@ -99,7 +100,7 @@ export class IntersectionSim {
                 if (this.timer > YELLOW_DUR) { this.state = 'N_ALL_RED'; this.timer = 0; }
                 break;
             case 'N_ALL_RED':
-                if (this._isClear(['north']) || this.timer > RED_DUR) { this.state = 'S_GREEN'; this.timer = 0; }
+                if ((!isFixed && this._isClear(['north'])) || this.timer > RED_DUR) { this.state = 'S_GREEN'; this.timer = 0; }
                 break;
 
             case 'S_GREEN':
@@ -109,7 +110,7 @@ export class IntersectionSim {
                 if (this.timer > YELLOW_DUR) { this.state = 'S_ALL_RED'; this.timer = 0; }
                 break;
             case 'S_ALL_RED':
-                if (this._isClear(['south']) || this.timer > RED_DUR) { this.state = 'E_GREEN'; this.timer = 0; }
+                if ((!isFixed && this._isClear(['south'])) || this.timer > RED_DUR) { this.state = 'E_GREEN'; this.timer = 0; }
                 break;
 
             case 'E_GREEN':
@@ -119,7 +120,7 @@ export class IntersectionSim {
                 if (this.timer > YELLOW_DUR) { this.state = 'E_ALL_RED'; this.timer = 0; }
                 break;
             case 'E_ALL_RED':
-                if (this._isClear(['east']) || this.timer > RED_DUR) { this.state = 'W_GREEN'; this.timer = 0; }
+                if ((!isFixed && this._isClear(['east'])) || this.timer > RED_DUR) { this.state = 'W_GREEN'; this.timer = 0; }
                 break;
 
             case 'W_GREEN':
@@ -129,7 +130,7 @@ export class IntersectionSim {
                 if (this.timer > YELLOW_DUR) { this.state = 'W_ALL_RED'; this.timer = 0; }
                 break;
             case 'W_ALL_RED':
-                if (this._isClear(['west']) || this.timer > RED_DUR) { this.state = 'N_GREEN'; this.timer = 0; }
+                if ((!isFixed && this._isClear(['west'])) || this.timer > RED_DUR) { this.state = 'N_GREEN'; this.timer = 0; }
                 break;
         }
     }
