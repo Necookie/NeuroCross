@@ -7,6 +7,30 @@ import RainEffect from './RainEffect';
 const ZEBRA_H = 'repeating-linear-gradient(90deg, rgba(255,255,255,0.13) 0px, rgba(255,255,255,0.13) 10px, transparent 10px, transparent 20px)';
 const ZEBRA_V = 'repeating-linear-gradient(0deg, rgba(255,255,255,0.13) 0px, rgba(255,255,255,0.13) 10px, transparent 10px, transparent 20px)';
 
+// Tiny person silhouette SVG (head + body)
+const PersonIcon = () => (
+  <svg width="7" height="13" viewBox="0 0 7 13" fill="currentColor">
+    <circle cx="3.5" cy="2.5" r="2.2" />
+    <rect x="1" y="5.5" width="5" height="7" rx="1.5" />
+  </svg>
+);
+
+// Card showing 3 waiting people — fades in/out based on `visible` prop.
+// posStyle must include top/bottom/left/right AND a CSS transform for centering.
+const WaitingCard = memo(({ posStyle, visible }) => (
+  <div className="absolute z-30 pointer-events-none select-none" style={posStyle}>
+    <motion.div
+      animate={{ opacity: visible ? 1 : 0, scale: visible ? 1 : 0.8 }}
+      transition={{ duration: 0.3 }}
+      className="flex gap-px items-end text-white/70 bg-mono-950/65 border border-mono-600/40 rounded-md px-1.5 py-1"
+    >
+      <PersonIcon />
+      <PersonIcon />
+      <PersonIcon />
+    </motion.div>
+  </div>
+));
+
 // Animated pedestrian dot that walks across the crossing strip.
 const PedestrianFigure = memo(({ side }) => {
   const horiz = side === 'north' || side === 'south';
@@ -112,6 +136,20 @@ const RoadLayer = ({ roads, lightState, weather, speedFactor }) => {
       <PedestrianCrossing side="south" canWalk={nsCanWalk} />
       <PedestrianCrossing side="east"  canWalk={ewCanWalk} />
       <PedestrianCrossing side="west"  canWalk={ewCanWalk} />
+
+      {/* WAITING PEDESTRIAN CARDS — sidewalk corners, visible when crossing signal is red */}
+      {/* North crossing — left & right sidewalk at top 26% */}
+      <WaitingCard posStyle={{ top: '26%', left:  '12%', transform: 'translateY(-50%)' }} visible={!nsCanWalk} />
+      <WaitingCard posStyle={{ top: '26%', right: '12%', transform: 'translateY(-50%)' }} visible={!nsCanWalk} />
+      {/* South crossing — left & right sidewalk at bottom 26% */}
+      <WaitingCard posStyle={{ bottom: '26%', left:  '12%', transform: 'translateY(50%)' }} visible={!nsCanWalk} />
+      <WaitingCard posStyle={{ bottom: '26%', right: '12%', transform: 'translateY(50%)' }} visible={!nsCanWalk} />
+      {/* East crossing — top & bottom sidewalk at right 26% */}
+      <WaitingCard posStyle={{ right: '26%', top:    '12%', transform: 'translateX(50%)' }} visible={!ewCanWalk} />
+      <WaitingCard posStyle={{ right: '26%', bottom: '12%', transform: 'translateX(50%)' }} visible={!ewCanWalk} />
+      {/* West crossing — top & bottom sidewalk at left 26% */}
+      <WaitingCard posStyle={{ left: '26%', top:    '12%', transform: 'translateX(-50%)' }} visible={!ewCanWalk} />
+      <WaitingCard posStyle={{ left: '26%', bottom: '12%', transform: 'translateX(-50%)' }} visible={!ewCanWalk} />
 
       {/* LIGHTS */}
       {/* North-South Lights */}
