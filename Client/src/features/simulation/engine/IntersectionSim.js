@@ -23,10 +23,10 @@ function weightedRandomChoice(choices, weights) {
 export class IntersectionSim {
     constructor() {
         this.roads = {
-            north: [[], []],
-            south: [[], []],
-            east: [[], []],
-            west: [[], []],
+            north: [[], [], []],
+            south: [[], [], []],
+            east: [[], [], []],
+            west: [[], [], []],
         };
         this.roadKeys = ['north', 'south', 'east', 'west'];
         this.state = 'N_GREEN';
@@ -163,7 +163,7 @@ export class IntersectionSim {
                 rate *= 0.8;
             }
             if (Math.random() < (rate * dt)) {
-                this.trySpawn(direction, Math.random() < 0.5 ? 0 : 1);
+                this.trySpawn(direction, Math.floor(Math.random() * 3));
             }
         }
     }
@@ -203,9 +203,18 @@ export class IntersectionSim {
         const types = Object.keys(VEHICLE_SPECS);
         const probs = types.map(t => VEHICLE_SPECS[t].prob);
 
-        // Assign a route based on lane: inner (lane 1) = Left, outer (lane 0) = Right
-        const routes = laneIdx === 1 ? ['straight', 'left'] : ['straight', 'right'];
-        const routeProbs = [0.60, 0.40]; // 40% chance of turning
+        // Assign a route based on lane: inner (lane 2) = Left, middle (lane 1) = Straight, outer (lane 0) = Right
+        let routes, routeProbs;
+        if (laneIdx === 2) {
+            routes = ['straight', 'left'];
+            routeProbs = [0.60, 0.40];
+        } else if (laneIdx === 0) {
+            routes = ['straight', 'right'];
+            routeProbs = [0.60, 0.40];
+        } else {
+            routes = ['straight'];
+            routeProbs = [1.0];
+        }
         const route = weightedRandomChoice(routes, routeProbs);
 
         const vType = weightedRandomChoice(types, probs);
@@ -214,7 +223,7 @@ export class IntersectionSim {
 
     getState() {
         // Build a plain JSON snapshot for React rendering.
-        const jsonRoads = { north: [[], []], south: [[], []], east: [[], []], west: [[], []] };
+        const jsonRoads = { north: [[], [], []], south: [[], [], []], east: [[], [], []], west: [[], [], []] };
         for (let d = 0; d < this.roadKeys.length; d += 1) {
             const dir = this.roadKeys[d];
             const lanes = this.roads[dir];

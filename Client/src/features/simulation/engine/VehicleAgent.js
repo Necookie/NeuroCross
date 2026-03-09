@@ -116,12 +116,10 @@ export class VehicleAgent {
         const EXIT_START = APPROACH_END + INTERSECTION_SIZE;
 
         const POS_IN_INTERSECTION = scaledPos - APPROACH_END;
-        const LANE_OFFSET = this.lane === 1 ? 5 : 15; // Inner vs Outer lane (percentage of 800 = 40px or 120px)
+        const LANE_OFFSET = this.lane === 2 ? 5 : this.lane === 1 ? 10 : 15;
 
-        // Math helpers
-        const innerPx = 40;
-        const outerPx = 120;
-        const offsetPx = this.lane === 1 ? innerPx : outerPx;
+        // Math helpers: lane 0 = outer (120px), lane 1 = middle (80px), lane 2 = inner (40px)
+        const offsetPx = this.lane === 2 ? 40 : this.lane === 1 ? 80 : 120;
 
         // 1. Straight Line Geometry
         if (this.route === 'straight' || scaledPos <= APPROACH_END) {
