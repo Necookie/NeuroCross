@@ -1,7 +1,60 @@
 import React, { memo } from 'react';
+import { motion } from 'framer-motion';
 import TrafficLight from './TrafficLight';
 import Vehicle from './Vehicle';
 import RainEffect from './RainEffect';
+
+const ZEBRA_H = 'repeating-linear-gradient(90deg, rgba(255,255,255,0.13) 0px, rgba(255,255,255,0.13) 10px, transparent 10px, transparent 20px)';
+const ZEBRA_V = 'repeating-linear-gradient(0deg, rgba(255,255,255,0.13) 0px, rgba(255,255,255,0.13) 10px, transparent 10px, transparent 20px)';
+
+// Animated pedestrian dot that walks across the crossing strip.
+const PedestrianFigure = memo(({ side }) => {
+  const horiz = side === 'north' || side === 'south';
+  return (
+    <motion.div
+      className="absolute w-2 h-2 rounded-full bg-white/80 shadow-sm"
+      initial={horiz ? { left: '5%', top: '20%' } : { top: '5%', left: '20%' }}
+      animate={horiz ? { left: ['5%', '95%'] } : { top: ['5%', '95%'] }}
+      transition={{ duration: 5.5, repeat: Infinity, ease: 'linear', repeatDelay: 0.8 }}
+    />
+  );
+});
+
+// Zebra crossing strip with a walk/stop signal dot and pedestrian figure.
+const PedestrianCrossing = memo(({ side, canWalk }) => {
+  const horiz = side === 'north' || side === 'south';
+  const base = horiz
+    ? 'absolute left-1/2 -translate-x-1/2 w-80 h-5 z-30'
+    : 'absolute top-1/2 -translate-y-1/2 h-80 w-5 z-30';
+  const posStyle = {
+    north: { top: '26%' },
+    south: { bottom: '26%' },
+    east:  { right: '26%' },
+    west:  { left: '26%' },
+  }[side];
+  const signalEdge = {
+    north: 'top-0.5 right-0.5',
+    south: 'bottom-0.5 left-0.5',
+    east:  'top-0.5 right-0.5',
+    west:  'bottom-0.5 left-0.5',
+  }[side];
+  return (
+    <div
+      className={base}
+      style={{ ...posStyle, background: horiz ? ZEBRA_H : ZEBRA_V }}
+    >
+      {/* Walk/Stop signal dot */}
+      <div
+        className={`absolute w-3 h-3 rounded-full transition-colors duration-300 ${signalEdge} ${
+          canWalk
+            ? 'bg-green-400 shadow-[0_0_7px_rgba(74,222,128,0.85)]'
+            : 'bg-red-500 shadow-[0_0_5px_rgba(239,68,68,0.65)]'
+        }`}
+      />
+      {canWalk && <PedestrianFigure side={side} />}
+    </div>
+  );
+});
 
 const RoadBackdrop = memo(() => (
   <>
@@ -42,11 +95,23 @@ const RoadLayer = ({ roads, lightState, weather, speedFactor }) => {
   const eastLight = lightState === 'E_GREEN' ? 'GREEN' : lightState === 'E_YELLOW' ? 'YELLOW' : 'RED';
   const westLight = lightState === 'W_GREEN' ? 'GREEN' : lightState === 'W_YELLOW' ? 'YELLOW' : 'RED';
 
+  // Pedestrians cross perpendicular to moving traffic.
+  // N/S crossings span the N-S road → safe to walk only when E-W vehicles have green (N-S traffic stopped).
+  // E/W crossings span the E-W road → safe to walk only when N-S vehicles have green (E-W traffic stopped).
+  const nsCanWalk = lightState === 'E_GREEN' || lightState === 'W_GREEN';
+  const ewCanWalk = lightState === 'N_GREEN' || lightState === 'S_GREEN';
+
   return (
     <div className="relative aspect-square w-[min(78vw,780px)] bg-mono-900 rounded-[28px] border border-mono-700/70 shadow-soft overflow-hidden asphalt inset-shadow">
       {weather === 'rain' && <RainEffect />}
 
       <RoadBackdrop />
+
+      {/* PEDESTRIAN CROSSINGS */}
+      <PedestrianCrossing side="north" canWalk={nsCanWalk} />
+      <PedestrianCrossing side="south" canWalk={nsCanWalk} />
+      <PedestrianCrossing side="east"  canWalk={ewCanWalk} />
+      <PedestrianCrossing side="west"  canWalk={ewCanWalk} />
 
       {/* LIGHTS */}
       {/* North-South Lights */}
