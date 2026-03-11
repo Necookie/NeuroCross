@@ -7,6 +7,12 @@ export const MIN_GAP = 4.0;
 export const ACCEL_MAX = 3.0;
 export const DECEL_COMF = 2.5;
 
+// Dual-intersection canvas: 2:1 landscape (1600 x 800 virtual units)
+export const CANVAS_W = 1600;
+export const CANVAS_H = 800;
+// Center X of each intersection in the canvas
+export const INT_CENTERS = [400, 1200];
+
 // Vehicle Specs (Lengths updated to match visual pixel sizes: 1 unit = 2px)
 export const VEHICLE_SPECS = {
     car: { len: 16, v_max: 60, prob: 0.45 },
