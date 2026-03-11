@@ -1,9 +1,7 @@
 import { useCallback, useEffect, useState, useRef } from 'react';
 
 import { IntersectionSim } from '../engine/IntersectionSim';
-import { DEFAULT_PARAMS, createDefaultData, INTERSECTION_COUNT } from '../constants';
-
-const createSims = () => Array.from({ length: INTERSECTION_COUNT }, () => new IntersectionSim());
+import { DEFAULT_PARAMS, createDefaultData } from '../constants';
 
 export const useSimulation = () => {
   const [data, setData] = useState(createDefaultData);
@@ -12,7 +10,7 @@ export const useSimulation = () => {
   const [simSpeed, setSimSpeed] = useState(1.0);
   const [hasConnected, setHasConnected] = useState(false);
 
-  const simRef = useRef(createSims());
+  const simRef = useRef(new IntersectionSim());
   const timeoutRef = useRef(null);
   const paramsRef = useRef(params);
   const simSpeedRef = useRef(simSpeed);
@@ -40,8 +38,8 @@ export const useSimulation = () => {
           hasConnectedRef.current = true;
           setHasConnected(true); // Mark connected on first successful tick.
         }
-        // Run a local step across all intersection instances
-        const result = simRef.current.map(sim => sim.step(paramsRef.current));
+        // Run a local step
+        const result = simRef.current.step(paramsRef.current);
         setData(result);
       } catch (err) {
         console.error('Simulation error:', err);
@@ -62,7 +60,7 @@ export const useSimulation = () => {
   }, [running]);
 
   const reset = useCallback(() => {
-    simRef.current = createSims();
+    simRef.current = new IntersectionSim();
     hasConnectedRef.current = false;
     setHasConnected(false);
     setData(createDefaultData());
