@@ -65,13 +65,10 @@ const Vehicle = ({ data, speedFactor }) => {
   const dimensions = useMemo(() => getDimensions(data.type), [data.type]);
   const Template = VEHICLE_COMPONENTS[data.type] || Car;
 
-  // The physics engine operates on an 800x800 coordinate system relative to the road length.
-  // We can convert these absolute pixels to percentages for responsive rendering, 
-  // or just use pixels since the Intersection container is a known size.
-  // Converting to % handles container resizing automatically:
+  // The physics engine operates on a 1600x800 coordinate system (dual intersection).
   const style = {
     top: `${(data.y / 800) * 100}%`,
-    left: `${(data.x / 800) * 100}%`,
+    left: `${(data.x / 1600) * 100}%`,
     rotate: data.angle,
   };
 

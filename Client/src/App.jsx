@@ -26,19 +26,6 @@ function App() {
 
   const toggleRunning = () => setRunning((prev) => !prev);
 
-  // Aggregate metrics across all intersections for the controls panel.
-  const aggregatedMetrics = data.reduce(
-    (acc, d) => ({
-      throughput: acc.throughput + d.metrics.throughput,
-      avg_speed: acc.avg_speed + d.metrics.avg_speed,
-      accidents: acc.accidents + d.metrics.accidents,
-    }),
-    { throughput: 0, avg_speed: 0, accidents: 0 }
-  );
-  aggregatedMetrics.avg_speed = data.length
-    ? Math.floor(aggregatedMetrics.avg_speed / data.length)
-    : 0;
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-mono-950 via-mono-900 to-mono-950 text-mono-100 font-sans px-6 py-8 transition-colors duration-700 ease-in-out">
       <div className="max-w-[1400px] mx-auto space-y-8">
@@ -50,27 +37,19 @@ function App() {
             setParams={setParams}
             simSpeed={simSpeed}
             setSimSpeed={setSimSpeed}
-            data={{ metrics: aggregatedMetrics }}
+            data={data}
             running={running}
             hasConnected={hasConnected}
             onToggleRunning={toggleRunning}
             onReset={reset}
           />
 
-          <div className="grid grid-cols-2 gap-4 items-start justify-items-center">
-            {data.map((intersectionData, idx) => (
-              <div key={idx} className="flex flex-col items-center gap-2 w-full max-w-[520px]">
-                <span className="text-[10px] uppercase tracking-[0.3em] text-mono-400">
-                  Intersection {idx + 1}
-                </span>
-                <RoadLayer
-                  roads={intersectionData.roads}
-                  lightState={intersectionData.light_state}
-                  weather={params.weather}
-                  speedFactor={simSpeed}
-                />
-              </div>
-            ))}
+          <div className="flex items-center justify-center">
+            <RoadLayer
+              data={data}
+              weather={params.weather}
+              speedFactor={simSpeed}
+            />
           </div>
         </div>
       </div>
