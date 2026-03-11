@@ -7,12 +7,13 @@ import {
 } from './config';
 
 export class VehicleAgent {
-    constructor(id, typeName, laneIdx, route = 'straight', direction = 'north') {
+    constructor(id, typeName, laneIdx, route = 'straight', direction = 'north', intersectionIdx = 0) {
         this.id = id;
         this.type = typeName;
         this.lane = laneIdx;
         this.route = route;
-        this.direction = direction; // 'north', 'south', 'east', 'west'
+        this.direction = direction;
+        this.intersectionIdx = intersectionIdx;
 
         // Derived properties (more human variability, faster overall)
         this.length = VEHICLE_SPECS[typeName].len;
@@ -30,8 +31,8 @@ export class VehicleAgent {
         this.angle = 0; // rotation in degrees
     }
 
-    static spawn(vId, typeName, laneIdx, route = 'straight', direction = 'north') {
-        return new VehicleAgent(vId, typeName, laneIdx, route, direction);
+    static spawn(vId, typeName, laneIdx, route = 'straight', direction = 'north', intersectionIdx = 0) {
+        return new VehicleAgent(vId, typeName, laneIdx, route, direction, intersectionIdx);
     }
 
     updatePhysics(dt, leader, stopTarget, friction) {
@@ -106,24 +107,23 @@ export class VehicleAgent {
     }
 
     _update2DCoords() {
-        // Maps 1D "pos" (0 -> 400) into X,Y coordinates
+        // Maps 1D "pos" (0 -> 400) into coordinates on 1600x800 canvas
         const scaledPos = (this.pos / 400) * 800;
+        const intOffset = this.intersectionIdx * 800;
+        const CX = intOffset + 400; // center X for this intersection
+        const CY = 400;             // center Y (same for both)
 
-        // Hardcoded intersection boundaries based on React UI mapping (800x800 canvas)
-        const CENTER = 400;
         const APPROACH_END = 240;
         const INTERSECTION_SIZE = 320;
-        const EXIT_START = APPROACH_END + INTERSECTION_SIZE;
 
         const POS_IN_INTERSECTION = scaledPos - APPROACH_END;
-        const LANE_OFFSET = this.lane === 2 ? 5 : this.lane === 1 ? 10 : 15;
 
-        // Math helpers: lane 0 = outer (120px), lane 1 = middle (80px), lane 2 = inner (40px)
-        const offsetPx = this.lane === 2 ? 40 : this.lane === 1 ? 80 : 120;
+        // 2 lanes: lane 0 = outer (120px from center), lane 1 = inner (50px)
+        const offsetPx = this.lane === 1 ? 50 : 120;
 
         // 1. Straight Line Geometry
         if (this.route === 'straight' || scaledPos <= APPROACH_END) {
-            this._calculateStraightLine(offsetPx, CENTER, null, scaledPos);
+            this._calculateStraightLine(offsetPx, CX, CY, null, scaledPos, intOffset);
             return;
         }
 
@@ -140,7 +140,7 @@ export class VehicleAgent {
         const clampedProg = Math.max(0, Math.min(progress, 1.0));
 
         // Get the geometry anchors
-        const { p0, p1, p2, exitDirection } = this._getCurvePoints(CENTER, offsetPx, INTERSECTION_SIZE);
+        const { p0, p1, p2, exitDirection } = this._getCurvePoints(CX, CY, offsetPx, INTERSECTION_SIZE);
 
         if (clampedProg < 1.0) {
             // We are actively inside the curve
@@ -153,42 +153,36 @@ export class VehicleAgent {
             } else if (this.route === 'right') {
                 remainingDist = POS_IN_INTERSECTION - (INTERSECTION_SIZE * 0.5);
             }
-            this._calculateStraightLine(offsetPx, CENTER, exitDirection, scaledPos, remainingDist, p2);
+            this._calculateStraightLine(offsetPx, CX, CY, exitDirection, scaledPos, intOffset, remainingDist, p2);
         }
     }
 
-    _calculateStraightLine(offsetPx, CENTER, overrideDirection = null, scaledPos = 0, extraDist = 0, anchor = null) {
+    _calculateStraightLine(offsetPx, CX, CY, overrideDirection = null, scaledPos = 0, intOffset = 0, extraDist = 0, anchor = null) {
         const dir = overrideDirection || this.direction;
 
         if (anchor) {
-            // If driving straight out of a finished turn, start from the anchor point
             if (dir === 'north') { this.x = anchor.x; this.y = anchor.y - extraDist; this.angle = -90; }
             else if (dir === 'south') { this.x = anchor.x; this.y = anchor.y + extraDist; this.angle = 90; }
             else if (dir === 'east') { this.x = anchor.x + extraDist; this.y = anchor.y; this.angle = 0; }
             else if (dir === 'west') { this.x = anchor.x - extraDist; this.y = anchor.y; this.angle = 180; }
             return;
         }
-        // Maps 1D "pos" (0 -> 800) into X,Y coordinates
-        // Assuming road total length is 800 across the whole screen. 
-        // Frontend uses Top/Left percentages, but we will store direct pixels here,
-        // and let frontend convert or just use these.
-        // For simplicity, pos 0 to 400 is the entry road. 400 to 800 is the exit road.
 
-        if (this.direction === 'north') {
+        if (dir === 'north') {
             this.y = 800 - scaledPos;
-            this.x = CENTER + offsetPx;
+            this.x = CX + offsetPx;
             this.angle = -90;
-        } else if (this.direction === 'south') {
+        } else if (dir === 'south') {
             this.y = scaledPos;
-            this.x = CENTER - offsetPx;
+            this.x = CX - offsetPx;
             this.angle = 90;
-        } else if (this.direction === 'east') {
-            this.x = scaledPos;
-            this.y = CENTER + offsetPx;
+        } else if (dir === 'east') {
+            this.x = intOffset + scaledPos;
+            this.y = CY + offsetPx;
             this.angle = 0;
-        } else if (this.direction === 'west') {
-            this.x = 800 - scaledPos;
-            this.y = CENTER - offsetPx;
+        } else if (dir === 'west') {
+            this.x = intOffset + (800 - scaledPos);
+            this.y = CY - offsetPx;
             this.angle = 180;
         }
     }
@@ -210,56 +204,55 @@ export class VehicleAgent {
         this.angle = rad * (180 / Math.PI);
     }
 
-    _getCurvePoints(center, offset, size) {
-        // Defines the Entry (p0), Corner (p1), and Exit (p2) points for a turn
+    _getCurvePoints(CX, CY, offset, size) {
         const half = size / 2;
         let p0 = { x: 0, y: 0 };
         let p1 = { x: 0, y: 0 };
         let p2 = { x: 0, y: 0 };
         let exitDirection = 'north';
 
-        if (this.direction === 'north') { // Approaching from Bottom
-            p0 = { x: center + offset, y: center + half };
-            if (this.route === 'left') { // Go West
-                p1 = { x: center + offset, y: center - offset };
-                p2 = { x: center - half, y: center - offset };
+        if (this.direction === 'north') {
+            p0 = { x: CX + offset, y: CY + half };
+            if (this.route === 'left') {
+                p1 = { x: CX + offset, y: CY - offset };
+                p2 = { x: CX - half, y: CY - offset };
                 exitDirection = 'west';
-            } else { // Go East (Right Turn)
-                p1 = { x: center + offset, y: center + offset };
-                p2 = { x: center + half, y: center + offset };
+            } else {
+                p1 = { x: CX + offset, y: CY + offset };
+                p2 = { x: CX + half, y: CY + offset };
                 exitDirection = 'east';
             }
-        } else if (this.direction === 'south') { // Approaching from Top
-            p0 = { x: center - offset, y: center - half };
-            if (this.route === 'left') { // Go East
-                p1 = { x: center - offset, y: center + offset };
-                p2 = { x: center + half, y: center + offset };
+        } else if (this.direction === 'south') {
+            p0 = { x: CX - offset, y: CY - half };
+            if (this.route === 'left') {
+                p1 = { x: CX - offset, y: CY + offset };
+                p2 = { x: CX + half, y: CY + offset };
                 exitDirection = 'east';
-            } else { // Go West (Right turn)
-                p1 = { x: center - offset, y: center - offset };
-                p2 = { x: center - half, y: center - offset };
+            } else {
+                p1 = { x: CX - offset, y: CY - offset };
+                p2 = { x: CX - half, y: CY - offset };
                 exitDirection = 'west';
             }
-        } else if (this.direction === 'east') { // Approaching from Left
-            p0 = { x: center - half, y: center + offset };
-            if (this.route === 'left') { // Go North
-                p1 = { x: center + offset, y: center + offset };
-                p2 = { x: center + offset, y: center - half };
+        } else if (this.direction === 'east') {
+            p0 = { x: CX - half, y: CY + offset };
+            if (this.route === 'left') {
+                p1 = { x: CX + offset, y: CY + offset };
+                p2 = { x: CX + offset, y: CY - half };
                 exitDirection = 'north';
-            } else { // Go South (Right Turn)
-                p1 = { x: center - offset, y: center + offset };
-                p2 = { x: center - offset, y: center + half };
+            } else {
+                p1 = { x: CX - offset, y: CY + offset };
+                p2 = { x: CX - offset, y: CY + half };
                 exitDirection = 'south';
             }
-        } else if (this.direction === 'west') { // Approaching from Right
-            p0 = { x: center + half, y: center - offset };
-            if (this.route === 'left') { // Go South
-                p1 = { x: center - offset, y: center - offset };
-                p2 = { x: center - offset, y: center + half };
+        } else if (this.direction === 'west') {
+            p0 = { x: CX + half, y: CY - offset };
+            if (this.route === 'left') {
+                p1 = { x: CX - offset, y: CY - offset };
+                p2 = { x: CX - offset, y: CY + half };
                 exitDirection = 'south';
-            } else { // Go North (Right turn)
-                p1 = { x: center + offset, y: center - offset };
-                p2 = { x: center + offset, y: center - half };
+            } else {
+                p1 = { x: CX + offset, y: CY - offset };
+                p2 = { x: CX + offset, y: CY - half };
                 exitDirection = 'north';
             }
         }

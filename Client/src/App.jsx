@@ -28,10 +28,10 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-mono-950 via-mono-900 to-mono-950 text-mono-100 font-sans px-6 py-8 transition-colors duration-700 ease-in-out">
-      <div className="max-w-6xl mx-auto space-y-8">
+      <div className="max-w-[1400px] mx-auto space-y-8">
         <StatusHeader mode={params.mode} running={running} />
 
-        <div className="grid gap-8 lg:grid-cols-[320px_1fr] items-start">
+        <div className="grid gap-8 lg:grid-cols-[280px_1fr] items-start">
           <ControlsPanel
             params={params}
             setParams={setParams}
@@ -46,8 +46,7 @@ function App() {
 
           <div className="flex items-center justify-center">
             <RoadLayer
-              roads={data.roads}
-              lightState={data.light_state}
+              data={data}
               weather={params.weather}
               speedFactor={simSpeed}
             />

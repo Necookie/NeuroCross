@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState, useRef } from 'react';
 
-import { IntersectionSim } from '../engine/IntersectionSim';
+import { DualIntersectionSim } from '../engine/DualIntersectionSim';
 import { DEFAULT_PARAMS, createDefaultData } from '../constants';
 
 export const useSimulation = () => {
@@ -10,7 +10,7 @@ export const useSimulation = () => {
   const [simSpeed, setSimSpeed] = useState(1.0);
   const [hasConnected, setHasConnected] = useState(false);
 
-  const simRef = useRef(new IntersectionSim());
+  const simRef = useRef(new DualIntersectionSim());
   const timeoutRef = useRef(null);
   const paramsRef = useRef(params);
   const simSpeedRef = useRef(simSpeed);
@@ -60,7 +60,7 @@ export const useSimulation = () => {
   }, [running]);
 
   const reset = useCallback(() => {
-    simRef.current = new IntersectionSim();
+    simRef.current = new DualIntersectionSim();
     hasConnectedRef.current = false;
     setHasConnected(false);
     setData(createDefaultData());

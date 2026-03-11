@@ -7,7 +7,9 @@ export const DEFAULT_PARAMS = {
 };
 
 export const createDefaultData = () => ({
-  roads: { north: [[], [], []], south: [[], [], []], east: [[], [], []], west: [[], [], []] },
-  light_state: 'N_GREEN',
+  intersections: [
+    { roads: { north: [[], []], south: [[], []], east: [[], []], west: [[], []] }, light_state: 'N_GREEN' },
+    { roads: { north: [[], []], south: [[], []], east: [[], []], west: [[], []] }, light_state: 'N_GREEN' },
+  ],
   metrics: { accidents: 0, avg_speed: 0, throughput: 0 }
 });
