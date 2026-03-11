@@ -48,8 +48,8 @@ const PedestrianFigure = memo(({ side }) => {
 const PedestrianCrossing = memo(({ side, canWalk }) => {
   const horiz = side === 'north' || side === 'south';
   const base = horiz
-    ? 'absolute left-1/2 -translate-x-1/2 w-80 h-5 z-30'
-    : 'absolute top-1/2 -translate-y-1/2 h-80 w-5 z-30';
+    ? 'absolute left-1/2 -translate-x-1/2 h-5 z-30'
+    : 'absolute top-1/2 -translate-y-1/2 w-5 z-30';
   const posStyle = {
     north: { top: '26%' },
     south: { bottom: '26%' },
@@ -65,7 +65,7 @@ const PedestrianCrossing = memo(({ side, canWalk }) => {
   return (
     <div
       className={base}
-      style={{ ...posStyle, background: horiz ? ZEBRA_H : ZEBRA_V }}
+      style={{ ...posStyle, background: horiz ? ZEBRA_H : ZEBRA_V, ...(horiz ? { width: '40%' } : { height: '40%' }) }}
     >
       {/* Walk/Stop signal dot */}
       <div
@@ -82,8 +82,8 @@ const PedestrianCrossing = memo(({ side, canWalk }) => {
 
 const RoadBackdrop = memo(() => (
   <>
-    {/* N-S ROAD (Wider 320px) */}
-    <div className="absolute left-1/2 -translate-x-1/2 w-80 h-full bg-mono-800/90 border-x border-mono-700/70">
+    {/* N-S ROAD (40% width, percentage-based) */}
+    <div className="absolute left-1/2 -translate-x-1/2 h-full bg-mono-800/90 border-x border-mono-700/70" style={{ width: '40%' }}>
       <div className="absolute left-1/2 h-full border-l-2 border-mono-300/20" />
       <div className="absolute left-[32%] h-full border-l border-dashed border-mono-400/20" />
       <div className="absolute left-[20%] h-full border-l border-dashed border-mono-400/20" />
@@ -95,8 +95,8 @@ const RoadBackdrop = memo(() => (
       <div className="absolute bottom-[25%] w-full h-4 bg-mono-300/10" />
     </div>
 
-    {/* E-W ROAD (Wider 320px) */}
-    <div className="absolute top-1/2 -translate-y-1/2 h-80 w-full bg-mono-800/90 border-y border-mono-700/70">
+    {/* E-W ROAD (40% height, percentage-based) */}
+    <div className="absolute top-1/2 -translate-y-1/2 w-full bg-mono-800/90 border-y border-mono-700/70" style={{ height: '40%' }}>
       <div className="absolute top-1/2 w-full border-t-2 border-mono-300/20" />
       <div className="absolute top-[32%] w-full border-t border-dashed border-mono-400/20" />
       <div className="absolute top-[20%] w-full border-t border-dashed border-mono-400/20" />
@@ -109,7 +109,7 @@ const RoadBackdrop = memo(() => (
     </div>
 
     {/* INTERSECTION BOX */}
-    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-mono-800/90 z-0" />
+    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-mono-800/90 z-0" style={{ width: '40%', height: '40%' }} />
   </>
 ));
 
@@ -126,7 +126,7 @@ const RoadLayer = ({ roads, lightState, weather, speedFactor }) => {
   const ewCanWalk = lightState === 'N_GREEN' || lightState === 'S_GREEN';
 
   return (
-    <div className="relative aspect-square w-[min(78vw,780px)] bg-mono-900 rounded-[28px] border border-mono-700/70 shadow-soft overflow-hidden asphalt inset-shadow">
+    <div className="relative aspect-square w-full bg-mono-900 rounded-[20px] border border-mono-700/70 shadow-soft overflow-hidden asphalt inset-shadow">
       {weather === 'rain' && <RainEffect />}
 
       <RoadBackdrop />
