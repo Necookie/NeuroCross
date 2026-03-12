@@ -42,6 +42,10 @@ export class DualIntersectionSim {
         let totalSpeed = 0;
         let carCount = 0;
 
+        // Collect pending transfers so they are applied AFTER both intersections
+        // have been processed, preventing double-updates in the same tick.
+        const pendingTransfers = [];
+
         for (let intIdx = 0; intIdx < 2; intIdx++) {
             const ix = this.intersections[intIdx];
             ix.timer += dt;
@@ -60,33 +64,65 @@ export class DualIntersectionSim {
 
                     let leader = null;
                     for (let i = 0; i < cars.length; i++) {
+                        // Cap transfer-waiting cars at road end so they don't fly off
+                        if (cars[i].pos >= ROAD_LENGTH && this._canTransferVehicle(intIdx, cars[i], direction)) {
+                            cars[i].pos = ROAD_LENGTH;
+                            cars[i].speed = 0;
+                            cars[i]._update2DCoords();
+                            leader = cars[i];
+                            continue;
+                        }
                         cars[i].updatePhysics(dt, leader, stopTarget, friction);
                         totalSpeed += cars[i].speed;
                         carCount++;
                         leader = cars[i];
                     }
 
-                    // Remove finished vehicles, transfer E-W between intersections
+                    // Remove finished vehicles / queue transfers
                     if (cars.length > 0) {
                         let finishedCount = 0;
-                        let transferred = 0;
                         for (let i = 0; i < cars.length; i++) {
                             if (cars[i].pos >= ROAD_LENGTH) {
                                 finishedCount++;
-                                if (this._tryTransfer(cars[i], intIdx, direction)) {
-                                    transferred++;
-                                }
                             } else {
                                 break;
                             }
                         }
                         if (finishedCount > 0) {
-                            this.metrics.throughput += (finishedCount - transferred);
-                            ix.roads[direction][laneIdx] = cars.slice(finishedCount);
+                            // Separate transferable vs non-transferable finished vehicles
+                            const toRemove = [];
+                            for (let i = 0; i < finishedCount; i++) {
+                                if (this._canTransferVehicle(intIdx, cars[i], direction)) {
+                                    pendingTransfers.push({
+                                        car: cars[i],
+                                        fromIntIdx: intIdx,
+                                        exitDirection: this._getExitDirection(direction, cars[i].route),
+                                        laneRef: lanes,
+                                        laneIdx,
+                                    });
+                                } else {
+                                    toRemove.push(i);
+                                }
+                            }
+                            // Remove non-transferable vehicles (iterate in reverse to preserve indices)
+                            for (let r = toRemove.length - 1; r >= 0; r--) {
+                                cars.splice(toRemove[r], 1);
+                                this.metrics.throughput++;
+                            }
                         }
                     }
                 }
             }
+        }
+
+        // Apply deferred transfers — only remove from source on success
+        for (const { car, fromIntIdx, exitDirection, laneRef, laneIdx } of pendingTransfers) {
+            if (this._applyTransfer(car, fromIntIdx, exitDirection)) {
+                const srcLane = laneRef[laneIdx];
+                const idx = srcLane.indexOf(car);
+                if (idx !== -1) srcLane.splice(idx, 1);
+            }
+            // If transfer fails, car stays in source lane and retries next tick
         }
 
         if (carCount > 0) {
@@ -96,28 +132,56 @@ export class DualIntersectionSim {
         return this.getState();
     }
 
-    _tryTransfer(car, fromIntIdx, direction) {
+    _getExitDirection(direction, route) {
+        if (route === 'straight') return direction;
+        const turns = {
+            north: { left: 'west', right: 'east' },
+            south: { left: 'east', right: 'west' },
+            east: { left: 'north', right: 'south' },
+            west: { left: 'south', right: 'north' },
+        };
+        return turns[direction][route];
+    }
+
+    _canTransfer(fromIntIdx, direction) {
+        if (direction === 'east' && fromIntIdx === 0) return true;
+        if (direction === 'west' && fromIntIdx === 1) return true;
+        return false;
+    }
+
+    _canTransferVehicle(fromIntIdx, car, roadDirection) {
+        const exitDir = this._getExitDirection(roadDirection, car.route);
+        return this._canTransfer(fromIntIdx, exitDir);
+    }
+
+    _applyTransfer(car, fromIntIdx, exitDirection) {
         // East vehicles exiting int 0 → enter int 1's east road
-        if (direction === 'east' && fromIntIdx === 0) {
+        if (exitDirection === 'east' && fromIntIdx === 0) {
             const targetLane = this.intersections[1].roads.east[car.lane];
             for (const c of targetLane) {
-                if ((c.pos - c.length / 2) < 25) return false;
+                if ((c.pos - c.length / 2) < 40) return false;
             }
             car.pos = 0;
             car.speed *= 0.9;
             car.intersectionIdx = 1;
+            car.direction = 'east';
+            car.route = 'straight';
+            car._update2DCoords();
             targetLane.push(car);
             return true;
         }
         // West vehicles exiting int 1 → enter int 0's west road
-        if (direction === 'west' && fromIntIdx === 1) {
+        if (exitDirection === 'west' && fromIntIdx === 1) {
             const targetLane = this.intersections[0].roads.west[car.lane];
             for (const c of targetLane) {
-                if ((c.pos - c.length / 2) < 25) return false;
+                if ((c.pos - c.length / 2) < 40) return false;
             }
             car.pos = 0;
             car.speed *= 0.9;
             car.intersectionIdx = 0;
+            car.direction = 'west';
+            car.route = 'straight';
+            car._update2DCoords();
             targetLane.push(car);
             return true;
         }
@@ -219,7 +283,7 @@ export class DualIntersectionSim {
     _trySpawn(ix, intIdx, direction, laneIdx) {
         const laneCars = ix.roads[direction][laneIdx];
         for (const car of laneCars) {
-            if ((car.pos - car.length / 2) < 25) return;
+            if ((car.pos - car.length / 2) < 40) return;
         }
 
         this.globalId++;

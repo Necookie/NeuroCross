@@ -24,15 +24,16 @@ const hashId = (value) => {
 };
 
 const VEHICLE_DIMENSIONS = {
-  bus: 'w-14 h-5',
-  truck: 'w-16 h-5',
-  van: 'w-12 h-5',
-  pickup: 'w-11 h-4',
-  jeepney: 'w-10 h-4',
-  suv: 'w-9 h-4',
-  taxi: 'w-9 h-4',
-  bike: 'w-5 h-3',
-  scooter: 'w-5 h-3'
+  bus: 'w-12 h-4',
+  truck: 'w-14 h-4',
+  van: 'w-10 h-4',
+  pickup: 'w-9 h-4',
+  jeepney: 'w-9 h-4',
+  suv: 'w-8 h-3.5',
+  car: 'w-7 h-3',
+  taxi: 'w-7 h-3',
+  bike: 'w-4 h-2.5',
+  scooter: 'w-4 h-2.5'
 };
 
 const VEHICLE_COMPONENTS = {
@@ -56,7 +57,7 @@ const getVehicleColor = (id) => {
   return colorCache.get(id);
 };
 
-const getDimensions = (type) => VEHICLE_DIMENSIONS[type] || 'w-8 h-4';
+const getDimensions = (type) => VEHICLE_DIMENSIONS[type] || 'w-7 h-3';
 
 const MotionDiv = motion.div;
 

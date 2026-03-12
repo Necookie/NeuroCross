@@ -3,7 +3,7 @@ export const ROAD_LENGTH = 400;
 export const STOP_LINE = 100;
 export const INTERSECTION_EXIT = 280;
 export const SAFE_HEADWAY = 2.0;
-export const MIN_GAP = 4.0;
+export const MIN_GAP = 12.0;
 export const ACCEL_MAX = 3.0;
 export const DECEL_COMF = 2.5;
 
