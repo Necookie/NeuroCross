@@ -78,6 +78,7 @@ export class VehicleAgent {
                 this.speed = 0.0;
                 this.pos = leader.pos - leader.length / 2 - this.length / 2 - 4.0;
                 this.status = 'stopped';
+                this._update2DCoords();
                 return;
             }
         }
@@ -88,6 +89,7 @@ export class VehicleAgent {
                 this.speed = 0.0;
                 this.pos = stopTarget - this.length / 2;
                 this.status = 'stopped';
+                this._update2DCoords();
                 return;
             }
         }
