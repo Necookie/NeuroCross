@@ -159,7 +159,7 @@ export class DualIntersectionSim {
         if (exitDirection === 'east' && fromIntIdx === 0) {
             const targetLane = this.intersections[1].roads.east[car.lane];
             for (const c of targetLane) {
-                if ((c.pos - c.length / 2) < 25) return false;
+                if ((c.pos - c.length / 2) < 40) return false;
             }
             car.pos = 0;
             car.speed *= 0.9;
@@ -174,7 +174,7 @@ export class DualIntersectionSim {
         if (exitDirection === 'west' && fromIntIdx === 1) {
             const targetLane = this.intersections[0].roads.west[car.lane];
             for (const c of targetLane) {
-                if ((c.pos - c.length / 2) < 25) return false;
+                if ((c.pos - c.length / 2) < 40) return false;
             }
             car.pos = 0;
             car.speed *= 0.9;
@@ -283,7 +283,7 @@ export class DualIntersectionSim {
     _trySpawn(ix, intIdx, direction, laneIdx) {
         const laneCars = ix.roads[direction][laneIdx];
         for (const car of laneCars) {
-            if ((car.pos - car.length / 2) < 25) return;
+            if ((car.pos - car.length / 2) < 40) return;
         }
 
         this.globalId++;

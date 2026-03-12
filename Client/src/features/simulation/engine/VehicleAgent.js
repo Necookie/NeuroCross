@@ -74,9 +74,9 @@ export class VehicleAgent {
         // Hard stops for unresolvable tight gaps or exact stop line logic
         if (leader !== null) {
             const actualGap = (leader.pos - leader.length / 2) - (this.pos + this.length / 2);
-            if (actualGap < 0.5) {
+            if (actualGap < 4.0) {
                 this.speed = 0.0;
-                this.pos = leader.pos - leader.length / 2 - this.length / 2 - 0.5;
+                this.pos = leader.pos - leader.length / 2 - this.length / 2 - 4.0;
                 this.status = 'stopped';
                 return;
             }
@@ -118,8 +118,10 @@ export class VehicleAgent {
 
         const POS_IN_INTERSECTION = scaledPos - APPROACH_END;
 
-        // 2 lanes: lane 0 = outer (120px from center), lane 1 = inner (50px)
-        const offsetPx = this.lane === 1 ? 50 : 120;
+        // 2 lanes: lane 0 = outer, lane 1 = inner
+        // N-S roads are 320px wide (20% of 1600), E-W road is 320px tall (40% of 800)
+        // Half-road = 160px per side. Place lanes at ~35% and ~75% of each half.
+        const offsetPx = this.lane === 1 ? 55 : 110;
 
         // 1. Straight Line Geometry
         if (this.route === 'straight' || scaledPos <= APPROACH_END) {
