@@ -1,85 +1,119 @@
 # NeuroCross
 
-Realtime traffic intersection simulation with a React + Vite control desk UI and a fully in-browser physics engine.
+NeuroCross is a browser-based traffic simulation sandbox built with React and Vite. It runs a custom vehicle and signal simulation locally in the client and renders an interactive control desk for exploring traffic flow under different layouts, timing modes, and environmental conditions.
 
-**What It Does**
-- Simulates a four-way, two-lane intersection with adaptive traffic light phases and vehicle dynamics.
-- Runs the full simulation loop in the browser (no backend required).
-- Renders vehicle motion, lane geometry, signal states, and weather effects in a glassy UI.
+## Current Features
 
-**Tech Stack**
-- **Frontend**: React 19, Vite 7, Tailwind CSS, Framer Motion, Lucide icons
-- **Simulation**: Custom JS engine (`Client/src/features/simulation/engine`)
-- **Styling**: Tailwind + CSS variables (`Client/src/index.css`)
+- Three simulation layouts:
+  - `cross`: a dual-intersection corridor rendered side by side
+  - `roundabout`: a single roundabout layout
+  - `tintersection`: a single T-junction layout
+- Two signal timing modes:
+  - `smart`: advances phases with clearance checks
+  - `fixed`: uses fixed timing windows
+- Weather switching:
+  - `sunny`
+  - `rain`, which lowers friction and reduces spawn rates
+- Live flow controls for north/south and east/west arrival rates
+- Adjustable simulation speed from `0.5x` to `3.0x`
+- Theme switching for `dark`, `light`, `coffee`, and `candy`
+- Live metrics for throughput, average speed, and incidents
+- In-browser simulation loop with no backend dependency for core behavior
 
-**Architecture**
-- The UI owns the sim loop via `useSimulation`.
-- Each tick advances an `IntersectionSim` instance and renders its JSON snapshot.
+## How It Works
 
+The app keeps simulation state in `useSimulation`, selects an engine based on the chosen layout, advances that engine on a timed loop, and renders the returned snapshot.
+
+```text
+Controls -> useSimulation -> layout-specific engine -> state snapshot -> RoadLayer + metrics UI
 ```
-UI Controls -> useSimulation -> IntersectionSim.step(params) -> Render snapshot
-```
 
-**Simulation Model Highlights**
-- **Vehicle dynamics** use an IDM-style model with acceleration, deceleration, and safe headway.
-- **Traffic signals** run an N/S/E/W state machine with all-red clearance and smart vs fixed timing.
-- **Weather** affects friction (rain lowers traction) and reduces spawn rates by 20%.
-- **Routes** include straight, left, and right turns with Bezier-curve geometry.
+Current engines:
 
-**System Requirements**
-- Node.js + npm
-- A modern browser with good Canvas/CSS support
+- `DualIntersectionSim` for the corridor-style cross layout
+- `RoundaboutSim` for the roundabout layout
+- `TIntersectionSim` for the T-junction layout
 
-**Running Locally**
-1. Install and run the client
+Each engine tracks:
+
+- Per-road vehicle queues
+- Light state and phase timing
+- Throughput and average speed metrics
+- Weather-adjusted motion behavior
+
+## UI Surface
+
+The control desk currently includes:
+
+- Weather toggle
+- Timing mode toggle
+- Color theme selector
+- Intersection type selector
+- Flow input sliders for north/south and east/west traffic
+- Simulation speed slider
+- Start / pause control
+- Reset control
+- Metric cards for throughput, average speed, and incidents
+- Header status pills showing current layout, mode, and running state
+
+## Tech Stack
+
+- React 19
+- Vite 7
+- Tailwind CSS
+- Framer Motion
+- Lucide React
+- Custom simulation engine in `Client/src/features/simulation/engine`
+
+## Project Structure
+
+- `Client/` - application source
+- `Client/src/App.jsx` - app shell and layout wiring
+- `Client/src/features/simulation/hooks/useSimulation.js` - simulation lifecycle and tick loop
+- `Client/src/features/simulation/components/` - controls, road rendering, traffic lights, vehicles, and effects
+- `Client/src/features/simulation/engine/` - layout-specific simulation engines and vehicle behavior
+- `Documentation/` - project documentation assets
+
+## Local Development
+
+Requirements:
+
+- Node.js
+- npm
+
+Run locally:
+
 ```powershell
 cd Client
 npm install
 npm run dev
 ```
-Vite dev server runs on `http://localhost:5173` by default.
 
-**Build and Preview**
-- `npm run build` generates a production build in `Client/dist`.
-- `npm run preview` serves the build locally.
+Default Vite dev server: `http://localhost:5173`
 
-**Controls**
-- **Weather**: `sunny` or `rain`
-- **Mode**: `smart` or `fixed` (smart waits for a clear intersection before switching)
-- **Arrival Rates**: sliders for north/south and east/west spawns
-- **Simulation Speed**: scales tick rate and animation speed
-- **Theme**: `light`, `dark`, `coffee`, `candy`
-- **Run / Reset**: start, pause, and reset the sim loop
+Build for production:
 
-**Simulation Loop**
-- Tick interval: `tickMs = max(16, 100 / simSpeed)` (capped at ~60 FPS)
-- `dt = 0.1` seconds per physics step
+```powershell
+cd Client
+npm run build
+```
 
-**Traffic Signal Phases**
-- `N_GREEN` -> `N_YELLOW` -> `N_ALL_RED` -> `S_GREEN` -> `S_YELLOW` -> `S_ALL_RED` -> `E_GREEN` -> `E_YELLOW` -> `E_ALL_RED` -> `W_GREEN` -> `W_YELLOW` -> `W_ALL_RED`
-- Smart mode advances out of all-red when the intersection clears or after a timeout.
+Preview the production build:
 
-**Metrics**
-- `throughput`: count of vehicles that exit the road length
-- `avg_speed`: average speed across active vehicles in a tick
-- `accidents`: currently static (placeholder)
+```powershell
+cd Client
+npm run preview
+```
 
-**Project Structure**
-- `Client/src/App.jsx` — UI layout, theme application
-- `Client/src/features/simulation/hooks/useSimulation.js` — sim loop + state
-- `Client/src/features/simulation/engine/IntersectionSim.js` — core sim
-- `Client/src/features/simulation/engine/VehicleAgent.js` — vehicle dynamics
-- `Client/src/features/simulation/components` — rendering primitives
-- `Client/src/index.css` — palettes + utility styles
+## Metrics
 
-**Key Constants**
-- `ROAD_LENGTH = 400`, `STOP_LINE = 100`, `INTERSECTION_EXIT = 280`
-- `ACCEL_MAX = 3.0`, `DECEL_COMF = 2.5`, `SAFE_HEADWAY = 2.0`
-- Two lanes per direction with left/right turning routes
+- `throughput`: vehicles that successfully leave the simulated road network
+- `avg_speed`: average speed of active vehicles in the current tick
+- `accidents`: exposed in the UI, but still effectively a placeholder metric in the current engines
 
-**Known Limitations**
-- `accidents` is not computed yet.
-- No persistence layer for metrics or runs.
+## Current Limitations
 
-**PRD Feature Checklist**
-- [ ] Provide PRD text so this checklist can be populated with the required feature set.
+- Incident tracking is not meaningfully implemented yet
+- There is no persistence for scenarios, runs, or metrics
+- There are no automated test scripts defined in `Client/package.json` yet
+
