@@ -24,11 +24,15 @@ export class VehicleAgent {
         this.pos = 0.0;
         this.speed = this.v_desired * 0.6;
         this.status = 'moving';
+        this.pathMode = 'cross';
+        this.singleRoundabout = false;
 
         // Dynamic 2D State (for collision and rendering)
         this.x = 0;
         this.y = 0;
         this.angle = 0; // rotation in degrees
+        this._smoothedAngle = 0;
+        this._hasAngle = false;
     }
 
     static spawn(vId, typeName, laneIdx, route = 'straight', direction = 'north', intersectionIdx = 0) {
@@ -36,6 +40,8 @@ export class VehicleAgent {
     }
 
     updatePhysics(dt, leader, stopTarget, friction) {
+        const isRoundabout = this.pathMode === 'roundabout';
+        const previousPos = this.pos;
         let gap = 1000.0;
         let targetSpeed = 0.0;
 
@@ -55,7 +61,7 @@ export class VehicleAgent {
             }
         }
 
-        const s0 = MIN_GAP + (1.0 - this.aggression);
+        const s0 = MIN_GAP + (1.0 - this.aggression) + (isRoundabout ? 8.0 : 0.0);
         const deltaV = this.speed - targetSpeed;
         const sStar = s0 + (this.speed * SAFE_HEADWAY) + (
             (this.speed * deltaV) / (2.0 * Math.sqrt(ACCEL_MAX * DECEL_COMF))
@@ -68,15 +74,20 @@ export class VehicleAgent {
             acc *= friction;
         }
 
-        this.speed = Math.max(0.0, this.speed + acc * dt);
+        const speedCap = this.v_desired * (isRoundabout ? 0.72 : 1.0);
+        this.speed = Math.max(0.0, Math.min(speedCap, this.speed + acc * dt));
         this.pos += this.speed * dt;
 
         // Hard stops for unresolvable tight gaps or exact stop line logic
         if (leader !== null) {
             const actualGap = (leader.pos - leader.length / 2) - (this.pos + this.length / 2);
-            if (actualGap < 4.0) {
+            if (actualGap < (isRoundabout ? 7.0 : 4.0)) {
                 this.speed = 0.0;
-                this.pos = leader.pos - leader.length / 2 - this.length / 2 - 4.0;
+                if (isRoundabout) {
+                    this.pos = Math.max(0, previousPos);
+                } else {
+                    this.pos = leader.pos - leader.length / 2 - this.length / 2 - 4.0;
+                }
                 this.status = 'stopped';
                 this._update2DCoords();
                 return;
@@ -109,6 +120,11 @@ export class VehicleAgent {
     }
 
     _update2DCoords() {
+        if (this.pathMode === 'roundabout') {
+            this._updateRoundaboutCoords();
+            return;
+        }
+
         // Maps 1D "pos" (0 -> 400) into coordinates on 1600x800 canvas
         const scaledPos = (this.pos / 400) * 800;
         const intOffset = this.intersectionIdx * 800;
@@ -262,5 +278,157 @@ export class VehicleAgent {
         }
 
         return { p0, p1, p2, exitDirection };
+    }
+
+    _updateRoundaboutCoords() {
+        const scaledPos = (this.pos / 400) * 800;
+        const isSingleRoundabout = this.singleRoundabout === true;
+        const intOffset = this.intersectionIdx * 800;
+        const minX = isSingleRoundabout ? 0 : intOffset;
+        const maxX = isSingleRoundabout ? 1600 : (intOffset + 800);
+        const CX = isSingleRoundabout ? 800 : (intOffset + 400);
+        const CY = 400;
+
+        const approachOffset = isSingleRoundabout
+            ? 52
+            : (this.lane === 1 ? 16 : 24);
+        const radius = isSingleRoundabout
+            ? 200
+            : (this.lane === 1 ? 100 : 128);
+
+        const APPROACH_SEG = 200;
+        const ARC_QUARTER_SEG = 145;
+        const EXIT_SEG = 220;
+
+        const routeTurnDeg = this.route === 'right' ? 90 : this.route === 'left' ? 270 : 180;
+        const arcSeg = (routeTurnDeg / 90) * ARC_QUARTER_SEG;
+        const arcStart = APPROACH_SEG;
+        const arcEnd = arcStart + arcSeg;
+
+        const entryAngleByDirection = {
+            north: 270,
+            south: 90,
+            east: 180,
+            west: 0,
+        };
+        const entryAngle = entryAngleByDirection[this.direction] ?? 270;
+
+        const exitDirection = this._getRoundaboutExitDirection();
+
+        if (scaledPos <= APPROACH_SEG) {
+            const t = Math.max(0, Math.min(scaledPos / APPROACH_SEG, 1));
+            this._setRoundaboutApproachCoords(t, CX, CY, radius, approachOffset, minX, maxX);
+            return;
+        }
+
+        if (scaledPos <= arcEnd) {
+            const t = Math.max(0, Math.min((scaledPos - arcStart) / Math.max(1, arcSeg), 1));
+            const thetaDeg = entryAngle + (routeTurnDeg * t);
+            const theta = (thetaDeg * Math.PI) / 180;
+
+            this.x = CX + (radius * Math.cos(theta));
+            this.y = CY - (radius * Math.sin(theta));
+
+            const dx = -Math.sin(theta);
+            const dy = -Math.cos(theta);
+            this._setAngle(Math.atan2(dy, dx) * (180 / Math.PI));
+            return;
+        }
+
+        const exitT = Math.max(0, Math.min((scaledPos - arcEnd) / EXIT_SEG, 1));
+        this._setRoundaboutExitCoords(exitT, exitDirection, CX, CY, radius, approachOffset, minX, maxX);
+    }
+
+    _getRoundaboutExitDirection() {
+        if (this.route === 'straight') {
+            return this.direction;
+        }
+
+        const turns = {
+            north: { left: 'west', right: 'east' },
+            south: { left: 'east', right: 'west' },
+            east: { left: 'north', right: 'south' },
+            west: { left: 'south', right: 'north' },
+        };
+
+        return turns[this.direction]?.[this.route] ?? this.direction;
+    }
+
+    _setRoundaboutApproachCoords(t, CX, CY, radius, approachOffset, minX, maxX) {
+        if (this.direction === 'north') {
+            this.x = CX + approachOffset;
+            this.y = 800 - ((800 - (CY + radius)) * t);
+            this._setAngle(-90);
+            return;
+        }
+        if (this.direction === 'south') {
+            this.x = CX - approachOffset;
+            this.y = (CY - radius) * t;
+            this._setAngle(90);
+            return;
+        }
+        if (this.direction === 'east') {
+            this.x = (minX * (1 - t)) + ((CX - radius) * t);
+            this.y = CY + approachOffset;
+            this._setAngle(0);
+            return;
+        }
+
+        this.x = maxX - ((maxX - (CX + radius)) * t);
+        this.y = CY - approachOffset;
+        this._setAngle(180);
+    }
+
+    _setRoundaboutExitCoords(t, exitDirection, CX, CY, radius, approachOffset, minX, maxX) {
+        const lerp = (a, b, ratio) => a + ((b - a) * ratio);
+
+        if (exitDirection === 'north') {
+            const startX = CX + approachOffset;
+            const startY = CY - radius;
+            this.x = lerp(startX, startX, t);
+            this.y = lerp(startY, 0, t);
+            this._setAngle(-90);
+            return;
+        }
+
+        if (exitDirection === 'south') {
+            const startX = CX - approachOffset;
+            const startY = CY + radius;
+            this.x = lerp(startX, startX, t);
+            this.y = lerp(startY, 800, t);
+            this._setAngle(90);
+            return;
+        }
+
+        if (exitDirection === 'east') {
+            const startX = CX + radius;
+            const startY = CY + approachOffset;
+            this.x = lerp(startX, maxX, t);
+            this.y = lerp(startY, startY, t);
+            this._setAngle(0);
+            return;
+        }
+
+        const startX = CX - radius;
+        const startY = CY - approachOffset;
+        this.x = lerp(startX, minX, t);
+        this.y = lerp(startY, startY, t);
+        this._setAngle(180);
+    }
+
+    _setAngle(nextAngle) {
+        if (!this._hasAngle) {
+            this._smoothedAngle = nextAngle;
+            this._hasAngle = true;
+            this.angle = nextAngle;
+            return;
+        }
+
+        let delta = nextAngle - this._smoothedAngle;
+        while (delta > 180) delta -= 360;
+        while (delta < -180) delta += 360;
+
+        this._smoothedAngle += delta;
+        this.angle = this._smoothedAngle;
     }
 }
