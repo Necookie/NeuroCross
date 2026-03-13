@@ -132,6 +132,31 @@ const SingleRoundaboutBackdrop = memo(() => {
   );
 });
 
+const TIntersectionBackdrop = memo(() => (
+  <>
+    <div className="absolute bg-mono-800/90 border-y border-mono-700/70" style={{ left: '0%', top: '25%', width: '100%', height: '30%' }}>
+      <div className="absolute top-1/2 w-full border-t-2 border-mono-300/20" />
+      <div className="absolute top-[28%] w-full border-t border-dashed border-mono-400/20" />
+      <div className="absolute bottom-[28%] w-full border-t border-dashed border-mono-400/20" />
+    </div>
+
+    <div className="absolute bg-mono-800/90 border-x border-mono-700/70" style={{ left: '40%', top: '40%', width: '20%', height: '60%' }}>
+      <div className="absolute left-1/2 h-full border-l-2 border-mono-300/20" />
+      <div className="absolute left-[28%] h-full border-l border-dashed border-mono-400/20" />
+      <div className="absolute right-[28%] h-full border-l border-dashed border-mono-400/20" />
+    </div>
+
+    <div className="absolute bg-mono-800/90 z-0" style={{ left: '40%', top: '25%', width: '20%', height: '15%' }} />
+
+    <div className="absolute bg-mono-300/20 z-[1]" style={{ left: '40%', top: '25%', width: '1px', height: '15%' }} />
+    <div className="absolute bg-mono-300/20 z-[1]" style={{ left: '60%', top: '25%', width: '1px', height: '15%' }} />
+
+    <div className="absolute z-30 text-[9px] uppercase tracking-[0.25em] text-mono-500/60 font-semibold" style={{ left: '50%', top: '84%', transform: 'translateX(-50%)' }}>
+      T-Intersection
+    </div>
+  </>
+));
+
 function getLightColor(lightState, dir) {
   const prefix = dir.charAt(0).toUpperCase();
   if (lightState === `${prefix}_GREEN`) return 'GREEN';
@@ -145,12 +170,13 @@ const RoadLayer = ({ data, weather, speedFactor, intersectionType = 'cross' }) =
   const int0 = intersections[0] || emptyIntersection;
   const int1 = intersections[1] || emptyIntersection;
   const isSingleRoundabout = intersectionType === 'roundabout';
+  const isTIntersection = intersectionType === 'tintersection';
 
   return (
     <div className="relative w-full bg-mono-900 rounded-[20px] border border-mono-700/70 shadow-soft overflow-hidden asphalt inset-shadow" style={{ aspectRatio: '2 / 1' }}>
       {weather === 'rain' && <RainEffect />}
 
-      {intersectionType === 'roundabout' ? <SingleRoundaboutBackdrop /> : <RoadBackdrop />}
+      {intersectionType === 'roundabout' ? <SingleRoundaboutBackdrop /> : isTIntersection ? <TIntersectionBackdrop /> : <RoadBackdrop />}
 
       {isSingleRoundabout ? (
         <>
@@ -165,6 +191,18 @@ const RoadLayer = ({ data, weather, speedFactor, intersectionType = 'cross' }) =
           </div>
           <div className="absolute z-40" style={{ top: '4%', left: '36%' }}>
             <TrafficLight state={getLightColor(int0.light_state, 'east')} />
+          </div>
+        </>
+      ) : isTIntersection ? (
+        <>
+          <div className="absolute z-40" style={{ top: '24%', left: '38%' }}>
+            <TrafficLight state={getLightColor(int0.light_state, 'east')} />
+          </div>
+          <div className="absolute z-40" style={{ top: '24%', left: '58%' }}>
+            <TrafficLight state={getLightColor(int0.light_state, 'west')} />
+          </div>
+          <div className="absolute z-40" style={{ top: '54%', left: '58%' }}>
+            <TrafficLight state={getLightColor(int0.light_state, 'north')} />
           </div>
         </>
       ) : (
@@ -199,7 +237,7 @@ const RoadLayer = ({ data, weather, speedFactor, intersectionType = 'cross' }) =
 
       {/* VEHICLES — all from both intersections */}
       <div className="absolute inset-0 z-10">
-        {(isSingleRoundabout ? intersections.slice(0, 1) : intersections).map((ix) =>
+        {((isSingleRoundabout || isTIntersection) ? intersections.slice(0, 1) : intersections).map((ix) =>
           Object.values(ix.roads).map((lanes) =>
             lanes.map((cars) =>
               cars.map((c) => (

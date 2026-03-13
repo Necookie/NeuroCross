@@ -69,30 +69,6 @@ const ControlsPanel = ({
         </button>
       </div>
 
-      <div className="pt-1">
-        <div className="mb-3 text-[10px] uppercase tracking-[0.2em] font-semibold text-mono-400">Intersection Type</div>
-        <div className="flex bg-mono-950/70 p-1 rounded-full border border-mono-800/70">
-          <button
-            onClick={() => updateParam('intersectionType', 'cross')}
-            className={`flex-1 py-2 rounded-full text-xs font-medium transition-all duration-300 ease-soft-ease ${(params.intersectionType || 'cross') === 'cross'
-                ? 'bg-mono-200 text-mono-900 shadow-lift'
-                : 'text-mono-400 hover:text-mono-200'
-              }`}
-          >
-            Cross
-          </button>
-          <button
-            onClick={() => updateParam('intersectionType', 'roundabout')}
-            className={`flex-1 py-2 rounded-full text-xs font-medium transition-all duration-300 ease-soft-ease ${(params.intersectionType || 'cross') === 'roundabout'
-                ? 'bg-mono-200 text-mono-900 shadow-lift'
-                : 'text-mono-400 hover:text-mono-200'
-              }`}
-          >
-            Roundabout
-          </button>
-        </div>
-      </div>
-
       <div className="pt-2">
         <div className="mb-3 text-[10px] uppercase tracking-[0.2em] font-semibold text-mono-400">Color Theme</div>
         <div className="grid grid-cols-2 gap-2">
@@ -109,6 +85,39 @@ const ControlsPanel = ({
             </button>
           ))}
         </div>
+      </div>
+      </div>
+
+      <div className="glass-panel rounded-3xl p-6 space-y-4">
+      <div className="text-[10px] uppercase tracking-[0.3em] text-mono-400">Intersection Type</div>
+      <div className="grid grid-cols-3 gap-2">
+        <button
+          onClick={() => updateParam('intersectionType', 'cross')}
+          className={`py-2 rounded-xl text-xs font-medium transition-all duration-300 ease-soft-ease border ${(params.intersectionType || 'cross') === 'cross'
+              ? 'bg-mono-200 text-mono-900 shadow-lift border-mono-200'
+              : 'bg-mono-950/70 text-mono-400 border-mono-800/70 hover:text-mono-200 hover:border-mono-700/80'
+            }`}
+        >
+          Cross
+        </button>
+        <button
+          onClick={() => updateParam('intersectionType', 'roundabout')}
+          className={`py-2 rounded-xl text-xs font-medium transition-all duration-300 ease-soft-ease border ${(params.intersectionType || 'cross') === 'roundabout'
+              ? 'bg-mono-200 text-mono-900 shadow-lift border-mono-200'
+              : 'bg-mono-950/70 text-mono-400 border-mono-800/70 hover:text-mono-200 hover:border-mono-700/80'
+            }`}
+        >
+          Roundabout
+        </button>
+        <button
+          onClick={() => updateParam('intersectionType', 'tintersection')}
+          className={`py-2 rounded-xl text-xs font-medium transition-all duration-300 ease-soft-ease border ${(params.intersectionType || 'cross') === 'tintersection'
+              ? 'bg-mono-200 text-mono-900 shadow-lift border-mono-200'
+              : 'bg-mono-950/70 text-mono-400 border-mono-800/70 hover:text-mono-200 hover:border-mono-700/80'
+            }`}
+        >
+          T-Intersection
+        </button>
       </div>
       </div>
 
