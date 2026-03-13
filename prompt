@@ -1,0 +1,22 @@
+Major Issue intersectionType is passed but not consumed by StatusHeader.
+Verify each finding against the current code and only fix it if needed.
+
+In `@Client/src/App.jsx` at line 32, StatusHeader is receiving intersectionType
+from App but not using it; update the StatusHeader component (the StatusHeader
+function/component) to destructure and accept the intersectionType prop (e.g.,
+change props from { mode, running } to { mode, running, intersectionType }) and
+then consume it in the render output or component logic (for example show it in
+a label, choose an icon/text based on intersectionType, or apply conditional
+styling) so the passed prop has visible effect in the UI.
+
+
+needsMinor fix
+
+Verify each finding against the current code and only fix it if needed.
+
+In `@Client/src/features/simulation/engine/RoundaboutSim.js` around lines 81 - 83,
+The avg_speed metric is not reset when all vehicles leave, leaving a stale
+value; in the block in RoundaboutSim.js where you compute avg_speed (the if
+(carCount > 0) { this.metrics.avg_speed = Math.floor(totalSpeed / carCount); }),
+add an else branch to explicitly reset this.metrics.avg_speed (e.g., to 0 or
+null) when carCount is 0 so the metrics reflect no vehicles present.
