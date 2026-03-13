@@ -53,7 +53,7 @@ export class TIntersectionSim {
 
         let leader = null;
         for (let i = 0; i < cars.length; i++) {
-          cars[i].pathMode = 'cross';
+          cars[i].pathMode = 'tintersection';
           cars[i].singleRoundabout = false;
           cars[i].updatePhysics(dt, leader, stopTarget, friction);
           totalSpeed += cars[i].speed;
@@ -161,7 +161,10 @@ export class TIntersectionSim {
       if (params.weather === 'rain') rate *= 0.8;
 
       if (Math.random() < (rate * dt)) {
-        const laneIdx = Math.floor(Math.random() * 2);
+        let laneIdx = Math.floor(Math.random() * 2);
+        // Keep lane/route combinations on available T exits only.
+        if (direction === 'east' && laneIdx === 1) laneIdx = 0; // avoid east->north turn
+        if (direction === 'west' && laneIdx === 0) laneIdx = 1; // avoid west->north turn
         this._trySpawn(ix, direction, laneIdx);
       }
     }
@@ -180,19 +183,23 @@ export class TIntersectionSim {
 
     let routes;
     let routeProbs;
-    if (laneIdx === 1) {
+    if (direction === 'east') {
+      routes = ['straight', 'right'];
+      routeProbs = [0.65, 0.35];
+    } else if (direction === 'west') {
       routes = ['straight', 'left'];
       routeProbs = [0.65, 0.35];
     } else {
-      routes = ['straight', 'right'];
-      routeProbs = [0.65, 0.35];
+      // From south stem, do not allow straight-to-missing-top arm.
+      routes = ['left', 'right'];
+      routeProbs = [0.5, 0.5];
     }
 
     const route = weightedRandomChoice(routes, routeProbs);
     const vType = weightedRandomChoice(types, probs);
 
     const car = VehicleAgent.spawn(this.globalId, vType, laneIdx, route, direction, 0);
-    car.pathMode = 'cross';
+    car.pathMode = 'tintersection';
     car.singleRoundabout = false;
     laneCars.push(car);
   }

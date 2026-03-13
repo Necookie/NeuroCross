@@ -134,22 +134,22 @@ const SingleRoundaboutBackdrop = memo(() => {
 
 const TIntersectionBackdrop = memo(() => (
   <>
-    <div className="absolute top-[20%] left-[8%] w-[84%] h-[22%] bg-mono-800/90 border-y border-mono-700/70">
+    <div className="absolute bg-mono-800/90 border-y border-mono-700/70" style={{ left: '0%', top: '25%', width: '100%', height: '30%' }}>
       <div className="absolute top-1/2 w-full border-t-2 border-mono-300/20" />
-      <div className="absolute top-[30%] w-full border-t border-dashed border-mono-400/20" />
-      <div className="absolute bottom-[30%] w-full border-t border-dashed border-mono-400/20" />
+      <div className="absolute top-[28%] w-full border-t border-dashed border-mono-400/20" />
+      <div className="absolute bottom-[28%] w-full border-t border-dashed border-mono-400/20" />
     </div>
 
-    <div className="absolute top-[42%] left-[44%] w-[12%] h-[58%] bg-mono-800/90 border-x border-mono-700/70">
+    <div className="absolute bg-mono-800/90 border-x border-mono-700/70" style={{ left: '40%', top: '40%', width: '20%', height: '60%' }}>
       <div className="absolute left-1/2 h-full border-l-2 border-mono-300/20" />
       <div className="absolute left-[28%] h-full border-l border-dashed border-mono-400/20" />
       <div className="absolute right-[28%] h-full border-l border-dashed border-mono-400/20" />
     </div>
 
-    <div className="absolute bg-mono-800/90 z-0" style={{ left: '44%', top: '20%', width: '12%', height: '22%' }} />
+    <div className="absolute bg-mono-800/90 z-0" style={{ left: '40%', top: '25%', width: '20%', height: '15%' }} />
 
-    <div className="absolute bg-mono-300/20 z-[1]" style={{ left: '44%', top: '20%', width: '1px', height: '22%' }} />
-    <div className="absolute bg-mono-300/20 z-[1]" style={{ left: '56%', top: '20%', width: '1px', height: '22%' }} />
+    <div className="absolute bg-mono-300/20 z-[1]" style={{ left: '40%', top: '25%', width: '1px', height: '15%' }} />
+    <div className="absolute bg-mono-300/20 z-[1]" style={{ left: '60%', top: '25%', width: '1px', height: '15%' }} />
 
     <div className="absolute z-30 text-[9px] uppercase tracking-[0.25em] text-mono-500/60 font-semibold" style={{ left: '50%', top: '84%', transform: 'translateX(-50%)' }}>
       T-Intersection
@@ -195,13 +195,13 @@ const RoadLayer = ({ data, weather, speedFactor, intersectionType = 'cross' }) =
         </>
       ) : isTIntersection ? (
         <>
-          <div className="absolute z-40" style={{ top: '15%', left: '40%' }}>
-            <TrafficLight state={getLightColor(int0.light_state, 'west')} />
-          </div>
-          <div className="absolute z-40" style={{ top: '15%', left: '56%' }}>
+          <div className="absolute z-40" style={{ top: '24%', left: '38%' }}>
             <TrafficLight state={getLightColor(int0.light_state, 'east')} />
           </div>
-          <div className="absolute z-40" style={{ top: '45%', left: '48%' }}>
+          <div className="absolute z-40" style={{ top: '24%', left: '58%' }}>
+            <TrafficLight state={getLightColor(int0.light_state, 'west')} />
+          </div>
+          <div className="absolute z-40" style={{ top: '54%', left: '58%' }}>
             <TrafficLight state={getLightColor(int0.light_state, 'north')} />
           </div>
         </>

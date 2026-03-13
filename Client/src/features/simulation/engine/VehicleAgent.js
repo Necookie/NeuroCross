@@ -125,6 +125,11 @@ export class VehicleAgent {
             return;
         }
 
+        if (this.pathMode === 'tintersection') {
+            this._updateTIntersectionCoords();
+            return;
+        }
+
         // Maps 1D "pos" (0 -> 400) into coordinates on 1600x800 canvas
         const scaledPos = (this.pos / 400) * 800;
         const intOffset = this.intersectionIdx * 800;
@@ -377,6 +382,79 @@ export class VehicleAgent {
         this.x = maxX - ((maxX - (CX + radius)) * t);
         this.y = CY - approachOffset;
         this._setAngle(180);
+    }
+
+    _updateTIntersectionCoords() {
+        const t = Math.max(0, Math.min(this.pos / 400, 1));
+        const CX = 800;
+        const CY = 320;
+        const laneOffset = this.lane === 1 ? 35 : 65;
+        const approachRatio = 0.45;
+
+        if (this.direction === 'east') {
+            if (this.route === 'right') {
+                if (t <= approachRatio) {
+                    const p = t / approachRatio;
+                    this.x = p * CX;
+                    this.y = CY + laneOffset;
+                    this._setAngle(0);
+                } else {
+                    const p = (t - approachRatio) / (1 - approachRatio);
+                    this.x = CX - laneOffset;
+                    this.y = CY + (p * (800 - CY));
+                    this._setAngle(90);
+                }
+                return;
+            }
+
+            this.x = t * 1600;
+            this.y = CY + laneOffset;
+            this._setAngle(0);
+            return;
+        }
+
+        if (this.direction === 'west') {
+            if (this.route === 'left') {
+                if (t <= approachRatio) {
+                    const p = t / approachRatio;
+                    this.x = 1600 - (p * (1600 - CX));
+                    this.y = CY - laneOffset;
+                    this._setAngle(180);
+                } else {
+                    const p = (t - approachRatio) / (1 - approachRatio);
+                    this.x = CX + laneOffset;
+                    this.y = CY + (p * (800 - CY));
+                    this._setAngle(90);
+                }
+                return;
+            }
+
+            this.x = 1600 - (t * 1600);
+            this.y = CY - laneOffset;
+            this._setAngle(180);
+            return;
+        }
+
+        // North direction vehicles in this mode are the stem approach from bottom.
+        if (t <= approachRatio) {
+            const p = t / approachRatio;
+            this.x = this.route === 'left' ? (CX + laneOffset) : (CX - laneOffset);
+            this.y = 800 - (p * (800 - CY));
+            this._setAngle(-90);
+            return;
+        }
+
+        const p = (t - approachRatio) / (1 - approachRatio);
+        if (this.route === 'left') {
+            this.x = (CX + laneOffset) - (p * (CX + laneOffset));
+            this.y = CY - laneOffset;
+            this._setAngle(180);
+            return;
+        }
+
+        this.x = (CX - laneOffset) + (p * (1600 - (CX - laneOffset)));
+        this.y = CY + laneOffset;
+        this._setAngle(0);
     }
 
     _setRoundaboutExitCoords(t, exitDirection, CX, CY, radius, approachOffset, minX, maxX) {
