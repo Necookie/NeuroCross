@@ -15,12 +15,21 @@ export const useSimulation = () => {
   const paramsRef = useRef(params);
   const simSpeedRef = useRef(simSpeed);
   const hasConnectedRef = useRef(false);
+  const lastIntersectionTypeRef = useRef(params.intersectionType);
 
   // Keep refs in sync with state so the tick loop always reads fresh values.
   useEffect(() => {
     paramsRef.current = params;
     simSpeedRef.current = simSpeed;
   }, [params, simSpeed]);
+
+  useEffect(() => {
+    if (lastIntersectionTypeRef.current === params.intersectionType) return;
+
+    simRef.current = new DualIntersectionSim();
+    setData(createDefaultData());
+    lastIntersectionTypeRef.current = params.intersectionType;
+  }, [params.intersectionType]);
 
   useEffect(() => {
     if (!running) {

@@ -3,6 +3,7 @@ export const DEFAULT_PARAMS = {
   arrival_rate_ew: 0.4,
   mode: 'smart',
   weather: 'sunny',
+  intersectionType: 'cross',
   theme: 'light'
 };
 

@@ -49,6 +49,7 @@ function App() {
               data={data}
               weather={params.weather}
               speedFactor={simSpeed}
+              intersectionType={params.intersectionType}
             />
           </div>
         </div>
