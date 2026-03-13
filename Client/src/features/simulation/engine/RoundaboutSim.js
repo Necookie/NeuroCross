@@ -80,6 +80,8 @@ export class RoundaboutSim {
 
     if (carCount > 0) {
       this.metrics.avg_speed = Math.floor(totalSpeed / carCount);
+    } else {
+      this.metrics.avg_speed = 0;
     }
 
     return this.getState();
