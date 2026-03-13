@@ -39,8 +39,7 @@ export class DualIntersectionSim {
     step(params) {
         const dt = 0.1;
         const friction = params.weather === 'rain' ? 0.6 : 1.0;
-        const pathMode = params.intersectionType === 'roundabout' ? 'roundabout' : 'cross';
-        const intersectionCount = pathMode === 'roundabout' ? 1 : 2;
+        const intersectionCount = 2;
         this.activeIntersectionCount = intersectionCount;
 
         let totalSpeed = 0;
@@ -54,17 +53,13 @@ export class DualIntersectionSim {
             const ix = this.intersections[intIdx];
             ix.timer += dt;
 
-            if (pathMode === 'roundabout') {
-                this._normalizeRoundaboutLanes(ix);
-            }
-
             this._updateLights(ix, params.mode);
-            this._spawnTraffic(ix, intIdx, params, dt, pathMode);
+            this._spawnTraffic(ix, intIdx, params, dt);
 
             for (const direction of this.roadKeys) {
                 const lanes = ix.roads[direction];
                 const isGreen = this._isGreen(ix, direction);
-                const blocked = this._isBlocked(ix, direction, params.intersectionType);
+                const blocked = this._isBlocked(ix, direction);
 
                 for (let laneIdx = 0; laneIdx < lanes.length; laneIdx++) {
                     const cars = lanes[laneIdx];
@@ -72,8 +67,8 @@ export class DualIntersectionSim {
 
                     let leader = null;
                     for (let i = 0; i < cars.length; i++) {
-                        cars[i].pathMode = pathMode;
-                        cars[i].singleRoundabout = pathMode === 'roundabout';
+                        cars[i].pathMode = 'cross';
+                        cars[i].singleRoundabout = false;
                         // Cap transfer-waiting cars at road end so they don't fly off
                         if (cars[i].pos >= ROAD_LENGTH && this._canTransferVehicle(intIdx, cars[i], direction)) {
                             cars[i].pos = ROAD_LENGTH;
@@ -160,7 +155,6 @@ export class DualIntersectionSim {
     }
 
     _canTransferVehicle(fromIntIdx, car, roadDirection) {
-        if (car.pathMode === 'roundabout') return false;
         const exitDir = this._getExitDirection(roadDirection, car.route);
         return this._canTransfer(fromIntIdx, exitDir);
     }
@@ -168,9 +162,9 @@ export class DualIntersectionSim {
     _applyTransfer(car, fromIntIdx, exitDirection) {
         // East vehicles exiting int 0 → enter int 1's east road
         if (exitDirection === 'east' && fromIntIdx === 0) {
-            const targetLaneIdx = car.pathMode === 'roundabout' ? 0 : car.lane;
+            const targetLaneIdx = car.lane;
             const targetLane = this.intersections[1].roads.east[targetLaneIdx];
-            const minTransferGap = car.pathMode === 'roundabout' ? 56 : 40;
+            const minTransferGap = 40;
             for (const c of targetLane) {
                 if ((c.pos - c.length / 2) < minTransferGap) return false;
             }
@@ -180,16 +174,16 @@ export class DualIntersectionSim {
             car.direction = 'east';
             car.route = 'straight';
             car.lane = targetLaneIdx;
-            car.pathMode = car.pathMode || 'cross';
+            car.pathMode = 'cross';
             car._update2DCoords();
             targetLane.push(car);
             return true;
         }
         // West vehicles exiting int 1 → enter int 0's west road
         if (exitDirection === 'west' && fromIntIdx === 1) {
-            const targetLaneIdx = car.pathMode === 'roundabout' ? 0 : car.lane;
+            const targetLaneIdx = car.lane;
             const targetLane = this.intersections[0].roads.west[targetLaneIdx];
-            const minTransferGap = car.pathMode === 'roundabout' ? 56 : 40;
+            const minTransferGap = 40;
             for (const c of targetLane) {
                 if ((c.pos - c.length / 2) < minTransferGap) return false;
             }
@@ -199,7 +193,7 @@ export class DualIntersectionSim {
             car.direction = 'west';
             car.route = 'straight';
             car.lane = targetLaneIdx;
-            car.pathMode = car.pathMode || 'cross';
+            car.pathMode = 'cross';
             car._update2DCoords();
             targetLane.push(car);
             return true;
@@ -272,19 +266,7 @@ export class DualIntersectionSim {
         return false;
     }
 
-    _isBlocked(ix, direction, intersectionType = 'cross') {
-        if (intersectionType === 'roundabout') {
-            for (const dir of this.roadKeys) {
-                const lanes = ix.roads[dir];
-                for (const lane of lanes) {
-                    for (const car of lane) {
-                        if (car.pos > STOP_LINE && car.pos < INTERSECTION_EXIT) return true;
-                    }
-                }
-            }
-            return false;
-        }
-
+    _isBlocked(ix, direction) {
         const lanes = ix.roads[direction];
         for (const lane of lanes) {
             for (const car of lane) {
@@ -294,13 +276,11 @@ export class DualIntersectionSim {
         return false;
     }
 
-    _spawnTraffic(ix, intIdx, params, dt, pathMode = 'cross') {
+    _spawnTraffic(ix, intIdx, params, dt) {
         for (const direction of this.roadKeys) {
             // Don't externally spawn directions fed by transfers
-            if (pathMode !== 'roundabout') {
-                if (intIdx === 0 && direction === 'west') continue;
-                if (intIdx === 1 && direction === 'east') continue;
-            }
+            if (intIdx === 0 && direction === 'west') continue;
+            if (intIdx === 1 && direction === 'east') continue;
 
             let rate = (direction === 'north' || direction === 'south')
                 ? params.arrival_rate_ns
@@ -308,15 +288,15 @@ export class DualIntersectionSim {
             if (params.weather === 'rain') rate *= 0.8;
 
             if (Math.random() < (rate * dt)) {
-                const laneIdx = pathMode === 'roundabout' ? 0 : Math.floor(Math.random() * 2);
-                this._trySpawn(ix, intIdx, direction, laneIdx, pathMode);
+                const laneIdx = Math.floor(Math.random() * 2);
+                this._trySpawn(ix, intIdx, direction, laneIdx);
             }
         }
     }
 
-    _trySpawn(ix, intIdx, direction, laneIdx, pathMode = 'cross') {
+    _trySpawn(ix, intIdx, direction, laneIdx) {
         const laneCars = ix.roads[direction][laneIdx];
-        const minSpawnGap = pathMode === 'roundabout' ? 58 : 40;
+        const minSpawnGap = 40;
         for (const car of laneCars) {
             if ((car.pos - car.length / 2) < minSpawnGap) return;
         }
@@ -325,11 +305,9 @@ export class DualIntersectionSim {
         const types = Object.keys(VEHICLE_SPECS);
         const probs = types.map(t => VEHICLE_SPECS[t].prob);
 
-        let routes, routeProbs;
-        if (pathMode === 'roundabout') {
-            routes = ['straight', 'left', 'right'];
-            routeProbs = [0.5, 0.3, 0.2];
-        } else if (laneIdx === 1) {
+        let routes;
+        let routeProbs;
+        if (laneIdx === 1) {
             // 2 lanes: lane 0 = outer (straight/right), lane 1 = inner (straight/left)
             routes = ['straight', 'left'];
             routeProbs = [0.65, 0.35];
@@ -341,24 +319,9 @@ export class DualIntersectionSim {
         const vType = weightedRandomChoice(types, probs);
 
         const car = VehicleAgent.spawn(this.globalId, vType, laneIdx, route, direction, intIdx);
-        car.pathMode = pathMode;
-        car.singleRoundabout = pathMode === 'roundabout';
+        car.pathMode = 'cross';
+        car.singleRoundabout = false;
         laneCars.push(car);
-    }
-
-    _normalizeRoundaboutLanes(ix) {
-        for (const direction of this.roadKeys) {
-            const lanes = ix.roads[direction];
-            if (lanes[1].length === 0) continue;
-
-            for (const car of lanes[1]) {
-                car.lane = 0;
-            }
-
-            lanes[0] = lanes[0].concat(lanes[1]);
-            lanes[1] = [];
-            lanes[0].sort((a, b) => b.pos - a.pos);
-        }
     }
 
     getState() {

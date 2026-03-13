@@ -90,7 +90,7 @@ const ControlsPanel = ({
 
       <div className="glass-panel rounded-3xl p-6 space-y-4">
       <div className="text-[10px] uppercase tracking-[0.3em] text-mono-400">Intersection Type</div>
-      <div className="flex bg-mono-950/70 p-1 rounded-full border border-mono-800/70">
+      <div className="grid grid-cols-3 bg-mono-950/70 p-1 rounded-full border border-mono-800/70 gap-1">
         <button
           onClick={() => updateParam('intersectionType', 'cross')}
           className={`flex-1 py-2 rounded-full text-xs font-medium transition-all duration-300 ease-soft-ease ${(params.intersectionType || 'cross') === 'cross'
@@ -108,6 +108,15 @@ const ControlsPanel = ({
             }`}
         >
           Roundabout
+        </button>
+        <button
+          onClick={() => updateParam('intersectionType', 'tintersection')}
+          className={`flex-1 py-2 rounded-full text-xs font-medium transition-all duration-300 ease-soft-ease ${(params.intersectionType || 'cross') === 'tintersection'
+              ? 'bg-mono-200 text-mono-900 shadow-lift'
+              : 'text-mono-400 hover:text-mono-200'
+            }`}
+        >
+          T-Intersection
         </button>
       </div>
       </div>

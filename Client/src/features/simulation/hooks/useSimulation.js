@@ -1,16 +1,28 @@
 import { useCallback, useEffect, useState, useRef } from 'react';
 
 import { DualIntersectionSim } from '../engine/DualIntersectionSim';
+import { RoundaboutSim } from '../engine/RoundaboutSim';
+import { TIntersectionSim } from '../engine/TIntersectionSim';
 import { DEFAULT_PARAMS, createDefaultData } from '../constants';
 
+const createSimForType = (intersectionType) => {
+  if (intersectionType === 'roundabout') {
+    return new RoundaboutSim();
+  }
+  if (intersectionType === 'tintersection') {
+    return new TIntersectionSim();
+  }
+  return new DualIntersectionSim();
+};
+
 export const useSimulation = () => {
-  const [data, setData] = useState(createDefaultData);
+  const [data, setData] = useState(() => createDefaultData(DEFAULT_PARAMS.intersectionType));
   const [params, setParams] = useState(DEFAULT_PARAMS);
   const [running, setRunning] = useState(false);
   const [simSpeed, setSimSpeed] = useState(1.0);
   const [hasConnected, setHasConnected] = useState(false);
 
-  const simRef = useRef(new DualIntersectionSim());
+  const simRef = useRef(createSimForType(DEFAULT_PARAMS.intersectionType));
   const timeoutRef = useRef(null);
   const paramsRef = useRef(params);
   const simSpeedRef = useRef(simSpeed);
@@ -26,8 +38,8 @@ export const useSimulation = () => {
   useEffect(() => {
     if (lastIntersectionTypeRef.current === params.intersectionType) return;
 
-    simRef.current = new DualIntersectionSim();
-    setData(createDefaultData());
+    simRef.current = createSimForType(params.intersectionType);
+    setData(createDefaultData(params.intersectionType));
     lastIntersectionTypeRef.current = params.intersectionType;
   }, [params.intersectionType]);
 
@@ -69,10 +81,10 @@ export const useSimulation = () => {
   }, [running]);
 
   const reset = useCallback(() => {
-    simRef.current = new DualIntersectionSim();
+    simRef.current = createSimForType(paramsRef.current.intersectionType);
     hasConnectedRef.current = false;
     setHasConnected(false);
-    setData(createDefaultData());
+    setData(createDefaultData(paramsRef.current.intersectionType));
   }, []);
 
   return {
