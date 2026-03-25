@@ -137,15 +137,16 @@ export class VehicleAgent {
         const CX = intOffset + 400; // center X for this intersection
         const CY = 400;             // center Y (same for both)
 
-        const APPROACH_END = 240;
-        const INTERSECTION_SIZE = 320;
+        const APPROACH_END = 208;
+        const INTERSECTION_SIZE = 384;
 
         const POS_IN_INTERSECTION = scaledPos - APPROACH_END;
 
         // 2 lanes: lane 0 = outer, lane 1 = inner
-        // N-S roads are 320px wide (20% of 1600), E-W road is 320px tall (40% of 800)
-        // Half-road = 160px per side. Place lanes at ~35% and ~75% of each half.
-        const offsetPx = this.lane === 1 ? 55 : 110;
+        // Cross roads are 384px wide/tall, leaving a 384px square center box.
+        // Half-road = 192px per side. Keep lane centers at the same relative depth.
+        const halfRoad = INTERSECTION_SIZE / 2;
+        const offsetPx = this.lane === 1 ? (halfRoad * 0.34375) : (halfRoad * 0.6875);
 
         // 1. Straight Line Geometry
         if (this.route === 'straight' || scaledPos <= APPROACH_END) {
