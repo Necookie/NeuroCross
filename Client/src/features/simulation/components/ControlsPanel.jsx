@@ -98,7 +98,7 @@ const ControlsPanel = ({
               : 'bg-mono-950/70 text-mono-400 border-mono-800/70 hover:text-mono-200 hover:border-mono-700/80'
             }`}
         >
-          Cross
+          4-way Intersection
         </button>
         <button
           onClick={() => updateParam('intersectionType', 'roundabout')}

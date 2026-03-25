@@ -1,7 +1,7 @@
 import React, { memo } from 'react';
 
 const INTERSECTION_LABELS = {
-  cross: 'Cross Intersection',
+  cross: '4-way Intersection',
   roundabout: 'Roundabout',
   tintersection: 'T-Intersection',
 };
