@@ -18,116 +18,63 @@ function weightedRandomChoice(choices, weights) {
 
 export class DualIntersectionSim {
     constructor() {
-        this.intersections = [
-            {
-                roads: { north: [[], []], south: [[], []], east: [[], []], west: [[], []] },
-                state: 'N_GREEN',
-                timer: 0.0,
-            },
-            {
-                roads: { north: [[], []], south: [[], []], east: [[], []], west: [[], []] },
-                state: 'N_GREEN',
-                timer: 0.0,
-            },
-        ];
+        this.intersection = {
+            roads: { north: [[], []], south: [[], []], east: [[], []], west: [[], []] },
+            state: 'N_GREEN',
+            timer: 0.0,
+        };
         this.roadKeys = ['north', 'south', 'east', 'west'];
         this.globalId = 0;
         this.metrics = { accidents: 0, throughput: 0, avg_speed: 0 };
-        this.activeIntersectionCount = 2;
     }
 
     step(params) {
         const dt = 0.1;
         const friction = params.weather === 'rain' ? 0.6 : 1.0;
-        const intersectionCount = 2;
-        this.activeIntersectionCount = intersectionCount;
+        const ix = this.intersection;
+        ix.timer += dt;
 
         let totalSpeed = 0;
         let carCount = 0;
 
-        // Collect pending transfers so they are applied AFTER both intersections
-        // have been processed, preventing double-updates in the same tick.
-        const pendingTransfers = [];
+        this._updateLights(ix, params.mode);
+        this._spawnTraffic(ix, params, dt);
 
-        for (let intIdx = 0; intIdx < intersectionCount; intIdx++) {
-            const ix = this.intersections[intIdx];
-            ix.timer += dt;
+        for (const direction of this.roadKeys) {
+            const lanes = ix.roads[direction];
+            const isGreen = this._isGreen(ix, direction);
+            const blocked = this._isBlocked(ix, direction);
 
-            this._updateLights(ix, params.mode);
-            this._spawnTraffic(ix, intIdx, params, dt);
+            for (let laneIdx = 0; laneIdx < lanes.length; laneIdx++) {
+                const cars = lanes[laneIdx];
+                const stopTarget = (!isGreen || blocked) ? STOP_LINE : null;
 
-            for (const direction of this.roadKeys) {
-                const lanes = ix.roads[direction];
-                const isGreen = this._isGreen(ix, direction);
-                const blocked = this._isBlocked(ix, direction);
+                let leader = null;
+                for (let i = 0; i < cars.length; i++) {
+                    cars[i].pathMode = 'cross';
+                    cars[i].singleRoundabout = false;
+                    cars[i].singleCross = true;
+                    cars[i].updatePhysics(dt, leader, stopTarget, friction);
+                    totalSpeed += cars[i].speed;
+                    carCount++;
+                    leader = cars[i];
+                }
 
-                for (let laneIdx = 0; laneIdx < lanes.length; laneIdx++) {
-                    const cars = lanes[laneIdx];
-                    const stopTarget = (!isGreen || blocked) ? STOP_LINE : null;
-
-                    let leader = null;
+                if (cars.length > 0) {
+                    let finishedCount = 0;
                     for (let i = 0; i < cars.length; i++) {
-                        cars[i].pathMode = 'cross';
-                        cars[i].singleRoundabout = false;
-                        // Cap transfer-waiting cars at road end so they don't fly off
-                        if (cars[i].pos >= ROAD_LENGTH && this._canTransferVehicle(intIdx, cars[i], direction)) {
-                            cars[i].pos = ROAD_LENGTH;
-                            cars[i].speed = 0;
-                            cars[i]._update2DCoords();
-                            leader = cars[i];
-                            continue;
+                        if (cars[i].pos >= ROAD_LENGTH) {
+                            finishedCount++;
+                        } else {
+                            break;
                         }
-                        cars[i].updatePhysics(dt, leader, stopTarget, friction);
-                        totalSpeed += cars[i].speed;
-                        carCount++;
-                        leader = cars[i];
                     }
-
-                    // Remove finished vehicles / queue transfers
-                    if (cars.length > 0) {
-                        let finishedCount = 0;
-                        for (let i = 0; i < cars.length; i++) {
-                            if (cars[i].pos >= ROAD_LENGTH) {
-                                finishedCount++;
-                            } else {
-                                break;
-                            }
-                        }
-                        if (finishedCount > 0) {
-                            // Separate transferable vs non-transferable finished vehicles
-                            const toRemove = [];
-                            for (let i = 0; i < finishedCount; i++) {
-                                if (this._canTransferVehicle(intIdx, cars[i], direction)) {
-                                    pendingTransfers.push({
-                                        car: cars[i],
-                                        fromIntIdx: intIdx,
-                                        exitDirection: this._getExitDirection(direction, cars[i].route),
-                                        laneRef: lanes,
-                                        laneIdx,
-                                    });
-                                } else {
-                                    toRemove.push(i);
-                                }
-                            }
-                            // Remove non-transferable vehicles (iterate in reverse to preserve indices)
-                            for (let r = toRemove.length - 1; r >= 0; r--) {
-                                cars.splice(toRemove[r], 1);
-                                this.metrics.throughput++;
-                            }
-                        }
+                    if (finishedCount > 0) {
+                        cars.splice(0, finishedCount);
+                        this.metrics.throughput += finishedCount;
                     }
                 }
             }
-        }
-
-        // Apply deferred transfers — only remove from source on success
-        for (const { car, fromIntIdx, exitDirection, laneRef, laneIdx } of pendingTransfers) {
-            if (this._applyTransfer(car, fromIntIdx, exitDirection)) {
-                const srcLane = laneRef[laneIdx];
-                const idx = srcLane.indexOf(car);
-                if (idx !== -1) srcLane.splice(idx, 1);
-            }
-            // If transfer fails, car stays in source lane and retries next tick
         }
 
         if (carCount > 0) {
@@ -135,70 +82,6 @@ export class DualIntersectionSim {
         }
 
         return this.getState();
-    }
-
-    _getExitDirection(direction, route) {
-        if (route === 'straight') return direction;
-        const turns = {
-            north: { left: 'west', right: 'east' },
-            south: { left: 'east', right: 'west' },
-            east: { left: 'north', right: 'south' },
-            west: { left: 'south', right: 'north' },
-        };
-        return turns[direction][route];
-    }
-
-    _canTransfer(fromIntIdx, direction) {
-        if (direction === 'east' && fromIntIdx === 0) return true;
-        if (direction === 'west' && fromIntIdx === 1) return true;
-        return false;
-    }
-
-    _canTransferVehicle(fromIntIdx, car, roadDirection) {
-        const exitDir = this._getExitDirection(roadDirection, car.route);
-        return this._canTransfer(fromIntIdx, exitDir);
-    }
-
-    _applyTransfer(car, fromIntIdx, exitDirection) {
-        // East vehicles exiting int 0 → enter int 1's east road
-        if (exitDirection === 'east' && fromIntIdx === 0) {
-            const targetLaneIdx = car.lane;
-            const targetLane = this.intersections[1].roads.east[targetLaneIdx];
-            const minTransferGap = 40;
-            for (const c of targetLane) {
-                if ((c.pos - c.length / 2) < minTransferGap) return false;
-            }
-            car.pos = 0;
-            car.speed *= 0.9;
-            car.intersectionIdx = 1;
-            car.direction = 'east';
-            car.route = 'straight';
-            car.lane = targetLaneIdx;
-            car.pathMode = 'cross';
-            car._update2DCoords();
-            targetLane.push(car);
-            return true;
-        }
-        // West vehicles exiting int 1 → enter int 0's west road
-        if (exitDirection === 'west' && fromIntIdx === 1) {
-            const targetLaneIdx = car.lane;
-            const targetLane = this.intersections[0].roads.west[targetLaneIdx];
-            const minTransferGap = 40;
-            for (const c of targetLane) {
-                if ((c.pos - c.length / 2) < minTransferGap) return false;
-            }
-            car.pos = 0;
-            car.speed *= 0.9;
-            car.intersectionIdx = 0;
-            car.direction = 'west';
-            car.route = 'straight';
-            car.lane = targetLaneIdx;
-            car.pathMode = 'cross';
-            car._update2DCoords();
-            targetLane.push(car);
-            return true;
-        }
-        return false;
     }
 
     _updateLights(ix, mode) {
@@ -276,12 +159,8 @@ export class DualIntersectionSim {
         return false;
     }
 
-    _spawnTraffic(ix, intIdx, params, dt) {
+    _spawnTraffic(ix, params, dt) {
         for (const direction of this.roadKeys) {
-            // Don't externally spawn directions fed by transfers
-            if (intIdx === 0 && direction === 'west') continue;
-            if (intIdx === 1 && direction === 'east') continue;
-
             let rate = (direction === 'north' || direction === 'south')
                 ? params.arrival_rate_ns
                 : params.arrival_rate_ew;
@@ -289,12 +168,12 @@ export class DualIntersectionSim {
 
             if (Math.random() < (rate * dt)) {
                 const laneIdx = Math.floor(Math.random() * 2);
-                this._trySpawn(ix, intIdx, direction, laneIdx);
+                this._trySpawn(ix, direction, laneIdx);
             }
         }
     }
 
-    _trySpawn(ix, intIdx, direction, laneIdx) {
+    _trySpawn(ix, direction, laneIdx) {
         const laneCars = ix.roads[direction][laneIdx];
         const minSpawnGap = 40;
         for (const car of laneCars) {
@@ -318,42 +197,37 @@ export class DualIntersectionSim {
         const route = weightedRandomChoice(routes, routeProbs);
         const vType = weightedRandomChoice(types, probs);
 
-        const car = VehicleAgent.spawn(this.globalId, vType, laneIdx, route, direction, intIdx);
+        const car = VehicleAgent.spawn(this.globalId, vType, laneIdx, route, direction, 0);
         car.pathMode = 'cross';
         car.singleRoundabout = false;
+        car.singleCross = true;
         laneCars.push(car);
     }
 
     getState() {
-        const out = {
-            intersections: [],
-            metrics: this.metrics,
-        };
+        const jsonRoads = { north: [[], []], south: [[], []], east: [[], []], west: [[], []] };
+        const ix = this.intersection;
 
-        for (let intIdx = 0; intIdx < this.activeIntersectionCount; intIdx++) {
-            const ix = this.intersections[intIdx];
-            const jsonRoads = { north: [[], []], south: [[], []], east: [[], []], west: [[], []] };
-
-            for (const dir of this.roadKeys) {
-                const lanes = ix.roads[dir];
-                for (let i = 0; i < lanes.length; i++) {
-                    jsonRoads[dir][i] = lanes[i].map(c => ({
-                        id: c.id,
-                        pos: c.pos,
-                        type: c.type,
-                        status: c.status,
-                        lane: c.lane,
-                        x: c.x,
-                        y: c.y,
-                        angle: c.angle,
-                        route: c.route,
-                    }));
-                }
+        for (const dir of this.roadKeys) {
+            const lanes = ix.roads[dir];
+            for (let i = 0; i < lanes.length; i++) {
+                jsonRoads[dir][i] = lanes[i].map(c => ({
+                    id: c.id,
+                    pos: c.pos,
+                    type: c.type,
+                    status: c.status,
+                    lane: c.lane,
+                    x: c.x,
+                    y: c.y,
+                    angle: c.angle,
+                    route: c.route,
+                }));
             }
-
-            out.intersections.push({ light_state: ix.state, roads: jsonRoads });
         }
 
-        return out;
+        return {
+            intersections: [{ light_state: ix.state, roads: jsonRoads }],
+            metrics: this.metrics,
+        };
     }
 }

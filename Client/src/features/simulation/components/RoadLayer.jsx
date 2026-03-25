@@ -3,24 +3,15 @@ import TrafficLight from './TrafficLight';
 import Vehicle from './Vehicle';
 import RainEffect from './RainEffect';
 
-// --- Road backdrop for two connected intersections in a 2:1 landscape box ---
-// Canvas: 1600×800 virtual units
-// Int 0 center: 25% x, 50% y   |   Int 1 center: 75% x, 50% y
-// Intersection boxes: 20% width × 40% height
-// N-S roads: 20% width, full height at each intersection
-// E-W road: full width, 40% height
-
-const RoadBackdrop = memo(() => (
+const SingleCrossBackdrop = memo(() => (
   <>
-    {/* E-W ROAD — full width, 46% height, centered vertically */}
-    <div className="absolute top-1/2 -translate-y-1/2 w-full bg-mono-800/90 border-y border-mono-700/70" style={{ height: '46%' }}>
+    <div className="absolute top-1/2 left-1/4 -translate-y-1/2 bg-mono-800/90 border-y border-mono-700/70" style={{ width: '50%', height: '46%' }}>
       <div className="absolute top-1/2 w-full border-t-2 border-mono-300/20" />
       <div className="absolute top-[28%] w-full border-t border-dashed border-mono-400/20" />
       <div className="absolute bottom-[28%] w-full border-t border-dashed border-mono-400/20" />
     </div>
 
-    {/* N-S ROAD at Int 0 (center at 25%) */}
-    <div className="absolute h-full bg-mono-800/90 border-x border-mono-700/70" style={{ left: '13%', width: '24%' }}>
+    <div className="absolute h-full bg-mono-800/90 border-x border-mono-700/70" style={{ left: '38%', width: '24%' }}>
       <div className="absolute left-1/2 h-full border-l-2 border-mono-300/20" />
       <div className="absolute left-[28%] h-full border-l border-dashed border-mono-400/20" />
       <div className="absolute right-[28%] h-full border-l border-dashed border-mono-400/20" />
@@ -28,31 +19,13 @@ const RoadBackdrop = memo(() => (
       <div className="absolute w-full h-1 bg-mono-300/20" style={{ bottom: '30%' }} />
     </div>
 
-    {/* N-S ROAD at Int 1 (center at 75%) */}
-    <div className="absolute h-full bg-mono-800/90 border-x border-mono-700/70" style={{ left: '63%', width: '24%' }}>
-      <div className="absolute left-1/2 h-full border-l-2 border-mono-300/20" />
-      <div className="absolute left-[28%] h-full border-l border-dashed border-mono-400/20" />
-      <div className="absolute right-[28%] h-full border-l border-dashed border-mono-400/20" />
-      <div className="absolute w-full h-1 bg-mono-300/20" style={{ top: '30%' }} />
-      <div className="absolute w-full h-1 bg-mono-300/20" style={{ bottom: '30%' }} />
-    </div>
+    <div className="absolute bg-mono-800/90 z-0" style={{ left: '38%', top: '27%', width: '24%', height: '46%' }} />
 
-    {/* INTERSECTION BOXES */}
-    <div className="absolute bg-mono-800/90 z-0" style={{ left: '13%', top: '27%', width: '24%', height: '46%' }} />
-    <div className="absolute bg-mono-800/90 z-0" style={{ left: '63%', top: '27%', width: '24%', height: '46%' }} />
+    <div className="absolute bg-mono-300/20 z-[1]" style={{ left: '38%', top: '27%', width: '1px', height: '46%' }} />
+    <div className="absolute bg-mono-300/20 z-[1]" style={{ left: '62%', top: '27%', width: '1px', height: '46%' }} />
 
-    {/* E-W stop lines at each intersection edge */}
-    <div className="absolute bg-mono-300/20 z-[1]" style={{ left: '13%', top: '27%', width: '1px', height: '46%' }} />
-    <div className="absolute bg-mono-300/20 z-[1]" style={{ left: '37%', top: '27%', width: '1px', height: '46%' }} />
-    <div className="absolute bg-mono-300/20 z-[1]" style={{ left: '63%', top: '27%', width: '1px', height: '46%' }} />
-    <div className="absolute bg-mono-300/20 z-[1]" style={{ left: '87%', top: '27%', width: '1px', height: '46%' }} />
-
-    {/* Intersection labels */}
-    <div className="absolute z-30 text-[9px] uppercase tracking-[0.25em] text-mono-500/60 font-semibold" style={{ left: '25%', top: '72%', transform: 'translateX(-50%)' }}>
-      Intersection A
-    </div>
-    <div className="absolute z-30 text-[9px] uppercase tracking-[0.25em] text-mono-500/60 font-semibold" style={{ left: '75%', top: '72%', transform: 'translateX(-50%)' }}>
-      Intersection B
+    <div className="absolute z-30 text-[9px] uppercase tracking-[0.25em] text-mono-500/60 font-semibold" style={{ left: '50%', top: '72%', transform: 'translateX(-50%)' }}>
+      4-way Intersection
     </div>
   </>
 ));
@@ -168,15 +141,15 @@ const RoadLayer = ({ data, weather, speedFactor, intersectionType = 'cross' }) =
   const { intersections } = data;
   const emptyIntersection = { light_state: 'N_GREEN', roads: { north: [[], []], south: [[], []], east: [[], []], west: [[], []] } };
   const int0 = intersections[0] || emptyIntersection;
-  const int1 = intersections[1] || emptyIntersection;
   const isSingleRoundabout = intersectionType === 'roundabout';
   const isTIntersection = intersectionType === 'tintersection';
+  const isSingleCross = intersectionType === 'cross';
 
   return (
     <div className="relative w-full bg-mono-900 rounded-[20px] border border-mono-700/70 shadow-soft overflow-hidden asphalt inset-shadow" style={{ aspectRatio: '2 / 1' }}>
       {weather === 'rain' && <RainEffect />}
 
-      {intersectionType === 'roundabout' ? <SingleRoundaboutBackdrop /> : isTIntersection ? <TIntersectionBackdrop /> : <RoadBackdrop />}
+      {intersectionType === 'roundabout' ? <SingleRoundaboutBackdrop /> : isTIntersection ? <TIntersectionBackdrop /> : <SingleCrossBackdrop />}
 
       {isSingleRoundabout ? (
         <>
@@ -207,37 +180,23 @@ const RoadLayer = ({ data, weather, speedFactor, intersectionType = 'cross' }) =
         </>
       ) : (
         <>
-          <div className="absolute z-40" style={{ top: '28%', left: '14%' }}>
+          <div className="absolute z-40" style={{ top: '28%', left: '39%' }}>
             <TrafficLight state={getLightColor(int0.light_state, 'south')} />
           </div>
-          <div className="absolute z-40" style={{ top: '28%', left: '35%' }}>
+          <div className="absolute z-40" style={{ top: '28%', left: '60%' }}>
             <TrafficLight state={getLightColor(int0.light_state, 'west')} />
           </div>
-          <div className="absolute z-40" style={{ bottom: '28%', left: '35%' }}>
+          <div className="absolute z-40" style={{ bottom: '28%', left: '60%' }}>
             <TrafficLight state={getLightColor(int0.light_state, 'north')} />
           </div>
-          <div className="absolute z-40" style={{ bottom: '28%', left: '14%' }}>
+          <div className="absolute z-40" style={{ bottom: '28%', left: '39%' }}>
             <TrafficLight state={getLightColor(int0.light_state, 'east')} />
-          </div>
-
-          <div className="absolute z-40" style={{ top: '28%', left: '64%' }}>
-            <TrafficLight state={getLightColor(int1.light_state, 'south')} />
-          </div>
-          <div className="absolute z-40" style={{ top: '28%', left: '85%' }}>
-            <TrafficLight state={getLightColor(int1.light_state, 'west')} />
-          </div>
-          <div className="absolute z-40" style={{ bottom: '28%', left: '85%' }}>
-            <TrafficLight state={getLightColor(int1.light_state, 'north')} />
-          </div>
-          <div className="absolute z-40" style={{ bottom: '28%', left: '64%' }}>
-            <TrafficLight state={getLightColor(int1.light_state, 'east')} />
           </div>
         </>
       )}
 
-      {/* VEHICLES — all from both intersections */}
       <div className="absolute inset-0 z-10">
-        {((isSingleRoundabout || isTIntersection) ? intersections.slice(0, 1) : intersections).map((ix) =>
+        {((isSingleRoundabout || isTIntersection || isSingleCross) ? intersections.slice(0, 1) : intersections).map((ix) =>
           Object.values(ix.roads).map((lanes) =>
             lanes.map((cars) =>
               cars.map((c) => (

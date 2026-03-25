@@ -26,6 +26,7 @@ export class VehicleAgent {
         this.status = 'moving';
         this.pathMode = 'cross';
         this.singleRoundabout = false;
+        this.singleCross = false;
 
         // Dynamic 2D State (for collision and rendering)
         this.x = 0;
@@ -132,7 +133,7 @@ export class VehicleAgent {
 
         // Maps 1D "pos" (0 -> 400) into coordinates on 1600x800 canvas
         const scaledPos = (this.pos / 400) * 800;
-        const intOffset = this.intersectionIdx * 800;
+        const intOffset = this.singleCross ? 400 : (this.intersectionIdx * 800);
         const CX = intOffset + 400; // center X for this intersection
         const CY = 400;             // center Y (same for both)
 

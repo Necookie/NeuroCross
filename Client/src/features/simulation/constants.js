@@ -8,7 +8,7 @@ export const DEFAULT_PARAMS = {
 };
 
 export const createDefaultData = (intersectionType = 'cross') => {
-  const count = (intersectionType === 'roundabout' || intersectionType === 'tintersection') ? 1 : 2;
+  const count = 1;
 
   return {
     intersections: Array.from({ length: count }, () => ({
