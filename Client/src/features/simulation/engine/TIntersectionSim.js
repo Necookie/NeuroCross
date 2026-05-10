@@ -220,6 +220,7 @@ export class TIntersectionSim {
           y: c.y,
           angle: c.angle,
           route: c.route,
+          pathMode: c.pathMode,
         }));
       }
     }

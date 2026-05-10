@@ -2,6 +2,7 @@ import {
     ACCEL_MAX,
     DECEL_COMF,
     MIN_GAP,
+    ROAD_LENGTH,
     SAFE_HEADWAY,
     VEHICLE_SPECS,
 } from './config';
@@ -132,7 +133,7 @@ export class VehicleAgent {
         }
 
         // Maps 1D "pos" (0 -> 400) into coordinates on 1600x800 canvas
-        const scaledPos = (this.pos / 400) * 800;
+        const scaledPos = (this.pos / ROAD_LENGTH) * 800;
         const intOffset = this.singleCross ? 400 : (this.intersectionIdx * 800);
         const CX = intOffset + 400; // center X for this intersection
         const CY = 400;             // center Y (same for both)
@@ -190,8 +191,14 @@ export class VehicleAgent {
         if (anchor) {
             if (dir === 'north') { this.x = anchor.x; this.y = anchor.y - extraDist; this.angle = -90; }
             else if (dir === 'south') { this.x = anchor.x; this.y = anchor.y + extraDist; this.angle = 90; }
-            else if (dir === 'east') { this.x = anchor.x + extraDist; this.y = anchor.y; this.angle = 0; }
-            else if (dir === 'west') { this.x = anchor.x - extraDist; this.y = anchor.y; this.angle = 180; }
+            else if (dir === 'east') {
+                const stretch = this.singleCross ? (1600 - anchor.x) / (intOffset + 800 - anchor.x || 1) : 1;
+                this.x = anchor.x + extraDist * stretch; this.y = anchor.y; this.angle = 0;
+            }
+            else if (dir === 'west') {
+                const stretch = this.singleCross ? anchor.x / (anchor.x - intOffset || 1) : 1;
+                this.x = anchor.x - extraDist * stretch; this.y = anchor.y; this.angle = 180;
+            }
             return;
         }
 
@@ -204,11 +211,49 @@ export class VehicleAgent {
             this.x = CX - offsetPx;
             this.angle = 90;
         } else if (dir === 'east') {
-            this.x = intOffset + scaledPos;
+            if (this.singleCross) {
+                const approachEnd = 208;
+                const intersectionEdge = CX - 192; // = 608
+                const exitStart = approachEnd + 384; // = 592
+                const exitEdge = CX + 192; // = 992
+                if (scaledPos <= approachEnd) {
+                    // Approach: lerp from x=0 to intersection left edge (608)
+                    this.x = (scaledPos / approachEnd) * intersectionEdge;
+                } else if (scaledPos <= exitStart) {
+                    // Inside intersection: lerp from 608 to 992
+                    const t = (scaledPos - approachEnd) / (exitStart - approachEnd);
+                    this.x = intersectionEdge + t * (exitEdge - intersectionEdge);
+                } else {
+                    // Exit: lerp from intersection right edge (992) to 1600
+                    const exitProgress = (scaledPos - exitStart) / (800 - exitStart);
+                    this.x = exitEdge + exitProgress * (1600 - exitEdge);
+                }
+            } else {
+                this.x = intOffset + scaledPos;
+            }
             this.y = CY + offsetPx;
             this.angle = 0;
         } else if (dir === 'west') {
-            this.x = intOffset + (800 - scaledPos);
+            if (this.singleCross) {
+                const approachEnd = 208;
+                const intersectionEdge = CX + 192; // = 992
+                const exitStart = approachEnd + 384; // = 592
+                const exitEdge = CX - 192; // = 608
+                if (scaledPos <= approachEnd) {
+                    // Approach: lerp from x=1600 to intersection right edge (992)
+                    this.x = 1600 - (scaledPos / approachEnd) * (1600 - intersectionEdge);
+                } else if (scaledPos <= exitStart) {
+                    // Inside intersection: lerp from 992 to 608
+                    const t = (scaledPos - approachEnd) / (exitStart - approachEnd);
+                    this.x = intersectionEdge - t * (intersectionEdge - exitEdge);
+                } else {
+                    // Exit: lerp from intersection left edge (608) to 0
+                    const exitProgress = (scaledPos - exitStart) / (800 - exitStart);
+                    this.x = exitEdge - exitProgress * exitEdge;
+                }
+            } else {
+                this.x = intOffset + (800 - scaledPos);
+            }
             this.y = CY - offsetPx;
             this.angle = 180;
         }
@@ -288,7 +333,7 @@ export class VehicleAgent {
     }
 
     _updateRoundaboutCoords() {
-        const scaledPos = (this.pos / 400) * 800;
+        const scaledPos = (this.pos / ROAD_LENGTH) * 800;
         const isSingleRoundabout = this.singleRoundabout === true;
         const intOffset = this.intersectionIdx * 800;
         const minX = isSingleRoundabout ? 0 : intOffset;
@@ -399,7 +444,7 @@ export class VehicleAgent {
     }
 
     _updateTIntersectionCoords() {
-        const t = Math.max(0, Math.min(this.pos / 400, 1));
+        const t = Math.max(0, Math.min(this.pos / ROAD_LENGTH, 1));
         const CX = 800;
         const CY = 320;
         

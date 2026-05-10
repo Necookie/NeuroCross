@@ -221,6 +221,7 @@ export class DualIntersectionSim {
                     y: c.y,
                     angle: c.angle,
                     route: c.route,
+                    pathMode: c.pathMode,
                 }));
             }
         }
