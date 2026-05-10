@@ -23,6 +23,11 @@
     --signal-green: 142 22% 40%;
 
     --border-glow: hsl(220 18% 56% / 0.8);
+    --shadow-color: 224 24% 10%; /* Dark shadow */
+    
+    --road-bg: 222 22% 14%;
+    --road-highlight: 221 20% 20%;
+    --road-shadow: 224 24% 10%;
   }
 }
 
@@ -38,23 +43,26 @@
   --mono-700: 210 14% 86%;
   --mono-800: 210 16% 92%;
   --mono-900: 210 18% 96%;
-  --mono-950: 210 20% 98%;
+  --mono-950: 210 20% 98%; /* Background is almost white */
 
   --signal-red: 5 60% 55%;
   --signal-amber: 35 70% 50%;
   --signal-green: 145 50% 45%;
 
   --border-glow: hsl(210 14% 28% / 0.6);
+  --shadow-color: 210 16% 12%; /* Keep shadows dark in light mode! */
+  
+  --road-bg: 210 12% 35%; /* Road must remain dark to show white lines */
+  --road-highlight: 210 12% 45%;
+  --road-shadow: 210 12% 25%;
 }
 
 /* Coffee Theme - Warm mochas, rich espresso */
 .theme-coffee {
-  /* Base palette from https://colorhunt.co/palette/f9f8f6efe9e3d9cfc7c9b59c */
   --mono-50: 40 20% 97%;
   --mono-100: 30 27% 91%;
   --mono-200: 27 19% 82%;
   --mono-300: 33 29% 70%;
-  /* Tailored deeper tones to extend the palette */
   --mono-400: 32 26% 60%;
   --mono-500: 31 26% 50%;
   --mono-600: 30 28% 40%;
@@ -67,7 +75,12 @@
   --signal-amber: 30 60% 50%;
   --signal-green: 120 20% 45%;
 
-  --border-glow: hsl(30 60% 50% / 0.8); /* Amber glow */
+  --border-glow: hsl(30 60% 50% / 0.8);
+  --shadow-color: 22 36% 10%;
+  
+  --road-bg: 24 34% 16%;
+  --road-highlight: 26 32% 22%;
+  --road-shadow: 22 36% 10%;
 }
 
 /* Candy Theme - Vibrant neon pastels and deep purple */
@@ -88,7 +101,12 @@
   --signal-amber: 45 90% 60%;
   --signal-green: 160 70% 50%;
 
-  --border-glow: hsl(330 80% 60% / 0.9); /* Neon pink glow */
+  --border-glow: hsl(330 80% 60% / 0.9);
+  --shadow-color: 280 65% 8%;
+  
+  --road-bg: 270 60% 10%;
+  --road-highlight: 260 50% 16%;
+  --road-shadow: 280 65% 8%;
 }
 
 @layer base {
@@ -107,7 +125,7 @@
   .glass-panel {
     position: relative;
     background: transparent;
-    box-shadow: 0 20px 40px hsl(var(--mono-950) / 0.5);
+    box-shadow: 0 20px 40px hsl(var(--shadow-color) / 0.25);
     backdrop-filter: blur(16px);
     overflow: hidden;
     z-index: 1;
@@ -134,16 +152,16 @@
   }
 
   .asphalt {
-    background-color: hsl(var(--mono-900));
+    background-color: hsl(var(--road-bg));
     background-image:
-      radial-gradient(circle at 20% 15%, hsl(var(--mono-800) / 0.55) 0, transparent 45%),
-      radial-gradient(circle at 80% 70%, hsl(var(--mono-800) / 0.35) 0, transparent 50%),
-      linear-gradient(135deg, hsl(var(--mono-950) / 0.35), transparent 60%);
+      radial-gradient(circle at 20% 15%, hsl(var(--road-highlight) / 0.55) 0, transparent 45%),
+      radial-gradient(circle at 80% 70%, hsl(var(--road-highlight) / 0.35) 0, transparent 50%),
+      linear-gradient(135deg, hsl(var(--road-shadow) / 0.35), transparent 60%);
     background-blend-mode: soft-light;
   }
 
   .inset-shadow {
-    box-shadow: inset 0 1px 0 hsl(var(--mono-100) / 0.06), inset 0 -12px 30px hsl(var(--mono-950) / 0.6);
+    box-shadow: inset 0 1px 0 hsl(var(--mono-100) / 0.06), inset 0 -12px 30px hsl(var(--shadow-color) / 0.3);
   }
 
   .metric-track {
