@@ -8,7 +8,7 @@ import LoadingScreen from './features/simulation/components/LoadingScreen';
 import { useSimulation } from './features/simulation/hooks/useSimulation';
 
 export default function App() {
-  const [isLoading, setIsLoading] = useState(true);
+  const [phase, setPhase] = useState('loading'); // 'loading' -> 'welcome' -> 'ready'
 
   const {
     data,
@@ -23,11 +23,20 @@ export default function App() {
   } = useSimulation();
 
   useEffect(() => {
-    // 4.5 seconds loading screen
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 4500);
-    return () => clearTimeout(timer);
+    // 4.0 seconds for loading screen
+    const t1 = setTimeout(() => {
+      setPhase('welcome');
+    }, 4000);
+
+    // Give welcome screen 2.5s (includes crossfade time)
+    const t2 = setTimeout(() => {
+      setPhase('ready');
+    }, 6500);
+
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+    };
   }, []);
 
   useEffect(() => {
@@ -45,7 +54,7 @@ export default function App() {
       opacity: 1,
       transition: {
         staggerChildren: 0.3,
-        delayChildren: 0.2
+        delayChildren: 0.5 // small delay to let welcome screen fade out
       }
     }
   };
@@ -61,8 +70,26 @@ export default function App() {
 
   return (
     <>
-      <AnimatePresence>
-        {isLoading && <LoadingScreen key="loading" />}
+      <AnimatePresence mode="wait">
+        {phase === 'loading' && <LoadingScreen key="loading" />}
+        
+        {phase === 'welcome' && (
+          <motion.div 
+            key="welcome"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-mono-950"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 1.05, filter: "blur(10px)", transition: { duration: 0.8, ease: "easeInOut" } }}
+            transition={{ duration: 1, ease: "easeOut" }}
+          >
+            <h2 
+              className="text-4xl md:text-6xl font-light tracking-[0.15em] text-mono-200"
+              style={{ fontFamily: "'Outfit', sans-serif" }}
+            >
+              Welcome to <span className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300 drop-shadow-[0_0_15px_rgba(56,189,248,0.4)]">NeuroCross</span>
+            </h2>
+          </motion.div>
+        )}
       </AnimatePresence>
 
       <div className="min-h-screen bg-gradient-to-br from-mono-950 via-mono-900 to-mono-950 text-mono-100 font-sans px-6 py-8 transition-colors duration-700 ease-in-out overflow-hidden">
@@ -70,7 +97,7 @@ export default function App() {
           className="max-w-[1400px] mx-auto space-y-8"
           variants={containerVariants}
           initial="hidden"
-          animate={isLoading ? "hidden" : "visible"}
+          animate={phase === 'ready' ? "visible" : "hidden"}
         >
           <motion.div variants={itemVariants}>
             <StatusHeader mode={params.mode} running={running} intersectionType={params.intersectionType} />
