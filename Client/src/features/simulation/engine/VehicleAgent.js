@@ -303,34 +303,46 @@ export class VehicleAgent {
             ? 200
             : (this.lane === 1 ? 100 : 128);
 
+        const h = Math.sqrt(Math.max(0, radius * radius - approachOffset * approachOffset));
+
+        let entryTheta = 0;
+        if (this.direction === 'north') entryTheta = Math.atan2(-h, approachOffset);
+        else if (this.direction === 'south') entryTheta = Math.atan2(h, -approachOffset);
+        else if (this.direction === 'east') entryTheta = Math.atan2(-approachOffset, -h);
+        else if (this.direction === 'west') entryTheta = Math.atan2(approachOffset, h);
+
+        const exitDirection = this._getRoundaboutExitDirection();
+        let exitTheta = 0;
+        if (exitDirection === 'north') exitTheta = Math.atan2(h, approachOffset);
+        else if (exitDirection === 'south') exitTheta = Math.atan2(-h, -approachOffset);
+        else if (exitDirection === 'east') exitTheta = Math.atan2(-approachOffset, h);
+        else if (exitDirection === 'west') exitTheta = Math.atan2(approachOffset, -h);
+
+        let entryDeg = entryTheta * 180 / Math.PI;
+        let exitDeg = exitTheta * 180 / Math.PI;
+        if (entryDeg < 0) entryDeg += 360;
+        if (exitDeg < 0) exitDeg += 360;
+
+        let travelDeg = exitDeg - entryDeg;
+        if (travelDeg <= 0) travelDeg += 360;
+
         const APPROACH_SEG = 200;
         const ARC_QUARTER_SEG = 145;
         const EXIT_SEG = 220;
 
-        const routeTurnDeg = this.route === 'right' ? 90 : this.route === 'left' ? 270 : 180;
-        const arcSeg = (routeTurnDeg / 90) * ARC_QUARTER_SEG;
+        const arcSeg = (travelDeg / 90) * ARC_QUARTER_SEG;
         const arcStart = APPROACH_SEG;
         const arcEnd = arcStart + arcSeg;
 
-        const entryAngleByDirection = {
-            north: 270,
-            south: 90,
-            east: 180,
-            west: 0,
-        };
-        const entryAngle = entryAngleByDirection[this.direction] ?? 270;
-
-        const exitDirection = this._getRoundaboutExitDirection();
-
-        if (scaledPos <= APPROACH_SEG) {
+        if (scaledPos <= arcStart) {
             const t = Math.max(0, Math.min(scaledPos / APPROACH_SEG, 1));
-            this._setRoundaboutApproachCoords(t, CX, CY, radius, approachOffset, minX, maxX);
+            this._setRoundaboutApproachCoords(t, CX, CY, h, approachOffset, minX, maxX);
             return;
         }
 
         if (scaledPos <= arcEnd) {
             const t = Math.max(0, Math.min((scaledPos - arcStart) / Math.max(1, arcSeg), 1));
-            const thetaDeg = entryAngle + (routeTurnDeg * t);
+            const thetaDeg = entryDeg + (travelDeg * t);
             const theta = (thetaDeg * Math.PI) / 180;
 
             this.x = CX + (radius * Math.cos(theta));
@@ -343,7 +355,7 @@ export class VehicleAgent {
         }
 
         const exitT = Math.max(0, Math.min((scaledPos - arcEnd) / EXIT_SEG, 1));
-        this._setRoundaboutExitCoords(exitT, exitDirection, CX, CY, radius, approachOffset, minX, maxX);
+        this._setRoundaboutExitCoords(exitT, exitDirection, CX, CY, h, approachOffset, minX, maxX);
     }
 
     _getRoundaboutExitDirection() {
@@ -361,27 +373,27 @@ export class VehicleAgent {
         return turns[this.direction]?.[this.route] ?? this.direction;
     }
 
-    _setRoundaboutApproachCoords(t, CX, CY, radius, approachOffset, minX, maxX) {
+    _setRoundaboutApproachCoords(t, CX, CY, h, approachOffset, minX, maxX) {
         if (this.direction === 'north') {
             this.x = CX + approachOffset;
-            this.y = 800 - ((800 - (CY + radius)) * t);
+            this.y = 800 - ((800 - (CY + h)) * t);
             this._setAngle(-90);
             return;
         }
         if (this.direction === 'south') {
             this.x = CX - approachOffset;
-            this.y = (CY - radius) * t;
+            this.y = (CY - h) * t;
             this._setAngle(90);
             return;
         }
         if (this.direction === 'east') {
-            this.x = (minX * (1 - t)) + ((CX - radius) * t);
+            this.x = (minX * (1 - t)) + ((CX - h) * t);
             this.y = CY + approachOffset;
             this._setAngle(0);
             return;
         }
 
-        this.x = maxX - ((maxX - (CX + radius)) * t);
+        this.x = maxX - ((maxX - (CX + h)) * t);
         this.y = CY - approachOffset;
         this._setAngle(180);
     }
@@ -459,12 +471,12 @@ export class VehicleAgent {
         this._setAngle(0);
     }
 
-    _setRoundaboutExitCoords(t, exitDirection, CX, CY, radius, approachOffset, minX, maxX) {
+    _setRoundaboutExitCoords(t, exitDirection, CX, CY, h, approachOffset, minX, maxX) {
         const lerp = (a, b, ratio) => a + ((b - a) * ratio);
 
         if (exitDirection === 'north') {
             const startX = CX + approachOffset;
-            const startY = CY - radius;
+            const startY = CY - h;
             this.x = lerp(startX, startX, t);
             this.y = lerp(startY, 0, t);
             this._setAngle(-90);
@@ -473,7 +485,7 @@ export class VehicleAgent {
 
         if (exitDirection === 'south') {
             const startX = CX - approachOffset;
-            const startY = CY + radius;
+            const startY = CY + h;
             this.x = lerp(startX, startX, t);
             this.y = lerp(startY, 800, t);
             this._setAngle(90);
@@ -481,7 +493,7 @@ export class VehicleAgent {
         }
 
         if (exitDirection === 'east') {
-            const startX = CX + radius;
+            const startX = CX + h;
             const startY = CY + approachOffset;
             this.x = lerp(startX, maxX, t);
             this.y = lerp(startY, startY, t);
@@ -489,7 +501,7 @@ export class VehicleAgent {
             return;
         }
 
-        const startX = CX - radius;
+        const startX = CX - h;
         const startY = CY - approachOffset;
         this.x = lerp(startX, minX, t);
         this.y = lerp(startY, startY, t);
@@ -508,7 +520,7 @@ export class VehicleAgent {
         while (delta > 180) delta -= 360;
         while (delta < -180) delta += 360;
 
-        this._smoothedAngle += delta;
+        this._smoothedAngle += delta * 0.25;
         this.angle = this._smoothedAngle;
     }
 }
