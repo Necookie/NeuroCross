@@ -21,6 +21,8 @@
     --signal-red: 6 34% 42%;
     --signal-amber: 36 32% 52%;
     --signal-green: 142 22% 40%;
+
+    --border-glow: hsl(220 18% 56% / 0.8);
   }
 }
 
@@ -41,6 +43,8 @@
   --signal-red: 5 60% 55%;
   --signal-amber: 35 70% 50%;
   --signal-green: 145 50% 45%;
+
+  --border-glow: hsl(210 14% 28% / 0.6);
 }
 
 /* Coffee Theme - Warm mochas, rich espresso */
@@ -62,6 +66,8 @@
   --signal-red: 355 40% 50%;
   --signal-amber: 30 60% 50%;
   --signal-green: 120 20% 45%;
+
+  --border-glow: hsl(30 60% 50% / 0.8); /* Amber glow */
 }
 
 /* Candy Theme - Vibrant neon pastels and deep purple */
@@ -81,6 +87,8 @@
   --signal-red: 330 80% 60%;
   --signal-amber: 45 90% 60%;
   --signal-green: 160 70% 50%;
+
+  --border-glow: hsl(330 80% 60% / 0.9); /* Neon pink glow */
 }
 
 @layer base {
@@ -97,10 +105,32 @@
 
 @layer utilities {
   .glass-panel {
-    background: hsl(var(--mono-900) / 0.55);
-    border: 1px solid hsl(var(--mono-700) / 0.5);
+    position: relative;
+    background: transparent;
     box-shadow: 0 20px 40px hsl(var(--mono-950) / 0.5);
     backdrop-filter: blur(16px);
+    overflow: hidden;
+    z-index: 1;
+  }
+
+  .glass-panel::before {
+    content: '';
+    position: absolute;
+    inset: -50%;
+    width: 200%;
+    height: 200%;
+    background: conic-gradient(from 0deg, transparent 0%, transparent 60%, var(--border-glow) 80%, transparent 100%);
+    animation: border-rotate 4s linear infinite;
+    z-index: -2;
+  }
+
+  .glass-panel::after {
+    content: '';
+    position: absolute;
+    inset: 1px;
+    background: hsl(var(--mono-900) / 0.85);
+    border-radius: inherit;
+    z-index: -1;
   }
 
   .asphalt {
@@ -135,26 +165,18 @@
   }
 }
 
+@keyframes border-rotate {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
 @keyframes metric-shimmer {
-  0% {
-    transform: translateX(-6%);
-  }
-
-  50% {
-    transform: translateX(4%);
-  }
-
-  100% {
-    transform: translateX(-6%);
-  }
+  0% { transform: translateX(-6%); }
+  50% { transform: translateX(4%); }
+  100% { transform: translateX(-6%); }
 }
 
 @keyframes rain-fall {
-  0% {
-    transform: translateY(-20px) rotate(15deg);
-  }
-
-  100% {
-    transform: translateY(120%) rotate(15deg);
-  }
+  0% { transform: translateY(-20px) rotate(15deg); }
+  100% { transform: translateY(120%) rotate(15deg); }
 }
