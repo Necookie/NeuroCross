@@ -7,7 +7,7 @@ import StatusHeader from './features/simulation/components/StatusHeader';
 import LoadingScreen from './features/simulation/components/LoadingScreen';
 import { useSimulation } from './features/simulation/hooks/useSimulation';
 
-function App() {
+export default function App() {
   const [isLoading, setIsLoading] = useState(true);
 
   const {
@@ -38,42 +38,70 @@ function App() {
 
   const toggleRunning = () => setRunning((prev) => !prev);
 
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.3,
+        delayChildren: 0.2
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 40 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: { type: "spring", stiffness: 60, damping: 15 }
+    }
+  };
+
   return (
     <>
       <AnimatePresence>
         {isLoading && <LoadingScreen key="loading" />}
       </AnimatePresence>
 
-      <div className="min-h-screen bg-gradient-to-br from-mono-950 via-mono-900 to-mono-950 text-mono-100 font-sans px-6 py-8 transition-colors duration-700 ease-in-out">
-        <div className="max-w-[1400px] mx-auto space-y-8">
-          <StatusHeader mode={params.mode} running={running} intersectionType={params.intersectionType} />
+      <div className="min-h-screen bg-gradient-to-br from-mono-950 via-mono-900 to-mono-950 text-mono-100 font-sans px-6 py-8 transition-colors duration-700 ease-in-out overflow-hidden">
+        <motion.div 
+          className="max-w-[1400px] mx-auto space-y-8"
+          variants={containerVariants}
+          initial="hidden"
+          animate={isLoading ? "hidden" : "visible"}
+        >
+          <motion.div variants={itemVariants}>
+            <StatusHeader mode={params.mode} running={running} intersectionType={params.intersectionType} />
+          </motion.div>
 
           <div className="grid gap-8 lg:grid-cols-[280px_1fr] items-start">
-            <ControlsPanel
-              params={params}
-              setParams={setParams}
-              simSpeed={simSpeed}
-              setSimSpeed={setSimSpeed}
-              data={data}
-              running={running}
-              hasConnected={hasConnected}
-              onToggleRunning={toggleRunning}
-              onReset={reset}
-            />
+            <motion.div variants={itemVariants}>
+              <ControlsPanel
+                params={params}
+                setParams={setParams}
+                simSpeed={simSpeed}
+                setSimSpeed={setSimSpeed}
+                data={data}
+                running={running}
+                hasConnected={hasConnected}
+                onToggleRunning={toggleRunning}
+                onReset={reset}
+              />
+            </motion.div>
 
-            <div className="flex items-center justify-center">
+            <motion.div variants={itemVariants} className="flex items-center justify-center">
               <RoadLayer
                 data={data}
                 weather={params.weather}
                 speedFactor={simSpeed}
                 intersectionType={params.intersectionType}
               />
-            </div>
+            </motion.div>
           </div>
-        </div>
+        </motion.div>
       </div>
     </>
   );
 }
-
-export default App;
