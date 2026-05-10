@@ -402,73 +402,85 @@ export class VehicleAgent {
         const t = Math.max(0, Math.min(this.pos / 400, 1));
         const CX = 800;
         const CY = 320;
-        const laneOffset = this.lane === 1 ? 35 : 65;
-        const approachRatio = 0.45;
+        
+        const laneOffsetHorizontal = this.lane === 1 ? 40 : 80;
+        const laneOffsetVertical = this.lane === 1 ? 50 : 100;
 
-        if (this.direction === 'east') {
-            if (this.route === 'right') {
-                if (t <= approachRatio) {
-                    const p = t / approachRatio;
-                    this.x = p * CX;
-                    this.y = CY + laneOffset;
-                    this._setAngle(0);
-                } else {
-                    const p = (t - approachRatio) / (1 - approachRatio);
-                    this.x = CX - laneOffset;
-                    this.y = CY + (p * (800 - CY));
-                    this._setAngle(90);
-                }
-                return;
+        if (this.route === 'straight') {
+            if (this.direction === 'east') {
+                this.x = t * 1600;
+                this.y = CY + laneOffsetHorizontal;
+                this._setAngle(0);
+            } else if (this.direction === 'west') {
+                this.x = 1600 - (t * 1600);
+                this.y = CY - laneOffsetHorizontal;
+                this._setAngle(180);
             }
-
-            this.x = t * 1600;
-            this.y = CY + laneOffset;
-            this._setAngle(0);
             return;
         }
 
-        if (this.direction === 'west') {
+        const turnStart = 0.38; 
+        const turnEnd = 0.62;   
+
+        let p0, p1, p2, startAngle, endAngle;
+
+        if (this.direction === 'east' && this.route === 'right') {
+            p0 = { x: turnStart * 1600, y: CY + laneOffsetHorizontal };
+            p1 = { x: CX - laneOffsetVertical, y: CY + laneOffsetHorizontal };
+            p2 = { x: CX - laneOffsetVertical, y: CY + 140 };
+            startAngle = 0;
+            endAngle = 90;
+        } else if (this.direction === 'west' && this.route === 'left') {
+            p0 = { x: 1600 - turnStart * 1600, y: CY - laneOffsetHorizontal };
+            p1 = { x: CX - laneOffsetVertical, y: CY - laneOffsetHorizontal };
+            p2 = { x: CX - laneOffsetVertical, y: CY + 140 };
+            startAngle = 180;
+            endAngle = 90;
+        } else if (this.direction === 'north') {
+            p0 = { x: CX + laneOffsetVertical, y: CY + 140 };
             if (this.route === 'left') {
-                if (t <= approachRatio) {
-                    const p = t / approachRatio;
-                    this.x = 1600 - (p * (1600 - CX));
-                    this.y = CY - laneOffset;
-                    this._setAngle(180);
-                } else {
-                    const p = (t - approachRatio) / (1 - approachRatio);
-                    this.x = CX + laneOffset;
-                    this.y = CY + (p * (800 - CY));
-                    this._setAngle(90);
-                }
-                return;
+                p1 = { x: CX + laneOffsetVertical, y: CY - laneOffsetHorizontal };
+                p2 = { x: 1600 - turnEnd * 1600, y: CY - laneOffsetHorizontal };
+                startAngle = -90;
+                endAngle = 180;
+            } else {
+                p1 = { x: CX + laneOffsetVertical, y: CY + laneOffsetHorizontal };
+                p2 = { x: turnEnd * 1600, y: CY + laneOffsetHorizontal };
+                startAngle = -90;
+                endAngle = 0;
             }
-
-            this.x = 1600 - (t * 1600);
-            this.y = CY - laneOffset;
-            this._setAngle(180);
-            return;
         }
 
-        // North direction vehicles in this mode are the stem approach from bottom.
-        if (t <= approachRatio) {
-            const p = t / approachRatio;
-            this.x = this.route === 'left' ? (CX + laneOffset) : (CX - laneOffset);
-            this.y = 800 - (p * (800 - CY));
-            this._setAngle(-90);
-            return;
+        if (t <= turnStart) {
+            const p = t / turnStart;
+            if (this.direction === 'east') {
+                this.x = p * p0.x;
+                this.y = p0.y;
+            } else if (this.direction === 'west') {
+                this.x = 1600 - p * (1600 - p0.x);
+                this.y = p0.y;
+            } else if (this.direction === 'north') {
+                this.x = p0.x;
+                this.y = 800 - p * (800 - p0.y);
+            }
+            this._setAngle(startAngle);
+        } else if (t >= turnEnd) {
+            const p = (t - turnEnd) / (1 - turnEnd);
+            if (endAngle === 90) { 
+                this.x = p2.x;
+                this.y = p2.y + p * (800 - p2.y);
+            } else if (endAngle === 180) { 
+                this.x = p2.x - p * p2.x;
+                this.y = p2.y;
+            } else if (endAngle === 0) { 
+                this.x = p2.x + p * (1600 - p2.x);
+                this.y = p2.y;
+            }
+            this._setAngle(endAngle);
+        } else {
+            const curveT = (t - turnStart) / (turnEnd - turnStart);
+            this._calculateCurve(curveT, p0, p1, p2);
         }
-
-        const p = (t - approachRatio) / (1 - approachRatio);
-        if (this.route === 'left') {
-            this.x = (CX + laneOffset) - (p * (CX + laneOffset));
-            this.y = CY - laneOffset;
-            this._setAngle(180);
-            return;
-        }
-
-        this.x = (CX - laneOffset) + (p * (1600 - (CX - laneOffset)));
-        this.y = CY + laneOffset;
-        this._setAngle(0);
     }
 
     _setRoundaboutExitCoords(t, exitDirection, CX, CY, h, approachOffset, minX, maxX) {
