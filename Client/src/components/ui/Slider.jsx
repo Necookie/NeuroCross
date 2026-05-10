@@ -11,7 +11,7 @@ const Slider = ({ label, value, min, max, step, onChange }) => {
       <div className="relative">
         <div className="h-2.5 rounded-full bg-mono-800 inset-shadow" />
         <div
-          className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-mono-500 to-mono-300 transition-[width] duration-500 ease-soft-ease"
+          className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-mono-500 to-mono-300"
           style={{ width: `${pct}%` }}
         />
         <input
@@ -24,7 +24,7 @@ const Slider = ({ label, value, min, max, step, onChange }) => {
           className="absolute inset-0 w-full h-2.5 opacity-0 cursor-pointer"
         />
         <div
-          className="absolute top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-mono-100 border border-mono-500 shadow-lift transition-all duration-300 ease-soft-ease"
+          className="absolute top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-mono-100 border border-mono-500 shadow-lift pointer-events-none"
           style={{ left: `calc(${pct}% - 8px)` }}
         />
       </div>

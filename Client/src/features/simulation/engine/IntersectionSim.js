@@ -241,7 +241,8 @@ export class IntersectionSim {
                         x: c.x,
                         y: c.y,
                         angle: c.angle,
-                        route: c.route
+                        route: c.route,
+                        pathMode: c.pathMode,
                     };
                 }
                 jsonRoads[dir][i] = out;

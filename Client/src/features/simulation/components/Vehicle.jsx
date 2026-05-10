@@ -75,15 +75,47 @@ const Vehicle = ({ data, speedFactor }) => {
 
   const speed = Math.max(0.5, Math.min(speedFactor ?? 1, 3));
 
+  const isSignaling = (data.pathMode === 'cross' || data.pathMode === 'tintersection') && data.route !== 'straight' && data.pos > 30;
+  const turnSignal = isSignaling ? data.route : null;
+
   return (
     <MotionDiv
       initial={style} // PREVENTS FLYING BUG
       animate={style}
       transition={{ duration: 0.18 / speed, ease: [0.4, 0, 0.2, 1] }}
       style={{ transform: 'translate3d(-50%, -50%, 0)', willChange: 'transform' }}
-      className="absolute z-20 origin-center pointer-events-none"
+      className={`absolute z-20 origin-center pointer-events-none flex items-center justify-center ${dimensions}`}
     >
-      <Template color={color} className={dimensions} />
+      <Template color={color} className="w-full h-full" />
+      
+      {turnSignal === 'left' && (
+        <>
+          <motion.div 
+            className="absolute -top-0.5 right-1 w-1.5 h-1.5 bg-amber-500 rounded-full shadow-[0_0_4px_rgba(245,158,11,1)]" 
+            animate={{ opacity: [1, 0, 1] }} 
+            transition={{ duration: 0.6, repeat: Infinity, ease: "linear" }} 
+          />
+          <motion.div 
+            className="absolute -top-0.5 left-1 w-1.5 h-1.5 bg-amber-500 rounded-full shadow-[0_0_4px_rgba(245,158,11,1)]" 
+            animate={{ opacity: [1, 0, 1] }} 
+            transition={{ duration: 0.6, repeat: Infinity, ease: "linear" }} 
+          />
+        </>
+      )}
+      {turnSignal === 'right' && (
+        <>
+          <motion.div 
+            className="absolute -bottom-0.5 right-1 w-1.5 h-1.5 bg-amber-500 rounded-full shadow-[0_0_4px_rgba(245,158,11,1)]" 
+            animate={{ opacity: [1, 0, 1] }} 
+            transition={{ duration: 0.6, repeat: Infinity, ease: "linear" }} 
+          />
+          <motion.div 
+            className="absolute -bottom-0.5 left-1 w-1.5 h-1.5 bg-amber-500 rounded-full shadow-[0_0_4px_rgba(245,158,11,1)]" 
+            animate={{ opacity: [1, 0, 1] }} 
+            transition={{ duration: 0.6, repeat: Infinity, ease: "linear" }} 
+          />
+        </>
+      )}
     </MotionDiv>
   );
 };

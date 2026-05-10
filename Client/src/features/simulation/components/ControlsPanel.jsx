@@ -93,30 +93,30 @@ const ControlsPanel = ({
       <div className="grid grid-cols-3 gap-2">
         <button
           onClick={() => updateParam('intersectionType', 'cross')}
-          className={`py-2 rounded-xl text-xs font-medium transition-all duration-300 ease-soft-ease border ${(params.intersectionType || 'cross') === 'cross'
+          className={`py-2 rounded-xl text-[11px] uppercase tracking-wider font-semibold transition-all duration-300 ease-soft-ease border ${(params.intersectionType || 'cross') === 'cross'
               ? 'bg-mono-200 text-mono-900 shadow-lift border-mono-200'
               : 'bg-mono-950/70 text-mono-400 border-mono-800/70 hover:text-mono-200 hover:border-mono-700/80'
             }`}
         >
-          4-way Intersection
+          4-Way
         </button>
         <button
           onClick={() => updateParam('intersectionType', 'roundabout')}
-          className={`py-2 rounded-xl text-xs font-medium transition-all duration-300 ease-soft-ease border ${(params.intersectionType || 'cross') === 'roundabout'
+          className={`py-2 rounded-xl text-[11px] uppercase tracking-wider font-semibold transition-all duration-300 ease-soft-ease border ${(params.intersectionType || 'cross') === 'roundabout'
               ? 'bg-mono-200 text-mono-900 shadow-lift border-mono-200'
               : 'bg-mono-950/70 text-mono-400 border-mono-800/70 hover:text-mono-200 hover:border-mono-700/80'
             }`}
         >
-          Roundabout
+          Circle
         </button>
         <button
           onClick={() => updateParam('intersectionType', 'tintersection')}
-          className={`py-2 rounded-xl text-xs font-medium transition-all duration-300 ease-soft-ease border ${(params.intersectionType || 'cross') === 'tintersection'
+          className={`py-2 rounded-xl text-[11px] uppercase tracking-wider font-semibold transition-all duration-300 ease-soft-ease border ${(params.intersectionType || 'cross') === 'tintersection'
               ? 'bg-mono-200 text-mono-900 shadow-lift border-mono-200'
               : 'bg-mono-950/70 text-mono-400 border-mono-800/70 hover:text-mono-200 hover:border-mono-700/80'
             }`}
         >
-          T-Intersection
+          T-Shape
         </button>
       </div>
       </div>
