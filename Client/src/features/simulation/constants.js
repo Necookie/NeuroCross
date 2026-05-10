@@ -4,7 +4,7 @@ export const DEFAULT_PARAMS = {
   mode: 'smart',
   weather: 'sunny',
   intersectionType: 'cross',
-  theme: 'light'
+  theme: 'dark'
 };
 
 export const createDefaultData = (intersectionType = 'cross') => {
