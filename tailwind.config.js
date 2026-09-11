@@ -7,48 +7,57 @@ export default {
   theme: {
     extend: {
       colors: {
-        mono: {
-          50: 'hsl(var(--mono-50) / <alpha-value>)',
-          100: 'hsl(var(--mono-100) / <alpha-value>)',
-          200: 'hsl(var(--mono-200) / <alpha-value>)',
-          300: 'hsl(var(--mono-300) / <alpha-value>)',
-          400: 'hsl(var(--mono-400) / <alpha-value>)',
-          500: 'hsl(var(--mono-500) / <alpha-value>)',
-          600: 'hsl(var(--mono-600) / <alpha-value>)',
-          700: 'hsl(var(--mono-700) / <alpha-value>)',
-          800: 'hsl(var(--mono-800) / <alpha-value>)',
-          900: 'hsl(var(--mono-900) / <alpha-value>)',
-          950: 'hsl(var(--mono-950) / <alpha-value>)',
+        canvas: '#000000',
+        surface: {
+          soft: '#0d0d0d',
+          card: '#1a1a1a',
+          elevated: '#262626',
         },
-        signal: {
-          red: 'hsl(var(--signal-red) / <alpha-value>)',
-          amber: 'hsl(var(--signal-amber) / <alpha-value>)',
-          green: 'hsl(var(--signal-green) / <alpha-value>)',
+        carbon: '#2b2b2b',
+        hairline: {
+          DEFAULT: '#3c3c3c',
+          strong: '#262626',
         },
+        m: {
+          blue: {
+            light: '#0066b1',
+            dark: '#1c69d4',
+          },
+          red: '#e22718',
+        },
+        electric: '#0653b6',
+        primary: '#ffffff',
+        'on-dark': '#ffffff',
+        body: {
+          DEFAULT: '#bbbbbb',
+          strong: '#e6e6e6',
+        },
+        muted: '#7e7e7e',
+        warning: '#f4b400',
+        success: '#0fa336',
       },
       fontFamily: {
-        sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'sans-serif'],
       },
-      boxShadow: {
-        soft: '0 18px 35px hsl(var(--mono-950) / 0.45)',
-        lift: '0 10px 25px hsl(var(--mono-950) / 0.4)',
+      letterSpacing: {
+        machined: '1.5px',
+        wide: '2px',
+        tight: '-0.5px',
       },
-      transitionTimingFunction: {
-        'soft-ease': 'cubic-bezier(0.4, 0, 0.2, 1)',
+      borderRadius: {
+        none: '0px',
+        sm: '4px',
+        full: '9999px',
       },
-      keyframes: {
-        drift: {
-          '0%': { transform: 'translateY(0px)' },
-          '100%': { transform: 'translateY(6px)' },
-        },
-        shimmer: {
-          '0%': { opacity: '0.35' },
-          '100%': { opacity: '0.75' },
-        },
-      },
-      animation: {
-        drift: 'drift 6s ease-in-out infinite alternate',
-        shimmer: 'shimmer 2.4s ease-in-out infinite alternate',
+      spacing: {
+        'xxs': '4px',
+        'xs': '8px',
+        'sm': '12px',
+        'md': '16px',
+        'lg': '24px',
+        'xl': '40px',
+        'xxl': '64px',
+        'section': '96px',
       },
     },
   },
