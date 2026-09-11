@@ -1,0 +1,9 @@
+name = "neurocross"
+compatibility_date = "2024-09-01"
+
+# Vite builds the static site into dist/. Cloudflare Pages was serving the
+# repo root's source index.html (which loads /src/main.jsx directly - only
+# valid under the Vite dev server) instead of the built output, producing a
+# blank page in production. Declaring the output directory here makes it
+# explicit and repo-controlled instead of relying on a dashboard setting.
+pages_build_output_dir = "dist"
