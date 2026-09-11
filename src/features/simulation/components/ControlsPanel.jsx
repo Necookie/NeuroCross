@@ -20,31 +20,31 @@ const ControlsPanel = ({
   }, [setParams]);
 
   return (
-    <div className="space-y-4">
-      {/* Simulation Master Actions */}
+    <div className="space-y-3.5">
+      {/* Simulation Play / Pause & Reset */}
       <div className="flex gap-2">
         <button
           onClick={onToggleRunning}
-          className={`flex-1 h-12 flex justify-center items-center gap-2 text-xs font-bold uppercase tracking-[1.5px] rounded-none border transition-all duration-150 ${
+          className={`flex-1 h-11 flex justify-center items-center gap-2 text-xs font-bold uppercase tracking-[1.5px] rounded-none border transition-all duration-150 ${
             running
-              ? 'bg-[#1a1a1a] text-white border-white hover:bg-[#262626]'
+              ? 'bg-[#181818] text-white border-white/50 hover:bg-[#222222] hover:border-white'
               : 'bg-white text-black border-white hover:bg-[#e6e6e6]'
           } ${running && !hasConnected ? 'opacity-80' : ''}`}
         >
           {running ? (
             hasConnected ? (
               <>
-                <Pause size={15} /> PAUSE CORE
+                <Pause size={14} /> PAUSE
               </>
             ) : (
               <>
-                <div className="animate-spin w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full" />
-                CONNECTING...
+                <div className="animate-spin w-3 h-3 border-2 border-white border-t-transparent rounded-full" />
+                STARTING...
               </>
             )
           ) : (
             <>
-              <Play size={15} fill="currentColor" /> ENGAGE SIMULATION
+              <Play size={14} fill="currentColor" /> START
             </>
           )}
         </button>
@@ -52,142 +52,126 @@ const ControlsPanel = ({
         <button
           onClick={onReset}
           title="Reset Network"
-          className="h-12 w-12 flex items-center justify-center bg-[#1a1a1a] text-[#bbbbbb] border border-[#3c3c3c] rounded-none hover:border-white hover:text-white transition-all duration-150"
+          className="h-11 w-11 flex items-center justify-center bg-[#121212] text-[#888888] border border-[#2a2a2a] rounded-none hover:border-white hover:text-white transition-all duration-150"
         >
-          <RotateCcw size={16} />
+          <RotateCcw size={15} />
         </button>
       </div>
 
-      {/* Environment & Signal Parameters */}
-      <div className="bg-[#1a1a1a] border border-[#3c3c3c] rounded-none p-5 space-y-4">
-        <div className="flex items-center justify-between border-b border-[#262626] pb-2.5">
-          <span className="text-xs font-bold uppercase tracking-[1.5px] text-white">
-            ENVIRONMENT & TIMING
-          </span>
-          <span className="text-[10px] font-bold uppercase tracking-[1.5px] text-[#7e7e7e]">
-            PARAMS
-          </span>
+      {/* Environment & Controls */}
+      <div className="bg-[#121212] border border-[#2a2a2a] p-4 space-y-3.5">
+        <div className="text-[11px] font-bold uppercase tracking-[1.5px] text-[#ffffff] border-b border-[#222222] pb-2">
+          Environment & Control
         </div>
 
-        {/* Weather Mode */}
+        {/* Weather */}
         <div className="space-y-1.5">
-          <label className="text-[10px] font-bold uppercase tracking-[1.5px] text-[#7e7e7e]">
-            ATMOSPHERIC FRICTION
-          </label>
+          <div className="text-[10px] font-bold uppercase tracking-[1.2px] text-[#777777]">
+            Weather
+          </div>
           <div className="grid grid-cols-2 gap-1.5">
             <button
               onClick={() => updateParam('weather', 'sunny')}
-              className={`h-9 flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-[1.5px] rounded-none border transition-all duration-150 ${
+              className={`h-8 flex items-center justify-center gap-1.5 text-[11px] font-bold uppercase tracking-[1.2px] rounded-none border transition-all duration-150 ${
                 params.weather === 'sunny'
-                  ? 'bg-[#262626] border-white text-white'
-                  : 'bg-[#0d0d0d] border-[#3c3c3c] text-[#bbbbbb] hover:border-[#7e7e7e]'
+                  ? 'bg-[#222222] border-white text-white'
+                  : 'bg-[#181818] border-[#2a2a2a] text-[#888888] hover:border-[#555555]'
               }`}
             >
-              <Sun size={13} />
-              DRY (1.0μ)
+              <Sun size={12} />
+              Dry
             </button>
             <button
               onClick={() => updateParam('weather', 'rain')}
-              className={`h-9 flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-[1.5px] rounded-none border transition-all duration-150 ${
+              className={`h-8 flex items-center justify-center gap-1.5 text-[11px] font-bold uppercase tracking-[1.2px] rounded-none border transition-all duration-150 ${
                 params.weather === 'rain'
-                  ? 'bg-[#262626] border-white text-white'
-                  : 'bg-[#0d0d0d] border-[#3c3c3c] text-[#bbbbbb] hover:border-[#7e7e7e]'
+                  ? 'bg-[#222222] border-white text-white'
+                  : 'bg-[#181818] border-[#2a2a2a] text-[#888888] hover:border-[#555555]'
               }`}
             >
-              <CloudRain size={13} />
-              RAIN (0.6μ)
+              <CloudRain size={12} />
+              Rain
             </button>
           </div>
         </div>
 
         {/* Signal Timing Mode */}
         <div className="space-y-1.5 pt-1">
-          <label className="text-[10px] font-bold uppercase tracking-[1.5px] text-[#7e7e7e]">
-            SIGNAL CONTROLLER
-          </label>
+          <div className="text-[10px] font-bold uppercase tracking-[1.2px] text-[#777777]">
+            Signal Timing
+          </div>
           <div className="grid grid-cols-2 gap-1.5">
             <button
               onClick={() => updateParam('mode', 'smart')}
-              className={`h-9 flex items-center justify-center text-xs font-bold uppercase tracking-[1.5px] rounded-none border transition-all duration-150 ${
+              className={`h-8 flex items-center justify-center text-[11px] font-bold uppercase tracking-[1.2px] rounded-none border transition-all duration-150 ${
                 params.mode === 'smart'
-                  ? 'bg-[#262626] border-white text-white'
-                  : 'bg-[#0d0d0d] border-[#3c3c3c] text-[#bbbbbb] hover:border-[#7e7e7e]'
+                  ? 'bg-[#222222] border-white text-white'
+                  : 'bg-[#181818] border-[#2a2a2a] text-[#888888] hover:border-[#555555]'
               }`}
             >
-              NEURAL SMART
+              Smart
             </button>
             <button
               onClick={() => updateParam('mode', 'fixed')}
-              className={`h-9 flex items-center justify-center text-xs font-bold uppercase tracking-[1.5px] rounded-none border transition-all duration-150 ${
+              className={`h-8 flex items-center justify-center text-[11px] font-bold uppercase tracking-[1.2px] rounded-none border transition-all duration-150 ${
                 params.mode === 'fixed'
-                  ? 'bg-[#262626] border-white text-white'
-                  : 'bg-[#0d0d0d] border-[#3c3c3c] text-[#bbbbbb] hover:border-[#7e7e7e]'
+                  ? 'bg-[#222222] border-white text-white'
+                  : 'bg-[#181818] border-[#2a2a2a] text-[#888888] hover:border-[#555555]'
               }`}
             >
-              FIXED CYCLE
+              Fixed
             </button>
           </div>
         </div>
       </div>
 
-      {/* Network Geometry / Layout */}
-      <div className="bg-[#1a1a1a] border border-[#3c3c3c] rounded-none p-5 space-y-3">
-        <div className="flex items-center justify-between border-b border-[#262626] pb-2.5">
-          <span className="text-xs font-bold uppercase tracking-[1.5px] text-white">
-            CORRIDOR GEOMETRY
-          </span>
-          <span className="text-[10px] font-bold uppercase tracking-[1.5px] text-[#7e7e7e]">
-            LAYOUT
-          </span>
+      {/* Intersection Layout */}
+      <div className="bg-[#121212] border border-[#2a2a2a] p-4 space-y-2.5">
+        <div className="text-[11px] font-bold uppercase tracking-[1.5px] text-[#ffffff] border-b border-[#222222] pb-2">
+          Intersection Layout
         </div>
-
         <div className="grid grid-cols-3 gap-1.5">
           <button
             onClick={() => updateParam('intersectionType', 'cross')}
-            className={`h-10 text-[11px] font-bold uppercase tracking-[1.5px] rounded-none border transition-all duration-150 ${
+            className={`h-9 text-[10px] font-bold uppercase tracking-[1.2px] rounded-none border transition-all duration-150 ${
               (params.intersectionType || 'cross') === 'cross'
-                ? 'bg-[#262626] border-white text-white'
-                : 'bg-[#0d0d0d] border-[#3c3c3c] text-[#bbbbbb] hover:border-[#7e7e7e]'
+                ? 'bg-[#222222] border-white text-white'
+                : 'bg-[#181818] border-[#2a2a2a] text-[#888888] hover:border-[#555555]'
             }`}
           >
-            4-WAY
+            4-Way
           </button>
           <button
             onClick={() => updateParam('intersectionType', 'roundabout')}
-            className={`h-10 text-[11px] font-bold uppercase tracking-[1.5px] rounded-none border transition-all duration-150 ${
+            className={`h-9 text-[10px] font-bold uppercase tracking-[1.2px] rounded-none border transition-all duration-150 ${
               (params.intersectionType || 'cross') === 'roundabout'
-                ? 'bg-[#262626] border-white text-white'
-                : 'bg-[#0d0d0d] border-[#3c3c3c] text-[#bbbbbb] hover:border-[#7e7e7e]'
+                ? 'bg-[#222222] border-white text-white'
+                : 'bg-[#181818] border-[#2a2a2a] text-[#888888] hover:border-[#555555]'
             }`}
           >
-            ROUNDABOUT
+            Roundabout
           </button>
           <button
             onClick={() => updateParam('intersectionType', 'tintersection')}
-            className={`h-10 text-[11px] font-bold uppercase tracking-[1.5px] rounded-none border transition-all duration-150 ${
+            className={`h-9 text-[10px] font-bold uppercase tracking-[1.2px] rounded-none border transition-all duration-150 ${
               (params.intersectionType || 'cross') === 'tintersection'
-                ? 'bg-[#262626] border-white text-white'
-                : 'bg-[#0d0d0d] border-[#3c3c3c] text-[#bbbbbb] hover:border-[#7e7e7e]'
+                ? 'bg-[#222222] border-white text-white'
+                : 'bg-[#181818] border-[#2a2a2a] text-[#888888] hover:border-[#555555]'
             }`}
           >
-            T-JUNCTION
+            T-Junction
           </button>
         </div>
       </div>
 
-      {/* Traffic Flow Injection */}
-      <div className="bg-[#1a1a1a] border border-[#3c3c3c] rounded-none p-5 space-y-4">
-        <div className="flex items-center justify-between border-b border-[#262626] pb-2.5">
-          <span className="text-xs font-bold uppercase tracking-[1.5px] text-white">
-            TRAFFIC DENSITY
-          </span>
-          <span className="text-[10px] font-bold uppercase tracking-[1.5px] text-[#7e7e7e]">
-            RATE / S
-          </span>
+      {/* Flow Rates */}
+      <div className="bg-[#121212] border border-[#2a2a2a] p-4 space-y-3.5">
+        <div className="text-[11px] font-bold uppercase tracking-[1.5px] text-[#ffffff] border-b border-[#222222] pb-2">
+          Traffic Flow
         </div>
 
         <Slider
-          label="North / South Flow"
+          label="North / South"
           value={params.arrival_rate_ns}
           min={0.1}
           max={3.0}
@@ -195,7 +179,7 @@ const ControlsPanel = ({
           onChange={(e) => updateParam('arrival_rate_ns', parseFloat(e.target.value))}
         />
         <Slider
-          label="East / West Flow"
+          label="East / West"
           value={params.arrival_rate_ew}
           min={0.1}
           max={3.0}
@@ -204,19 +188,14 @@ const ControlsPanel = ({
         />
       </div>
 
-      {/* Simulation Clock Rate */}
-      <div className="bg-[#1a1a1a] border border-[#3c3c3c] rounded-none p-5 space-y-3">
-        <div className="flex items-center justify-between border-b border-[#262626] pb-2.5">
-          <span className="text-xs font-bold uppercase tracking-[1.5px] text-white">
-            SIMULATION CLOCK
-          </span>
-          <span className="text-[10px] font-bold uppercase tracking-[1.5px] text-[#7e7e7e]">
-            MULTIPLIER
-          </span>
+      {/* Simulation Speed */}
+      <div className="bg-[#121212] border border-[#2a2a2a] p-4 space-y-3">
+        <div className="text-[11px] font-bold uppercase tracking-[1.5px] text-[#ffffff] border-b border-[#222222] pb-2">
+          Simulation Speed
         </div>
 
         <Slider
-          label="Time Compression"
+          label="Speed Multiplier"
           value={simSpeed}
           min={0.5}
           max={3.0}
@@ -225,11 +204,11 @@ const ControlsPanel = ({
         />
       </div>
 
-      {/* Spec Cells / Realtime Telemetry Metrics */}
+      {/* Metrics */}
       <div className="grid gap-2">
-        <MetricCard label="CORRIDOR THROUGHPUT" value={data.metrics.throughput} unit="VEH" />
-        <MetricCard label="VELOCITY TELEMETRY" value={data.metrics.avg_speed} unit="KM/H" />
-        <MetricCard label="CONFLICT EVENTS" value={data.metrics.accidents} unit="INC" />
+        <MetricCard label="Throughput" value={data.metrics.throughput} unit="veh" />
+        <MetricCard label="Avg Speed" value={data.metrics.avg_speed} unit="km/h" />
+        <MetricCard label="Incidents" value={data.metrics.accidents} unit="events" />
       </div>
     </div>
   );

@@ -4,13 +4,15 @@ import { Car, Suv, Jeepney, Bus, Bike, Truck, Van, Taxi, Pickup, Scooter } from 
 
 const colorCache = new Map();
 const colorPool = [
-  'hsl(222 22% 68%)',
-  'hsl(208 24% 62%)',
-  'hsl(194 26% 58%)',
-  'hsl(30 26% 64%)',
-  'hsl(12 22% 58%)',
-  'hsl(320 18% 60%)',
-  'hsl(150 18% 52%)',
+  '#f5f5f5', // Alpine White
+  '#e22718', // M Red
+  '#0066b1', // M Blue
+  '#1c69d4', // Dark Blue
+  '#2a2e33', // Gunmetal
+  '#c28b1e', // Bronze / Mustard
+  '#2d5a3f', // Deep Green
+  '#6b7280', // Mineral Gray
+  '#d9531e', // Sunset Orange
 ];
 
 const hashId = (value) => {

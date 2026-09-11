@@ -14,76 +14,50 @@ const CROSS_INTERSECTION_BOTTOM = CROSS_ROAD_OFFSET_Y + CROSS_HORIZONTAL_ROAD_HE
 
 const SingleCrossBackdrop = memo(() => (
   <>
-    <div className="absolute top-1/2 left-0 -translate-y-1/2 w-full bg-mono-800/90 border-y border-mono-700/70" style={{ height: `${CROSS_HORIZONTAL_ROAD_HEIGHT}%` }}>
-      <div className="absolute top-1/2 w-full border-t-2 border-mono-300/20" />
-      <div className="absolute top-[25%] w-full border-t border-dashed border-mono-400/20" />
-      <div className="absolute bottom-[25%] w-full border-t border-dashed border-mono-400/20" />
+    {/* Horizontal Road */}
+    <div 
+      className="absolute top-1/2 left-0 -translate-y-1/2 w-full bg-[#181818] border-y border-[#333333]" 
+      style={{ height: `${CROSS_HORIZONTAL_ROAD_HEIGHT}%` }}
+    >
+      <div className="absolute top-1/2 w-full border-t border-white/30" />
+      <div className="absolute top-[25%] w-full border-t border-dashed border-white/20" />
+      <div className="absolute bottom-[25%] w-full border-t border-dashed border-white/20" />
     </div>
 
-    <div className="absolute h-full bg-mono-800/90 border-x border-mono-700/70" style={{ left: `${CROSS_ROAD_OFFSET_X}%`, width: `${CROSS_VERTICAL_ROAD_WIDTH}%` }}>
-      <div className="absolute left-1/2 h-full border-l-2 border-mono-300/20" />
-      <div className="absolute h-full border-l border-dashed border-mono-400/20" style={{ left: `${((CROSS_LANE_DASH_LEFT - CROSS_ROAD_OFFSET_X) / CROSS_VERTICAL_ROAD_WIDTH) * 100}%` }} />
-      <div className="absolute h-full border-l border-dashed border-mono-400/20" style={{ left: `${((CROSS_LANE_DASH_RIGHT - CROSS_ROAD_OFFSET_X) / CROSS_VERTICAL_ROAD_WIDTH) * 100}%` }} />
-      <div className="absolute w-full h-px bg-mono-300/20" style={{ top: '30%' }} />
-      <div className="absolute w-full h-px bg-mono-300/20" style={{ bottom: '30%' }} />
+    {/* Vertical Road */}
+    <div 
+      className="absolute h-full bg-[#181818] border-x border-[#333333]" 
+      style={{ left: `${CROSS_ROAD_OFFSET_X}%`, width: `${CROSS_VERTICAL_ROAD_WIDTH}%` }}
+    >
+      <div className="absolute left-1/2 h-full border-l border-white/30" />
+      <div className="absolute h-full border-l border-dashed border-white/20" style={{ left: `${((CROSS_LANE_DASH_LEFT - CROSS_ROAD_OFFSET_X) / CROSS_VERTICAL_ROAD_WIDTH) * 100}%` }} />
+      <div className="absolute h-full border-l border-dashed border-white/20" style={{ left: `${((CROSS_LANE_DASH_RIGHT - CROSS_ROAD_OFFSET_X) / CROSS_VERTICAL_ROAD_WIDTH) * 100}%` }} />
     </div>
 
-    <div className="absolute bg-mono-800/95 z-0" style={{ left: `${CROSS_ROAD_OFFSET_X}%`, top: `${CROSS_ROAD_OFFSET_Y}%`, width: `${CROSS_VERTICAL_ROAD_WIDTH}%`, height: `${CROSS_HORIZONTAL_ROAD_HEIGHT}%` }} />
+    {/* Intersection Box */}
+    <div 
+      className="absolute bg-[#181818] z-0" 
+      style={{ left: `${CROSS_ROAD_OFFSET_X}%`, top: `${CROSS_ROAD_OFFSET_Y}%`, width: `${CROSS_VERTICAL_ROAD_WIDTH}%`, height: `${CROSS_HORIZONTAL_ROAD_HEIGHT}%` }} 
+    />
 
-    <div className="absolute bg-mono-200/30 z-[2]" style={{ left: `${CROSS_ROAD_OFFSET_X}%`, top: `${CROSS_ROAD_OFFSET_Y}%`, width: '2px', height: `${CROSS_HORIZONTAL_ROAD_HEIGHT}%` }} />
-    <div className="absolute bg-mono-200/30 z-[2]" style={{ left: `${CROSS_INTERSECTION_RIGHT}%`, top: `${CROSS_ROAD_OFFSET_Y}%`, width: '2px', height: `${CROSS_HORIZONTAL_ROAD_HEIGHT}%` }} />
-    <div className="absolute bg-mono-200/30 z-[2]" style={{ left: '0%', top: `${CROSS_ROAD_OFFSET_Y}%`, width: `${CROSS_ROAD_OFFSET_X}%`, height: '2px' }} />
-    <div className="absolute bg-mono-200/30 z-[2]" style={{ left: `${CROSS_INTERSECTION_RIGHT}%`, top: `${CROSS_ROAD_OFFSET_Y}%`, width: `${CROSS_ROAD_OFFSET_X}%`, height: '2px' }} />
-    <div className="absolute bg-mono-200/30 z-[2]" style={{ left: '0%', top: `${CROSS_INTERSECTION_BOTTOM}%`, width: `${CROSS_ROAD_OFFSET_X}%`, height: '2px' }} />
-    <div className="absolute bg-mono-200/30 z-[2]" style={{ left: `${CROSS_INTERSECTION_RIGHT}%`, top: `${CROSS_INTERSECTION_BOTTOM}%`, width: `${CROSS_ROAD_OFFSET_X}%`, height: '2px' }} />
+    {/* Stop Lines */}
+    <div className="absolute bg-white/70 z-[2]" style={{ left: `${CROSS_ROAD_OFFSET_X}%`, top: `${CROSS_ROAD_OFFSET_Y}%`, width: '3px', height: `${CROSS_HORIZONTAL_ROAD_HEIGHT}%` }} />
+    <div className="absolute bg-white/70 z-[2]" style={{ left: `${CROSS_INTERSECTION_RIGHT}%`, top: `${CROSS_ROAD_OFFSET_Y}%`, width: '3px', height: `${CROSS_HORIZONTAL_ROAD_HEIGHT}%` }} />
+    <div className="absolute bg-white/70 z-[2]" style={{ left: '0%', top: `${CROSS_ROAD_OFFSET_Y}%`, width: `${CROSS_ROAD_OFFSET_X}%`, height: '3px' }} />
+    <div className="absolute bg-white/70 z-[2]" style={{ left: `${CROSS_INTERSECTION_RIGHT}%`, top: `${CROSS_ROAD_OFFSET_Y}%`, width: `${CROSS_ROAD_OFFSET_X}%`, height: '3px' }} />
+    <div className="absolute bg-white/70 z-[2]" style={{ left: '0%', top: `${CROSS_INTERSECTION_BOTTOM}%`, width: `${CROSS_ROAD_OFFSET_X}%`, height: '3px' }} />
+    <div className="absolute bg-white/70 z-[2]" style={{ left: `${CROSS_INTERSECTION_RIGHT}%`, top: `${CROSS_INTERSECTION_BOTTOM}%`, width: `${CROSS_ROAD_OFFSET_X}%`, height: '3px' }} />
 
-    <div className="absolute z-[3] bg-[repeating-linear-gradient(90deg,rgba(255,255,255,0.88)_0_8px,transparent_8px_14px)]" style={{ left: '31%', top: '26.6%', width: '7%', height: '4.8%' }} />
-    <div className="absolute z-[3] bg-[repeating-linear-gradient(90deg,rgba(255,255,255,0.88)_0_8px,transparent_8px_14px)]" style={{ left: '62%', top: '26.6%', width: '7%', height: '4.8%' }} />
-    <div className="absolute z-[3] bg-[repeating-linear-gradient(90deg,rgba(255,255,255,0.88)_0_8px,transparent_8px_14px)]" style={{ left: '31%', top: '68.6%', width: '7%', height: '4.8%' }} />
-    <div className="absolute z-[3] bg-[repeating-linear-gradient(90deg,rgba(255,255,255,0.88)_0_8px,transparent_8px_14px)]" style={{ left: '62%', top: '68.6%', width: '7%', height: '4.8%' }} />
+    {/* Crosswalk Zebra Markings */}
+    <div className="absolute z-[3] bg-[repeating-linear-gradient(90deg,rgba(255,255,255,0.7)_0_6px,transparent_6px_12px)]" style={{ left: '31%', top: '26.6%', width: '7%', height: '4.8%' }} />
+    <div className="absolute z-[3] bg-[repeating-linear-gradient(90deg,rgba(255,255,255,0.7)_0_6px,transparent_6px_12px)]" style={{ left: '62%', top: '26.6%', width: '7%', height: '4.8%' }} />
+    <div className="absolute z-[3] bg-[repeating-linear-gradient(90deg,rgba(255,255,255,0.7)_0_6px,transparent_6px_12px)]" style={{ left: '31%', top: '68.6%', width: '7%', height: '4.8%' }} />
+    <div className="absolute z-[3] bg-[repeating-linear-gradient(90deg,rgba(255,255,255,0.7)_0_6px,transparent_6px_12px)]" style={{ left: '62%', top: '68.6%', width: '7%', height: '4.8%' }} />
 
-    <div className="absolute z-[3] bg-[repeating-linear-gradient(180deg,rgba(255,255,255,0.88)_0_8px,transparent_8px_14px)]" style={{ left: '38.6%', top: '18%', width: '4.8%', height: '8%' }} />
-    <div className="absolute z-[3] bg-[repeating-linear-gradient(180deg,rgba(255,255,255,0.88)_0_8px,transparent_8px_14px)]" style={{ left: '56.6%', top: '18%', width: '4.8%', height: '8%' }} />
-    <div className="absolute z-[3] bg-[repeating-linear-gradient(180deg,rgba(255,255,255,0.88)_0_8px,transparent_8px_14px)]" style={{ left: '38.6%', top: '74%', width: '4.8%', height: '8%' }} />
-    <div className="absolute z-[3] bg-[repeating-linear-gradient(180deg,rgba(255,255,255,0.88)_0_8px,transparent_8px_14px)]" style={{ left: '56.6%', top: '74%', width: '4.8%', height: '8%' }} />
-
-    <div className="absolute z-30 text-[9px] uppercase tracking-[0.25em] text-mono-500/60 font-semibold" style={{ left: '50%', top: '76%', transform: 'translateX(-50%)' }}>
-      4-way Intersection
-    </div>
-  </>
-));
-
-const RoundaboutBackdrop = memo(() => (
-  <>
-    <div className="absolute bg-mono-800/90 border-y border-mono-700/70" style={{ left: '19.5%', top: '0%', width: '11%', height: '34%' }} />
-    <div className="absolute bg-mono-800/90 border-y border-mono-700/70" style={{ left: '19.5%', top: '66%', width: '11%', height: '34%' }} />
-    <div className="absolute bg-mono-800/90 border-x border-mono-700/70" style={{ left: '0%', top: '44.5%', width: '19%', height: '11%' }} />
-    <div className="absolute bg-mono-800/90 border-x border-mono-700/70" style={{ left: '33%', top: '44.5%', width: '34%', height: '11%' }} />
-
-    <div className="absolute bg-mono-800/90 border-y border-mono-700/70" style={{ left: '69.5%', top: '0%', width: '11%', height: '34%' }} />
-    <div className="absolute bg-mono-800/90 border-y border-mono-700/70" style={{ left: '69.5%', top: '66%', width: '11%', height: '34%' }} />
-    <div className="absolute bg-mono-800/90 border-x border-mono-700/70" style={{ left: '81%', top: '44.5%', width: '19%', height: '11%' }} />
-
-    <div className="absolute z-[2] rounded-full border-[20px] border-mono-800/95 bg-transparent" style={{ left: '25%', top: '50%', width: '29%', aspectRatio: '1 / 1', transform: 'translate(-50%, -50%)' }} />
-    <div className="absolute z-[2] rounded-full border-[20px] border-mono-800/95 bg-transparent" style={{ left: '75%', top: '50%', width: '29%', aspectRatio: '1 / 1', transform: 'translate(-50%, -50%)' }} />
-
-    <div className="absolute z-[1] rounded-full border border-mono-300/25 bg-mono-800/90" style={{ left: '25%', top: '50%', width: '10%', aspectRatio: '1 / 1', transform: 'translate(-50%, -50%)' }} />
-    <div className="absolute z-[1] rounded-full border border-mono-300/25 bg-mono-800/90" style={{ left: '75%', top: '50%', width: '10%', aspectRatio: '1 / 1', transform: 'translate(-50%, -50%)' }} />
-
-    <div className="absolute z-[3] border-t border-dashed border-mono-400/20" style={{ left: '20.5%', top: '17%', width: '9%' }} />
-    <div className="absolute z-[3] border-t border-dashed border-mono-400/20" style={{ left: '20.5%', top: '83%', width: '9%' }} />
-    <div className="absolute z-[3] border-l border-dashed border-mono-400/20" style={{ left: '9.5%', top: '44.5%', height: '11%' }} />
-    <div className="absolute z-[3] border-l border-dashed border-mono-400/20" style={{ left: '50%', top: '44.5%', height: '11%' }} />
-    <div className="absolute z-[3] border-t border-dashed border-mono-400/20" style={{ left: '70.5%', top: '17%', width: '9%' }} />
-    <div className="absolute z-[3] border-t border-dashed border-mono-400/20" style={{ left: '70.5%', top: '83%', width: '9%' }} />
-    <div className="absolute z-[3] border-l border-dashed border-mono-400/20" style={{ left: '90.5%', top: '44.5%', height: '11%' }} />
-
-    <div className="absolute z-30 text-[9px] uppercase tracking-[0.25em] text-mono-500/60 font-semibold" style={{ left: '25%', top: '72%', transform: 'translateX(-50%)' }}>
-      Roundabout A
-    </div>
-    <div className="absolute z-30 text-[9px] uppercase tracking-[0.25em] text-mono-500/60 font-semibold" style={{ left: '75%', top: '72%', transform: 'translateX(-50%)' }}>
-      Roundabout B
-    </div>
+    <div className="absolute z-[3] bg-[repeating-linear-gradient(180deg,rgba(255,255,255,0.7)_0_6px,transparent_6px_12px)]" style={{ left: '38.6%', top: '18%', width: '4.8%', height: '8%' }} />
+    <div className="absolute z-[3] bg-[repeating-linear-gradient(180deg,rgba(255,255,255,0.7)_0_6px,transparent_6px_12px)]" style={{ left: '56.6%', top: '18%', width: '4.8%', height: '8%' }} />
+    <div className="absolute z-[3] bg-[repeating-linear-gradient(180deg,rgba(255,255,255,0.7)_0_6px,transparent_6px_12px)]" style={{ left: '38.6%', top: '74%', width: '4.8%', height: '8%' }} />
+    <div className="absolute z-[3] bg-[repeating-linear-gradient(180deg,rgba(255,255,255,0.7)_0_6px,transparent_6px_12px)]" style={{ left: '56.6%', top: '74%', width: '4.8%', height: '8%' }} />
   </>
 ));
 
@@ -98,31 +72,27 @@ const SingleRoundaboutBackdrop = memo(() => {
   const horizontalLaneDashTop = roadOffsetY + (horizontalRoadHeight * 0.28);
   const horizontalLaneDashBottom = roadOffsetY + (horizontalRoadHeight * 0.72);
   const capSize = 34;
-  const leftCapWidth = (100 - capSize) / 2;
 
   return (
     <>
-      <div className="absolute bg-mono-800/90 border-y border-mono-700/70" style={{ left: `${roadOffsetX}%`, top: '0%', width: `${verticalRoadWidth}%`, height: '100%' }} />
-      <div className="absolute bg-mono-800/90 border-x border-mono-700/70" style={{ left: '0%', top: `${roadOffsetY}%`, width: '100%', height: `${horizontalRoadHeight}%` }} />
+      <div className="absolute bg-[#181818] border-y border-[#333333]" style={{ left: `${roadOffsetX}%`, top: '0%', width: `${verticalRoadWidth}%`, height: '100%' }} />
+      <div className="absolute bg-[#181818] border-x border-[#333333]" style={{ left: '0%', top: `${roadOffsetY}%`, width: '100%', height: `${horizontalRoadHeight}%` }} />
 
-      <div className="absolute z-[3] border-l border-dashed border-mono-400/20" style={{ left: `${verticalLaneDashLeft}%`, top: '0%', height: '100%' }} />
-      <div className="absolute z-[3] border-l border-dashed border-mono-400/20" style={{ left: `${verticalLaneDashRight}%`, top: '0%', height: '100%' }} />
+      <div className="absolute z-[3] border-l border-dashed border-white/20" style={{ left: `${verticalLaneDashLeft}%`, top: '0%', height: '100%' }} />
+      <div className="absolute z-[3] border-l border-dashed border-white/20" style={{ left: `${verticalLaneDashRight}%`, top: '0%', height: '100%' }} />
 
-      <div className="absolute z-[3] border-t border-dashed border-mono-400/20" style={{ left: '0%', top: `${horizontalLaneDashTop}%`, width: '100%' }} />
-      <div className="absolute z-[3] border-t border-dashed border-mono-400/20" style={{ left: '0%', top: `${horizontalLaneDashBottom}%`, width: '100%' }} />
+      <div className="absolute z-[3] border-t border-dashed border-white/20" style={{ left: '0%', top: `${horizontalLaneDashTop}%`, width: '100%' }} />
+      <div className="absolute z-[3] border-t border-dashed border-white/20" style={{ left: '0%', top: `${horizontalLaneDashBottom}%`, width: '100%' }} />
 
-      <div className="absolute z-[1] rounded-full bg-mono-800/90 border border-mono-700/70" style={{ left: '50%', top: '50%', width: `${capSize}%`, aspectRatio: '1 / 1', transform: 'translate(-50%, -50%)' }} />
-      <div className="absolute z-[3] rounded-full border-2 border-dashed border-mono-300/35" style={{ left: '50%', top: '50%', width: '29%', aspectRatio: '1 / 1', transform: 'translate(-50%, -50%)' }} />
-      <div className="absolute z-[3] rounded-full border border-dashed border-mono-300/30" style={{ left: '50%', top: '50%', width: '24%', aspectRatio: '1 / 1', transform: 'translate(-50%, -50%)' }} />
-      <div className="absolute z-[2] rounded-full border border-mono-300/25 bg-mono-900/95" style={{ left: '50%', top: '50%', width: '16%', aspectRatio: '1 / 1', transform: 'translate(-50%, -50%)' }} />
-
-      <div className="absolute z-[3] border-t border-dashed border-mono-400/20" style={{ left: '45.5%', top: '17%', width: '9%' }} />
-      <div className="absolute z-[3] border-t border-dashed border-mono-400/20" style={{ left: '45.5%', top: '83%', width: '9%' }} />
-      <div className="absolute z-[3] border-l border-dashed border-mono-400/20" style={{ left: '17%', top: `${roadOffsetY}%`, height: `${horizontalRoadHeight}%` }} />
-      <div className="absolute z-[3] border-l border-dashed border-mono-400/20" style={{ left: '83%', top: `${roadOffsetY}%`, height: `${horizontalRoadHeight}%` }} />
-
-      <div className="absolute z-30 text-[9px] uppercase tracking-[0.25em] text-mono-500/60 font-semibold" style={{ left: '50%', top: '72%', transform: 'translateX(-50%)' }}>
-        Roundabout
+      {/* Roundabout Ring */}
+      <div className="absolute z-[1] rounded-full bg-[#181818] border border-[#333333]" style={{ left: '50%', top: '50%', width: `${capSize}%`, aspectRatio: '1 / 1', transform: 'translate(-50%, -50%)' }} />
+      <div className="absolute z-[3] rounded-full border border-dashed border-white/30" style={{ left: '50%', top: '50%', width: '27%', aspectRatio: '1 / 1', transform: 'translate(-50%, -50%)' }} />
+      
+      {/* Center Island */}
+      <div className="absolute z-[2] rounded-full border border-[#444444] bg-[#0d0d0d]" style={{ left: '50%', top: '50%', width: '16%', aspectRatio: '1 / 1', transform: 'translate(-50%, -50%)' }}>
+        <div className="w-full h-full rounded-full border border-[#222222] flex items-center justify-center">
+          <div className="w-3 h-3 rounded-full bg-[#1c69d4]/30 border border-[#1c69d4]" />
+        </div>
       </div>
     </>
   );
@@ -130,65 +100,67 @@ const SingleRoundaboutBackdrop = memo(() => {
 
 const TIntersectionBackdrop = memo(() => (
   <>
-    <div className="absolute bg-mono-800/90 border-y border-mono-700/70" style={{ left: '0%', top: '25%', width: '100%', height: '30%' }}>
-      <div className="absolute top-1/2 w-full border-t-2 border-mono-300/20" />
-      <div className="absolute top-[28%] w-full border-t border-dashed border-mono-400/20" />
-      <div className="absolute bottom-[28%] w-full border-t border-dashed border-mono-400/20" />
+    {/* Main Horizontal Road */}
+    <div className="absolute bg-[#181818] border-y border-[#333333]" style={{ left: '0%', top: '25%', width: '100%', height: '30%' }}>
+      <div className="absolute top-1/2 w-full border-t border-white/30" />
+      <div className="absolute top-[28%] w-full border-t border-dashed border-white/20" />
+      <div className="absolute bottom-[28%] w-full border-t border-dashed border-white/20" />
     </div>
 
-    <div className="absolute bg-mono-800/90 border-x border-mono-700/70" style={{ left: '40%', top: '40%', width: '20%', height: '60%' }}>
-      <div className="absolute left-1/2 h-full border-l-2 border-mono-300/20" />
-      <div className="absolute left-[28%] h-full border-l border-dashed border-mono-400/20" />
-      <div className="absolute right-[28%] h-full border-l border-dashed border-mono-400/20" />
+    {/* Stem Road (South) */}
+    <div className="absolute bg-[#181818] border-x border-[#333333]" style={{ left: '40%', top: '40%', width: '20%', height: '60%' }}>
+      <div className="absolute left-1/2 h-full border-l border-white/30" />
+      <div className="absolute h-full border-l border-dashed border-white/20" style={{ left: '28%' }} />
+      <div className="absolute h-full border-l border-dashed border-white/20" style={{ left: '72%' }} />
     </div>
 
-    <div className="absolute bg-mono-800/90 z-0" style={{ left: '40%', top: '25%', width: '20%', height: '15%' }} />
+    {/* Intersection Box */}
+    <div className="absolute bg-[#181818] z-0" style={{ left: '40%', top: '25%', width: '20%', height: '30%' }} />
 
-    <div className="absolute bg-mono-300/20 z-[1]" style={{ left: '40%', top: '25%', width: '1px', height: '15%' }} />
-    <div className="absolute bg-mono-300/20 z-[1]" style={{ left: '60%', top: '25%', width: '1px', height: '15%' }} />
-
-    <div className="absolute z-30 text-[9px] uppercase tracking-[0.25em] text-mono-500/60 font-semibold" style={{ left: '50%', top: '84%', transform: 'translateX(-50%)' }}>
-      T-Intersection
-    </div>
+    {/* Stop Lines */}
+    <div className="absolute bg-white/70 z-[2]" style={{ left: '40%', top: '25%', width: '3px', height: '30%' }} />
+    <div className="absolute bg-white/70 z-[2]" style={{ left: '60%', top: '25%', width: '3px', height: '30%' }} />
+    <div className="absolute bg-white/70 z-[2]" style={{ left: '40%', top: '55%', width: '20%', height: '3px' }} />
   </>
 ));
 
-function getLightColor(lightState, dir) {
-  const prefix = dir.charAt(0).toUpperCase();
-  if (lightState === `${prefix}_GREEN`) return 'GREEN';
-  if (lightState === `${prefix}_YELLOW`) return 'YELLOW';
-  return 'RED';
-}
+const getLightColor = (lightState, dir) => {
+  if (!lightState) return 'RED';
+  return lightState[dir] || 'RED';
+};
 
-const RoadLayer = ({ data, weather, speedFactor, intersectionType = 'cross' }) => {
-  const { intersections } = data;
-  const emptyIntersection = { light_state: 'N_GREEN', roads: { north: [[], []], south: [[], []], east: [[], []], west: [[], []] } };
-  const int0 = intersections[0] || emptyIntersection;
+const RoadLayer = ({
+  data,
+  weather,
+  speedFactor,
+  intersectionType = 'cross'
+}) => {
+  const intersections = data?.intersections || [];
+  const int0 = intersections[0] || { light_state: {} };
+
   const isSingleRoundabout = intersectionType === 'roundabout';
   const isTIntersection = intersectionType === 'tintersection';
   const isSingleCross = intersectionType === 'cross';
 
   return (
-    <div className="relative w-full bg-[#0a0a0a] rounded-none border border-[#3c3c3c] overflow-hidden asphalt" style={{ aspectRatio: '2 / 1' }}>
-      {/* Precision Telemetry Overlay */}
-      <div className="absolute top-0 left-0 right-0 z-30 flex items-center justify-between px-4 py-2 bg-[#0d0d0d]/90 border-b border-[#262626] text-[10px] uppercase font-bold tracking-[1.5px] text-[#bbbbbb]">
-        <div className="flex items-center gap-2">
-          <span className="w-1.5 h-1.5 bg-[#0fa336]" />
-          <span>SIMULATION MATRIX // {intersectionType.toUpperCase()} FEED</span>
-        </div>
-        <div className="flex items-center gap-4 text-[#7e7e7e]">
-          <span>ATMOSPHERE: {weather.toUpperCase()}</span>
-          <span>CYCLE RATE: {speedFactor.toFixed(1)}X</span>
-        </div>
-      </div>
-
+    <div 
+      className="relative w-full bg-[#111111] rounded-none border border-[#2a2a2a] overflow-hidden shadow-2xl" 
+      style={{ aspectRatio: '2 / 1' }}
+    >
       {weather === 'rain' && <RainEffect />}
 
-      {intersectionType === 'roundabout' ? <SingleRoundaboutBackdrop /> : isTIntersection ? <TIntersectionBackdrop /> : <SingleCrossBackdrop />}
+      {intersectionType === 'roundabout' ? (
+        <SingleRoundaboutBackdrop />
+      ) : isTIntersection ? (
+        <TIntersectionBackdrop />
+      ) : (
+        <SingleCrossBackdrop />
+      )}
 
+      {/* Traffic Signals */}
       {isSingleRoundabout ? (
         <>
-          <div className="absolute z-40" style={{ top: '4%', left: '62%' }}>
+          <div className="absolute z-40" style={{ top: '6%', left: '62%' }}>
             <TrafficLight state={getLightColor(int0.light_state, 'south')} />
           </div>
           <div className="absolute z-40" style={{ top: '56%', left: '66%' }}>
@@ -197,7 +169,7 @@ const RoadLayer = ({ data, weather, speedFactor, intersectionType = 'cross' }) =
           <div className="absolute z-40" style={{ top: '56%', left: '30%' }}>
             <TrafficLight state={getLightColor(int0.light_state, 'north')} />
           </div>
-          <div className="absolute z-40" style={{ top: '4%', left: '36%' }}>
+          <div className="absolute z-40" style={{ top: '6%', left: '36%' }}>
             <TrafficLight state={getLightColor(int0.light_state, 'east')} />
           </div>
         </>
@@ -209,28 +181,29 @@ const RoadLayer = ({ data, weather, speedFactor, intersectionType = 'cross' }) =
           <div className="absolute z-40" style={{ top: '24%', left: '58%' }}>
             <TrafficLight state={getLightColor(int0.light_state, 'west')} />
           </div>
-          <div className="absolute z-40" style={{ top: '54%', left: '58%' }}>
+          <div className="absolute z-40" style={{ top: '56%', left: '58%' }}>
             <TrafficLight state={getLightColor(int0.light_state, 'north')} />
           </div>
         </>
       ) : (
         <>
-          <div className="absolute z-40" style={{ top: '27%', left: '40%' }}>
+          <div className="absolute z-40" style={{ top: '26%', left: '40%' }}>
             <TrafficLight state={getLightColor(int0.light_state, 'south')} />
           </div>
-          <div className="absolute z-40" style={{ top: '27%', left: '58%' }}>
+          <div className="absolute z-40" style={{ top: '26%', left: '58%' }}>
             <TrafficLight state={getLightColor(int0.light_state, 'west')} />
           </div>
-          <div className="absolute z-40" style={{ bottom: '27%', left: '58%' }}>
+          <div className="absolute z-40" style={{ bottom: '26%', left: '58%' }}>
             <TrafficLight state={getLightColor(int0.light_state, 'north')} />
           </div>
-          <div className="absolute z-40" style={{ bottom: '27%', left: '40%' }}>
+          <div className="absolute z-40" style={{ bottom: '26%', left: '40%' }}>
             <TrafficLight state={getLightColor(int0.light_state, 'east')} />
           </div>
         </>
       )}
 
-      <div className="absolute inset-0 z-10">
+      {/* Vehicle Fleet */}
+      <div className="absolute inset-0 z-10 pointer-events-none">
         {((isSingleRoundabout || isTIntersection || isSingleCross) ? intersections.slice(0, 1) : intersections).map((ix) =>
           Object.values(ix.roads).map((lanes) =>
             lanes.map((cars) =>

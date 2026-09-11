@@ -1,64 +1,58 @@
 import React, { memo } from 'react';
 import MStripeDivider from '../../../components/ui/MStripeDivider';
 
-const INTERSECTION_LABELS = {
-  cross: '4-WAY CORRIDOR',
-  roundabout: 'ROUNDABOUT DUAL-RING',
-  tintersection: 'T-JUNCTION CORRIDOR',
+const INTERSECTION_NAMES = {
+  cross: '4-Way Intersection',
+  roundabout: 'Roundabout',
+  tintersection: 'T-Junction',
 };
 
 const StatusHeader = ({ mode, running, intersectionType = 'cross' }) => (
   <header className="space-y-4">
-    {/* Top brand accent bar */}
-    <MStripeDivider className="mb-4" />
+    {/* Signature 4px Tricolor Stripe */}
+    <MStripeDivider />
 
-    <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-4 border-b border-[#262626]">
-      {/* Brand & Editorial Title */}
-      <div className="space-y-1.5">
-        <div className="flex items-center gap-3">
-          <span className="text-[11px] font-bold uppercase tracking-[2px] text-[#7e7e7e]">
-            SYSTEM PLATFORM // REALTIME SIMULATION
-          </span>
-          <span className="h-1 w-1 bg-[#e22718]" />
-          <span className="text-[11px] font-bold uppercase tracking-[1.5px] text-[#0066b1]">
-            AUTONOMOUS CORE v1.0
+    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-1">
+      {/* Brand & Identity */}
+      <div>
+        <div className="flex items-center gap-2 mb-1">
+          <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-white m-0">
+            NEUROCROSS
+          </h1>
+          <span className="text-[10px] font-bold uppercase tracking-[1.5px] px-1.5 py-0.5 bg-[#1a1a1a] text-[#7e7e7e] border border-[#2a2a2a]">
+            SIM LAB
           </span>
         </div>
-
-        <h1 className="text-3xl md:text-5xl font-black uppercase tracking-tight text-white m-0">
-          NEUROCROSS CONTROL DESK
-        </h1>
-
-        <p className="text-sm font-light text-[#bbbbbb] max-w-2xl pt-1">
-          High-precision corridor dynamics sandbox. Real-time multi-agent flow telemetry, adaptive signal optimization, and stochastic friction modeling.
+        <p className="text-xs text-[#888888] font-light m-0">
+          Autonomous traffic flow sandbox with adaptive phase optimization.
         </p>
       </div>
 
-      {/* Industrial Precision Telemetry Badges (0px radius) */}
-      <div className="flex flex-wrap items-center gap-2.5">
-        <div className="bg-[#1a1a1a] border border-[#3c3c3c] px-3.5 py-2 text-[11px] font-bold uppercase tracking-[1.5px] text-[#e6e6e6]">
-          <span className="text-[#7e7e7e] mr-1.5">LAYOUT:</span>
-          {INTERSECTION_LABELS[intersectionType] || 'CUSTOM'}
+      {/* Clean Status Indicators */}
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="bg-[#121212] border border-[#2a2a2a] px-3 py-1.5 text-[11px] font-bold uppercase tracking-[1.2px] text-[#cccccc]">
+          <span className="text-[#666666] mr-1.5">LAYOUT:</span>
+          {INTERSECTION_NAMES[intersectionType] || 'Custom'}
         </div>
 
-        <div className="bg-[#1a1a1a] border border-[#3c3c3c] px-3.5 py-2 text-[11px] font-bold uppercase tracking-[1.5px] text-[#e6e6e6]">
-          <span className="text-[#7e7e7e] mr-1.5">MODE:</span>
+        <div className="bg-[#121212] border border-[#2a2a2a] px-3 py-1.5 text-[11px] font-bold uppercase tracking-[1.2px] text-[#cccccc]">
+          <span className="text-[#666666] mr-1.5">TIMING:</span>
           {mode.toUpperCase()}
         </div>
 
         <div
-          className={`border px-3.5 py-2 text-[11px] font-bold uppercase tracking-[1.5px] flex items-center gap-2 ${
+          className={`border px-3 py-1.5 text-[11px] font-bold uppercase tracking-[1.2px] flex items-center gap-2 ${
             running
-              ? 'bg-[#0d0d0d] border-white text-white'
-              : 'bg-[#1a1a1a] border-[#3c3c3c] text-[#7e7e7e]'
+              ? 'bg-[#121212] border-white/40 text-white'
+              : 'bg-[#121212] border-[#2a2a2a] text-[#777777]'
           }`}
         >
           <span
-            className={`inline-block w-2 h-2 ${
-              running ? 'bg-[#0fa336]' : 'bg-[#e22718]'
+            className={`inline-block w-1.5 h-1.5 rounded-full ${
+              running ? 'bg-[#0fa336] shadow-[0_0_6px_#0fa336]' : 'bg-[#e22718]'
             }`}
           />
-          {running ? 'CORE ACTIVE' : 'SIM PAUSED'}
+          {running ? 'RUNNING' : 'PAUSED'}
         </div>
       </div>
     </div>

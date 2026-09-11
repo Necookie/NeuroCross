@@ -1,27 +1,26 @@
 import React, { memo } from 'react';
 
 /**
- * Slider - Industrial precision range slider:
- * 0px rounded corners, crisp hairline track (#3c3c3c), rectangular machined thumb,
- * uppercase tracking 1.5px label, bold readout.
+ * Slider - Precision industrial range slider:
+ * Clean 0px silhouette, dark track, white active fill, crisp readout.
  */
 const Slider = ({ label, value, min, max, step, onChange }) => {
   const pct = ((value - min) / (max - min)) * 100;
 
   return (
-    <div className="space-y-2.5">
+    <div className="space-y-2">
       <div className="flex items-center justify-between text-xs">
-        <span className="font-bold uppercase tracking-[1.5px] text-[#bbbbbb]">
+        <span className="font-bold uppercase tracking-[1.2px] text-[#888888] text-[10px]">
           {label}
         </span>
-        <span className="font-black text-white text-sm tracking-tight">
+        <span className="font-black text-white text-xs tracking-tight">
           {value.toFixed(1)}
         </span>
       </div>
 
-      <div className="relative flex items-center h-5">
+      <div className="relative flex items-center h-4">
         {/* Track background */}
-        <div className="w-full h-1 bg-[#262626] border border-[#3c3c3c] relative">
+        <div className="w-full h-1 bg-[#222222] border border-[#2f2f2f] relative">
           {/* Active fill */}
           <div
             className="h-full bg-white transition-all duration-75"
@@ -42,8 +41,8 @@ const Slider = ({ label, value, min, max, step, onChange }) => {
 
         {/* Machined rectangular thumb */}
         <div
-          className="absolute top-1/2 -translate-y-1/2 w-3 h-5 bg-white border border-[#3c3c3c] pointer-events-none shadow-sm transition-all duration-75"
-          style={{ left: `calc(${pct}% - 6px)` }}
+          className="absolute top-1/2 -translate-y-1/2 w-2.5 h-4 bg-white border border-[#222222] pointer-events-none shadow-sm transition-all duration-75"
+          style={{ left: `calc(${pct}% - 5px)` }}
         />
       </div>
     </div>
