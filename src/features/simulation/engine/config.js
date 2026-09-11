@@ -1,4 +1,4 @@
-// Client/src/features/simulation/engine/config.js
+// src/features/simulation/engine/config.js
 export const ROAD_LENGTH = 400;
 export const STOP_LINE = 100;
 export const INTERSECTION_EXIT = 280;

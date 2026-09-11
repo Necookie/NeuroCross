@@ -59,20 +59,21 @@ The control desk currently includes:
 ## Tech Stack
 
 - React 19
-- Vite 7
+- Vite
 - Tailwind CSS
 - Framer Motion
 - Lucide React
-- Custom simulation engine in `Client/src/features/simulation/engine`
+- Custom simulation engine in `src/features/simulation/engine`
 
 ## Project Structure
 
-- `Client/` - application source
-- `Client/src/App.jsx` - app shell and layout wiring
-- `Client/src/features/simulation/hooks/useSimulation.js` - simulation lifecycle and tick loop
-- `Client/src/features/simulation/components/` - controls, road rendering, traffic lights, vehicles, and effects
-- `Client/src/features/simulation/engine/` - layout-specific simulation engines and vehicle behavior
-- `Documentation/` - project documentation assets
+- `src/` - application source code
+  - `src/App.jsx` - app shell and layout wiring
+  - `src/features/simulation/hooks/useSimulation.js` - simulation lifecycle and tick loop
+  - `src/features/simulation/components/` - controls, road rendering, traffic lights, vehicles, and effects
+  - `src/features/simulation/engine/` - layout-specific simulation engines and vehicle behavior
+- `public/` - static assets
+- `design.md` - NeuroCross design system specifications based on the BMW high-performance design model
 
 ## Local Development
 
@@ -84,7 +85,6 @@ Requirements:
 Run locally:
 
 ```powershell
-cd Client
 npm install
 npm run dev
 ```
@@ -94,14 +94,12 @@ Default Vite dev server: `http://localhost:5173`
 Build for production:
 
 ```powershell
-cd Client
 npm run build
 ```
 
 Preview the production build:
 
 ```powershell
-cd Client
 npm run preview
 ```
 
@@ -115,5 +113,6 @@ npm run preview
 
 - Incident tracking is not meaningfully implemented yet
 - There is no persistence for scenarios, runs, or metrics
-- There are no automated test scripts defined in `Client/package.json` yet
+- There are no automated test scripts defined in `package.json` yet
+
 
