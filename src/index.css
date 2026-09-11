@@ -4,197 +4,180 @@
 
 @layer base {
   :root {
-    /* Warm slate blue base hue (Default Dark) */
-    --mono-50: 222 28% 92%;
-    --mono-100: 222 24% 86%;
-    --mono-200: 221 22% 78%;
-    --mono-300: 221 20% 68%;
-    --mono-400: 220 18% 56%;
-    --mono-500: 220 16% 45%;
-    --mono-600: 220 16% 36%;
-    --mono-700: 220 18% 28%;
-    --mono-800: 221 20% 20%;
-    --mono-900: 222 22% 14%;
-    --mono-950: 224 24% 10%;
+    --canvas: #000000;
+    --surface-soft: #0d0d0d;
+    --surface-card: #1a1a1a;
+    --surface-elevated: #262626;
+    --carbon: #2b2b2b;
+    --hairline: #3c3c3c;
+    --hairline-strong: #262626;
+    --m-blue-light: #0066b1;
+    --m-blue-dark: #1c69d4;
+    --m-red: #e22718;
+    --electric-blue: #0653b6;
+    --ink: #ffffff;
+    --body: #bbbbbb;
+    --body-strong: #e6e6e6;
+    --muted: #7e7e7e;
 
-    /* Desaturated signal tones */
-    --signal-red: 6 34% 42%;
-    --signal-amber: 36 32% 52%;
-    --signal-green: 142 22% 40%;
-
-    --border-glow: hsl(220 18% 56% / 0.8);
-    --shadow-color: 224 24% 10%; /* Dark shadow */
-    
-    --road-bg: 222 22% 14%;
-    --road-highlight: 221 20% 20%;
-    --road-shadow: 224 24% 10%;
+    /* Traffic signal tones */
+    --signal-red: #e22718;
+    --signal-amber: #f4b400;
+    --signal-green: #0fa336;
   }
-}
 
-/* Light Theme - Airy and clean white/gray with inverted lightness */
-.theme-light {
-  --mono-50: 210 16% 12%;
-  --mono-100: 210 16% 18%;
-  --mono-200: 210 14% 28%;
-  --mono-300: 210 12% 40%;
-  --mono-400: 210 10% 52%;
-  --mono-500: 210 10% 64%;
-  --mono-600: 210 12% 76%;
-  --mono-700: 210 14% 86%;
-  --mono-800: 210 16% 92%;
-  --mono-900: 210 18% 96%;
-  --mono-950: 210 20% 98%; /* Background is almost white */
-
-  --signal-red: 5 60% 55%;
-  --signal-amber: 35 70% 50%;
-  --signal-green: 145 50% 45%;
-
-  --border-glow: hsl(210 14% 28% / 0.6);
-  --shadow-color: 210 16% 12%; /* Keep shadows dark in light mode! */
-  
-  --road-bg: 210 12% 35%; /* Road must remain dark to show white lines */
-  --road-highlight: 210 12% 45%;
-  --road-shadow: 210 12% 25%;
-}
-
-/* Coffee Theme - Warm mochas, rich espresso */
-.theme-coffee {
-  --mono-50: 40 20% 97%;
-  --mono-100: 30 27% 91%;
-  --mono-200: 27 19% 82%;
-  --mono-300: 33 29% 70%;
-  --mono-400: 32 26% 60%;
-  --mono-500: 31 26% 50%;
-  --mono-600: 30 28% 40%;
-  --mono-700: 28 30% 30%;
-  --mono-800: 26 32% 22%;
-  --mono-900: 24 34% 16%;
-  --mono-950: 22 36% 10%;
-
-  --signal-red: 355 40% 50%;
-  --signal-amber: 30 60% 50%;
-  --signal-green: 120 20% 45%;
-
-  --border-glow: hsl(30 60% 50% / 0.8);
-  --shadow-color: 22 36% 10%;
-  
-  --road-bg: 24 34% 16%;
-  --road-highlight: 26 32% 22%;
-  --road-shadow: 22 36% 10%;
-}
-
-/* Candy Theme - Vibrant neon pastels and deep purple */
-.theme-candy {
-  --mono-50: 320 80% 92%;
-  --mono-100: 310 70% 84%;
-  --mono-200: 290 60% 74%;
-  --mono-300: 280 50% 64%;
-  --mono-400: 270 45% 54%;
-  --mono-500: 260 40% 44%;
-  --mono-600: 260 40% 34%;
-  --mono-700: 260 45% 24%;
-  --mono-800: 260 50% 16%;
-  --mono-900: 270 60% 10%;
-  --mono-950: 280 65% 8%;
-
-  --signal-red: 330 80% 60%;
-  --signal-amber: 45 90% 60%;
-  --signal-green: 160 70% 50%;
-
-  --border-glow: hsl(330 80% 60% / 0.9);
-  --shadow-color: 280 65% 8%;
-  
-  --road-bg: 270 60% 10%;
-  --road-highlight: 260 50% 16%;
-  --road-shadow: 280 65% 8%;
-}
-
-@layer base {
   body {
-    background: hsl(var(--mono-950));
-    color: hsl(var(--mono-100));
-    font-feature-settings: "ss01", "ss02";
+    background-color: #000000;
+    color: #ffffff;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-weight: 300;
+    margin: 0;
+    padding: 0;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #ffffff;
   }
 
   #root {
-    min-height: 100%;
+    min-height: 100vh;
+    background-color: #000000;
   }
 }
 
-@layer utilities {
-  .glass-panel {
-    position: relative;
-    background: transparent;
-    box-shadow: 0 20px 40px hsl(var(--shadow-color) / 0.25);
-    backdrop-filter: blur(16px);
-    overflow: hidden;
-    z-index: 1;
+@layer components {
+  /* Industrial Precision Button System */
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #000000;
+    color: #ffffff;
+    border: 1px solid #ffffff;
+    border-radius: 0px;
+    padding: 14px 28px;
+    font-size: 14px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
   }
 
-  .glass-panel::before {
-    content: '';
-    position: absolute;
-    inset: -50%;
-    width: 200%;
-    height: 200%;
-    background: conic-gradient(from 0deg, transparent 0%, transparent 60%, var(--border-glow) 80%, transparent 100%);
-    animation: border-rotate 4s linear infinite;
-    z-index: -2;
+  .btn-primary:hover {
+    background-color: #ffffff;
+    color: #000000;
   }
 
-  .glass-panel::after {
-    content: '';
-    position: absolute;
-    inset: 1px;
-    background: hsl(var(--mono-900) / 0.85);
-    border-radius: inherit;
-    z-index: -1;
+  .btn-primary-outline {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background-color: transparent;
+    color: #ffffff;
+    border: 1px solid #ffffff;
+    border-radius: 0px;
+    padding: 12px 24px;
+    font-size: 14px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
   }
 
+  .btn-primary-outline:hover {
+    background-color: #ffffff;
+    color: #000000;
+  }
+
+  .btn-machined {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #1a1a1a;
+    color: #bbbbbb;
+    border: 1px solid #3c3c3c;
+    border-radius: 0px;
+    padding: 10px 16px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    transition: all 0.15s ease;
+    cursor: pointer;
+  }
+
+  .btn-machined:hover {
+    border-color: #ffffff;
+    color: #ffffff;
+    background-color: #262626;
+  }
+
+  .btn-machined-active {
+    background-color: #262626;
+    color: #ffffff;
+    border-color: #ffffff;
+  }
+
+  .btn-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 9999px;
+    background-color: #1a1a1a;
+    border: 1px solid #3c3c3c;
+    color: #ffffff;
+    transition: all 0.15s ease;
+    cursor: pointer;
+  }
+
+  .btn-icon:hover {
+    background-color: #262626;
+    border-color: #ffffff;
+  }
+
+  /* Card Surfaces & Spec Cells */
+  .surface-card {
+    background-color: #1a1a1a;
+    border: 1px solid #3c3c3c;
+    border-radius: 0px;
+  }
+
+  .spec-cell {
+    background-color: #0d0d0d;
+    border: 1px solid #3c3c3c;
+    border-radius: 0px;
+    padding: 20px 24px;
+  }
+
+  /* M Tricolor Stripe */
+  .m-stripe {
+    height: 4px;
+    background: linear-gradient(90deg, #0066b1 0%, #0066b1 33.33%, #1c69d4 33.33%, #1c69d4 66.66%, #e22718 66.66%, #e22718 100%);
+  }
+
+  /* Simulation Road Surface */
   .asphalt {
-    background-color: hsl(var(--road-bg));
-    background-image:
-      radial-gradient(circle at 20% 15%, hsl(var(--road-highlight) / 0.55) 0, transparent 45%),
-      radial-gradient(circle at 80% 70%, hsl(var(--road-highlight) / 0.35) 0, transparent 50%),
-      linear-gradient(135deg, hsl(var(--road-shadow) / 0.35), transparent 60%);
-    background-blend-mode: soft-light;
-  }
-
-  .inset-shadow {
-    box-shadow: inset 0 1px 0 hsl(var(--mono-100) / 0.06), inset 0 -12px 30px hsl(var(--shadow-color) / 0.3);
-  }
-
-  .metric-track {
-    background: hsl(var(--mono-800));
-  }
-
-  .metric-fill {
-    background: linear-gradient(90deg,
-        hsl(var(--mono-600) / 0.6),
-        hsl(var(--mono-400) / 0.6),
-        hsl(var(--mono-600) / 0.6));
-    animation: metric-shimmer 2.6s ease-in-out infinite;
-  }
-
-  .rain-drop {
-    animation-name: rain-fall;
-    animation-timing-function: linear;
-    animation-iteration-count: infinite;
+    background-color: #0d0d0d;
+    background-image: radial-gradient(circle at 50% 50%, #171717 0%, #0d0d0d 100%);
   }
 }
 
-@keyframes border-rotate {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-@keyframes metric-shimmer {
-  0% { transform: translateX(-6%); }
-  50% { transform: translateX(4%); }
-  100% { transform: translateX(-6%); }
-}
-
+/* Rain Effect Keyframes */
 @keyframes rain-fall {
   0% { transform: translateY(-20px) rotate(15deg); }
   100% { transform: translateY(120%) rotate(15deg); }
+}
+
+.rain-drop {
+  animation-name: rain-fall;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
 }
