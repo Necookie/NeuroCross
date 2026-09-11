@@ -124,9 +124,27 @@ const TIntersectionBackdrop = memo(() => (
   </>
 ));
 
+const DIRECTION_CODE = { north: 'N', south: 'S', east: 'E', west: 'W' };
+
+// `light_state` comes in two shapes from the engine:
+//  - a fixed-phase FSM code like "N_GREEN" / "S_YELLOW" / "E_ALL_RED"
+//    (signalized cross / T-junction intersections), or
+//  - a per-direction map like { north: 'GREEN', south: 'RED', ... }
+//    (the roundabout's live yield indicator, which has no signal cycle).
 const getLightColor = (lightState, dir) => {
   if (!lightState) return 'RED';
-  return lightState[dir] || 'RED';
+
+  if (typeof lightState === 'object') {
+    return lightState[dir] || 'RED';
+  }
+
+  const sepIdx = lightState.indexOf('_');
+  if (sepIdx === -1) return 'RED';
+
+  const activeCode = lightState.slice(0, sepIdx);
+  const phase = lightState.slice(sepIdx + 1); // 'GREEN' | 'YELLOW' | 'ALL_RED'
+  if (phase === 'ALL_RED') return 'RED';
+  return DIRECTION_CODE[dir] === activeCode ? phase : 'RED';
 };
 
 const RoadLayer = ({

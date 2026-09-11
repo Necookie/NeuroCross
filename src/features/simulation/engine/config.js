@@ -7,6 +7,18 @@ export const MIN_GAP = 12.0;
 export const ACCEL_MAX = 3.0;
 export const DECEL_COMF = 2.5;
 
+// Wet-road driving model: lower tire grip means weaker braking/accel authority,
+// a lower comfortable top speed, and drivers leaving more following distance.
+export const RAIN_BRAKE_GRIP = 0.6;      // multiplier on braking deceleration
+export const RAIN_ACCEL_GRIP = 0.8;      // multiplier on positive acceleration
+export const RAIN_SPEED_FACTOR = 0.85;   // multiplier on each vehicle's cruising speed cap
+export const RAIN_HEADWAY_FACTOR = 1.3;  // multiplier on desired time headway
+
+// Roundabout yield-at-entry model (no traffic signals - entering traffic
+// yields to anyone already circulating within this angular window).
+export const ROUNDABOUT_YIELD_WINDOW_DEG = 30;
+export const ROUNDABOUT_MIN_RING_GAP_DEG = 11;
+
 // Dual-intersection canvas: 2:1 landscape (1600 x 800 virtual units)
 export const CANVAS_W = 1600;
 export const CANVAS_H = 800;

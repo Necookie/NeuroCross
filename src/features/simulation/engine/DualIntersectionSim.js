@@ -1,5 +1,6 @@
 import {
     INTERSECTION_EXIT,
+    RAIN_BRAKE_GRIP,
     ROAD_LENGTH,
     STOP_LINE,
     VEHICLE_SPECS,
@@ -30,7 +31,7 @@ export class DualIntersectionSim {
 
     step(params) {
         const dt = 0.1;
-        const friction = params.weather === 'rain' ? 0.6 : 1.0;
+        const friction = params.weather === 'rain' ? RAIN_BRAKE_GRIP : 1.0;
         const ix = this.intersection;
         ix.timer += dt;
 
@@ -55,6 +56,7 @@ export class DualIntersectionSim {
                     cars[i].singleRoundabout = false;
                     cars[i].singleCross = true;
                     cars[i].updatePhysics(dt, leader, stopTarget, friction);
+                    if (cars[i].emergencyBrake) this.metrics.accidents += 1;
                     totalSpeed += cars[i].speed;
                     carCount++;
                     leader = cars[i];

@@ -2,10 +2,40 @@ import {
     ACCEL_MAX,
     DECEL_COMF,
     MIN_GAP,
+    RAIN_ACCEL_GRIP,
+    RAIN_BRAKE_GRIP,
+    RAIN_HEADWAY_FACTOR,
+    RAIN_SPEED_FACTOR,
     ROAD_LENGTH,
     SAFE_HEADWAY,
     VEHICLE_SPECS,
 } from './config';
+
+// Fixed ring geometry for the single-roundabout scenario (kept in sync with
+// the isSingleRoundabout branch of _updateRoundaboutCoords below). Exposed
+// so RoundaboutSim can compute each leg's entry angle for yield checks
+// without duplicating the circle math.
+const SINGLE_ROUNDABOUT_RADIUS = 200;
+const SINGLE_ROUNDABOUT_APPROACH_OFFSET = 52;
+const SINGLE_ROUNDABOUT_H = Math.sqrt(Math.max(
+    0,
+    (SINGLE_ROUNDABOUT_RADIUS * SINGLE_ROUNDABOUT_RADIUS)
+        - (SINGLE_ROUNDABOUT_APPROACH_OFFSET * SINGLE_ROUNDABOUT_APPROACH_OFFSET)
+));
+
+export function getRoundaboutEntryThetaDeg(direction) {
+    const h = SINGLE_ROUNDABOUT_H;
+    const off = SINGLE_ROUNDABOUT_APPROACH_OFFSET;
+    let theta = 0;
+    if (direction === 'north') theta = Math.atan2(-h, off);
+    else if (direction === 'south') theta = Math.atan2(h, -off);
+    else if (direction === 'east') theta = Math.atan2(-off, -h);
+    else if (direction === 'west') theta = Math.atan2(off, h);
+
+    let deg = theta * (180 / Math.PI);
+    if (deg < 0) deg += 360;
+    return deg;
+}
 
 export class VehicleAgent {
     constructor(id, typeName, laneIdx, route = 'straight', direction = 'north', intersectionIdx = 0) {
@@ -35,6 +65,16 @@ export class VehicleAgent {
         this.angle = 0; // rotation in degrees
         this._smoothedAngle = 0;
         this._hasAngle = false;
+
+        // Set when physics had to forcibly intervene to avoid overlapping the
+        // vehicle ahead (a near-miss the IDM model alone couldn't resolve in
+        // time) - sims use this to tally incidents.
+        this.emergencyBrake = false;
+
+        // Roundabout-only: whether this vehicle is currently circulating on
+        // the ring, and at what angle, so the sim can run entry yield checks.
+        this._onRing = false;
+        this._ringTheta = 0;
     }
 
     static spawn(vId, typeName, laneIdx, route = 'straight', direction = 'north', intersectionIdx = 0) {
@@ -43,7 +83,9 @@ export class VehicleAgent {
 
     updatePhysics(dt, leader, stopTarget, friction) {
         const isRoundabout = this.pathMode === 'roundabout';
-        const previousPos = this.pos;
+        const isRain = friction < 1.0;
+        this.emergencyBrake = false;
+
         let gap = 1000.0;
         let targetSpeed = 0.0;
 
@@ -63,34 +105,42 @@ export class VehicleAgent {
             }
         }
 
+        // Wet roads: drivers hang back further (longer desired time headway).
+        const headway = SAFE_HEADWAY * (isRain ? RAIN_HEADWAY_FACTOR : 1.0);
         const s0 = MIN_GAP + (1.0 - this.aggression) + (isRoundabout ? 8.0 : 0.0);
         const deltaV = this.speed - targetSpeed;
-        const sStar = s0 + (this.speed * SAFE_HEADWAY) + (
+        const sStar = s0 + (this.speed * headway) + (
             (this.speed * deltaV) / (2.0 * Math.sqrt(ACCEL_MAX * DECEL_COMF))
         );
 
         const safeGap = Math.max(0.1, gap);
         let acc = ACCEL_MAX * (1 - Math.pow((this.speed / this.v_desired), 4) - Math.pow((sStar / safeGap), 2));
 
+        // Lower tire grip cuts both braking and accelerating authority - braking
+        // more, since that's the dangerous direction to be caught short on.
         if (acc < 0) {
-            acc *= friction;
+            acc *= isRain ? RAIN_BRAKE_GRIP : 1.0;
+        } else if (isRain) {
+            acc *= RAIN_ACCEL_GRIP;
         }
 
-        const speedCap = this.v_desired * (isRoundabout ? 0.72 : 1.0);
+        // Rain also caps how fast anyone is comfortable cruising.
+        const speedCap = this.v_desired * (isRoundabout ? 0.72 : 1.0) * (isRain ? RAIN_SPEED_FACTOR : 1.0);
         this.speed = Math.max(0.0, Math.min(speedCap, this.speed + acc * dt));
         this.pos += this.speed * dt;
 
-        // Hard stops for unresolvable tight gaps or exact stop line logic
+        // Safety net for gaps the IDM model couldn't close in time (e.g. a
+        // leader that just braked hard, or a merge partner appearing close
+        // by). Settle to the leader's own speed rather than slamming to a
+        // dead stop, so following traffic stays smooth instead of freezing.
         if (leader !== null) {
+            const minGap = isRoundabout ? 7.0 : 4.0;
             const actualGap = (leader.pos - leader.length / 2) - (this.pos + this.length / 2);
-            if (actualGap < (isRoundabout ? 7.0 : 4.0)) {
-                this.speed = 0.0;
-                if (isRoundabout) {
-                    this.pos = Math.max(0, previousPos);
-                } else {
-                    this.pos = leader.pos - leader.length / 2 - this.length / 2 - 4.0;
-                }
-                this.status = 'stopped';
+            if (actualGap < minGap) {
+                this.emergencyBrake = true;
+                this.pos = leader.pos - leader.length / 2 - this.length / 2 - minGap;
+                this.speed = Math.max(0.0, Math.min(this.speed, leader.speed));
+                this.status = this.speed < 1 ? 'stopped' : 'slowing';
                 this._update2DCoords();
                 return;
             }
@@ -342,10 +392,10 @@ export class VehicleAgent {
         const CY = 400;
 
         const approachOffset = isSingleRoundabout
-            ? 52
+            ? SINGLE_ROUNDABOUT_APPROACH_OFFSET
             : (this.lane === 1 ? 16 : 24);
         const radius = isSingleRoundabout
-            ? 200
+            ? SINGLE_ROUNDABOUT_RADIUS
             : (this.lane === 1 ? 100 : 128);
 
         const h = Math.sqrt(Math.max(0, radius * radius - approachOffset * approachOffset));
@@ -380,6 +430,7 @@ export class VehicleAgent {
         const arcEnd = arcStart + arcSeg;
 
         if (scaledPos <= arcStart) {
+            this._onRing = false;
             const t = Math.max(0, Math.min(scaledPos / APPROACH_SEG, 1));
             this._setRoundaboutApproachCoords(t, CX, CY, h, approachOffset, minX, maxX);
             return;
@@ -396,9 +447,14 @@ export class VehicleAgent {
             const dx = -Math.sin(theta);
             const dy = -Math.cos(theta);
             this._setAngle(Math.atan2(dy, dx) * (180 / Math.PI));
+
+            // Record ring position for the sim's cross-direction merge/yield checks.
+            this._onRing = isSingleRoundabout;
+            this._ringTheta = ((thetaDeg % 360) + 360) % 360;
             return;
         }
 
+        this._onRing = false;
         const exitT = Math.max(0, Math.min((scaledPos - arcEnd) / EXIT_SEG, 1));
         this._setRoundaboutExitCoords(exitT, exitDirection, CX, CY, h, approachOffset, minX, maxX);
     }

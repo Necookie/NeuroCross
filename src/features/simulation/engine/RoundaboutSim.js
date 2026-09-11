@@ -1,10 +1,12 @@
 import {
-  INTERSECTION_EXIT,
+  RAIN_HEADWAY_FACTOR,
   ROAD_LENGTH,
+  ROUNDABOUT_MIN_RING_GAP_DEG,
+  ROUNDABOUT_YIELD_WINDOW_DEG,
   STOP_LINE,
   VEHICLE_SPECS,
 } from './config';
-import { VehicleAgent } from './VehicleAgent';
+import { VehicleAgent, getRoundaboutEntryThetaDeg } from './VehicleAgent';
 
 function weightedRandomChoice(choices, weights) {
   const totalWeight = weights.reduce((acc, weight) => acc + weight, 0);
@@ -16,12 +18,30 @@ function weightedRandomChoice(choices, weights) {
   return choices[choices.length - 1];
 }
 
+const ENTRY_THETA = {
+  north: getRoundaboutEntryThetaDeg('north'),
+  south: getRoundaboutEntryThetaDeg('south'),
+  east: getRoundaboutEntryThetaDeg('east'),
+  west: getRoundaboutEntryThetaDeg('west'),
+};
+
+// Forward angular distance (0-360) from `from` to `to`, walking the same way
+// traffic circulates (theta increasing). 0 means "exactly there".
+function angleAheadDeg(from, to) {
+  return (((to - from) % 360) + 360) % 360;
+}
+
+/**
+ * RoundaboutSim models a real yield-controlled roundabout: there is no
+ * traffic signal cycle. Vehicles already circulating always have the
+ * right of way; traffic waiting to enter a leg only pulls out once no
+ * circulating vehicle is closing in on that leg's merge point within a
+ * safe gap-acceptance window (ROUNDABOUT_YIELD_WINDOW_DEG).
+ */
 export class RoundaboutSim {
   constructor() {
     this.intersection = {
       roads: { north: [[], []], south: [[], []], east: [[], []], west: [[], []] },
-      state: 'N_GREEN',
-      timer: 0.0,
     };
     this.roadKeys = ['north', 'south', 'east', 'west'];
     this.globalId = 0;
@@ -31,31 +51,37 @@ export class RoundaboutSim {
   step(params) {
     const dt = 0.1;
     const friction = params.weather === 'rain' ? 0.6 : 1.0;
+    // Cautious drivers demand a bigger gap before merging in the wet.
+    const yieldWindow = ROUNDABOUT_YIELD_WINDOW_DEG * (friction < 1 ? RAIN_HEADWAY_FACTOR : 1.0);
 
     let totalSpeed = 0;
     let carCount = 0;
 
     const ix = this.intersection;
-    ix.timer += dt;
 
     this._normalizeRoundaboutLanes(ix);
-    this._updateLights(ix, params.mode);
     this._spawnTraffic(ix, params, dt);
+
+    // Resolve each leg's yield state once per tick, from the ring state as
+    // it stood at the start of the tick.
+    const canEnter = {};
+    for (const direction of this.roadKeys) {
+      canEnter[direction] = this._hasClearGap(ix, ENTRY_THETA[direction], yieldWindow);
+    }
 
     for (const direction of this.roadKeys) {
       const lanes = ix.roads[direction];
-      const isGreen = this._isGreen(ix, direction);
-      const blocked = this._isBlocked(ix);
 
       for (let laneIdx = 0; laneIdx < lanes.length; laneIdx++) {
         const cars = lanes[laneIdx];
-        const stopTarget = (!isGreen || blocked) ? STOP_LINE : null;
+        const stopTarget = canEnter[direction] ? null : STOP_LINE;
 
         let leader = null;
         for (let i = 0; i < cars.length; i++) {
           cars[i].pathMode = 'roundabout';
           cars[i].singleRoundabout = true;
           cars[i].updatePhysics(dt, leader, stopTarget, friction);
+          if (cars[i].emergencyBrake) this.metrics.accidents += 1;
           totalSpeed += cars[i].speed;
           carCount++;
           leader = cars[i];
@@ -78,90 +104,62 @@ export class RoundaboutSim {
       }
     }
 
+    // Cars merged in from different legs share one physical ring but live in
+    // separate per-leg arrays, so ordinary leader-follow never compares two
+    // different legs' traffic against each other. Close that gap here: cap
+    // the trailing vehicle's speed whenever it is riding too close to
+    // whoever is physically ahead of it on the ring, no matter which leg
+    // that vehicle entered from.
+    this._enforceRingSpacing(ix);
+
     if (carCount > 0) {
       this.metrics.avg_speed = Math.floor(totalSpeed / carCount);
     } else {
       this.metrics.avg_speed = 0;
     }
 
-    return this.getState();
+    return this.getState(canEnter);
   }
 
-  _updateLights(ix, mode) {
-    const isFixed = mode === 'fixed';
-    const GREEN_DUR = isFixed ? 18 : 12;
-    const YELLOW_DUR = isFixed ? 3 : 2;
-    const RED_DUR = isFixed ? 2 : 4;
-
-    switch (ix.state) {
-      case 'N_GREEN':
-        if (ix.timer > GREEN_DUR) { ix.state = 'N_YELLOW'; ix.timer = 0; }
-        break;
-      case 'N_YELLOW':
-        if (ix.timer > YELLOW_DUR) { ix.state = 'N_ALL_RED'; ix.timer = 0; }
-        break;
-      case 'N_ALL_RED':
-        if ((!isFixed && this._isClear(ix, ['north'])) || ix.timer > RED_DUR) { ix.state = 'S_GREEN'; ix.timer = 0; }
-        break;
-      case 'S_GREEN':
-        if (ix.timer > GREEN_DUR) { ix.state = 'S_YELLOW'; ix.timer = 0; }
-        break;
-      case 'S_YELLOW':
-        if (ix.timer > YELLOW_DUR) { ix.state = 'S_ALL_RED'; ix.timer = 0; }
-        break;
-      case 'S_ALL_RED':
-        if ((!isFixed && this._isClear(ix, ['south'])) || ix.timer > RED_DUR) { ix.state = 'E_GREEN'; ix.timer = 0; }
-        break;
-      case 'E_GREEN':
-        if (ix.timer > GREEN_DUR) { ix.state = 'E_YELLOW'; ix.timer = 0; }
-        break;
-      case 'E_YELLOW':
-        if (ix.timer > YELLOW_DUR) { ix.state = 'E_ALL_RED'; ix.timer = 0; }
-        break;
-      case 'E_ALL_RED':
-        if ((!isFixed && this._isClear(ix, ['east'])) || ix.timer > RED_DUR) { ix.state = 'W_GREEN'; ix.timer = 0; }
-        break;
-      case 'W_GREEN':
-        if (ix.timer > GREEN_DUR) { ix.state = 'W_YELLOW'; ix.timer = 0; }
-        break;
-      case 'W_YELLOW':
-        if (ix.timer > YELLOW_DUR) { ix.state = 'W_ALL_RED'; ix.timer = 0; }
-        break;
-      case 'W_ALL_RED':
-        if ((!isFixed && this._isClear(ix, ['west'])) || ix.timer > RED_DUR) { ix.state = 'N_GREEN'; ix.timer = 0; }
-        break;
-    }
-  }
-
-  _isClear(ix, directions) {
-    for (const d of directions) {
-      for (const lane of ix.roads[d]) {
+  // Is `entryTheta` clear to merge into right now? Blocked whenever a
+  // circulating vehicle - from any leg - is within `windowDeg` of arriving
+  // at that point, i.e. give way to traffic already on the roundabout.
+  _hasClearGap(ix, entryTheta, windowDeg) {
+    for (const direction of this.roadKeys) {
+      for (const lane of ix.roads[direction]) {
         for (const car of lane) {
-          if (car.pos > STOP_LINE && car.pos < INTERSECTION_EXIT) return false;
+          if (!car._onRing) continue;
+          const closingDistDeg = angleAheadDeg(car._ringTheta, entryTheta);
+          if (closingDistDeg > 0 && closingDistDeg <= windowDeg) return false;
         }
       }
     }
     return true;
   }
 
-  _isGreen(ix, direction) {
-    if (ix.state === 'N_GREEN' && direction === 'north') return true;
-    if (ix.state === 'S_GREEN' && direction === 'south') return true;
-    if (ix.state === 'E_GREEN' && direction === 'east') return true;
-    if (ix.state === 'W_GREEN' && direction === 'west') return true;
-    return false;
-  }
-
-  _isBlocked(ix) {
-    for (const dir of this.roadKeys) {
-      const lanes = ix.roads[dir];
-      for (const lane of lanes) {
+  _enforceRingSpacing(ix) {
+    const circulating = [];
+    for (const direction of this.roadKeys) {
+      for (const lane of ix.roads[direction]) {
         for (const car of lane) {
-          if (car.pos > STOP_LINE && car.pos < INTERSECTION_EXIT) return true;
+          if (car._onRing) circulating.push(car);
         }
       }
     }
-    return false;
+    if (circulating.length < 2) return;
+
+    circulating.sort((a, b) => a._ringTheta - b._ringTheta);
+    for (let i = 0; i < circulating.length; i++) {
+      const car = circulating[i];
+      const ahead = circulating[(i + 1) % circulating.length];
+      if (ahead === car) continue;
+
+      const gapDeg = angleAheadDeg(car._ringTheta, ahead._ringTheta);
+      if (gapDeg > 0 && gapDeg < ROUNDABOUT_MIN_RING_GAP_DEG && car.speed > ahead.speed) {
+        car.speed = ahead.speed;
+        car.emergencyBrake = true;
+      }
+    }
   }
 
   _spawnTraffic(ix, params, dt) {
@@ -214,7 +212,7 @@ export class RoundaboutSim {
     }
   }
 
-  getState() {
+  getState(canEnter = {}) {
     const jsonRoads = { north: [[], []], south: [[], []], east: [[], []], west: [[], []] };
 
     for (const dir of this.roadKeys) {
@@ -234,8 +232,15 @@ export class RoundaboutSim {
       }
     }
 
+    // Per-leg yield indicator: GREEN = clear to merge now, RED = give way.
+    // Real roundabouts have no signal cycle, so there is no YELLOW phase.
+    const lightState = {};
+    for (const dir of this.roadKeys) {
+      lightState[dir] = canEnter[dir] === false ? 'RED' : 'GREEN';
+    }
+
     return {
-      intersections: [{ light_state: this.intersection.state, roads: jsonRoads }],
+      intersections: [{ light_state: lightState, roads: jsonRoads }],
       metrics: this.metrics,
     };
   }
