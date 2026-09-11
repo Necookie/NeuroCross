@@ -1,29 +1,30 @@
 import React, { memo } from 'react';
 
+/**
+ * TrafficLight - Precision signal housing:
+ * Rectangular housing with rounded-none (0px) corners, 1px border #3c3c3c,
+ * clean circular apertures for signal lenses with authentic BMW M color coordinates.
+ */
 const TrafficLight = ({ state }) => {
-  // state is "GREEN", "YELLOW", or "RED"
-  const glow =
-    state === 'RED'
-      ? 'hsl(var(--signal-red) / 0.55)'
-      : state === 'YELLOW'
-        ? 'hsl(var(--signal-amber) / 0.55)'
-        : 'hsl(var(--signal-green) / 0.55)';
   return (
-    <div className="bg-mono-900/80 p-2 rounded-2xl border border-mono-700/60 shadow-soft flex flex-col gap-2 w-fit z-50">
+    <div className="bg-[#0d0d0d] p-1.5 rounded-none border border-[#3c3c3c] flex flex-col gap-1.5 w-fit z-50 shadow-md">
       {/* RED */}
       <div
-        className={`w-4 h-4 rounded-full transition-all duration-300 ${state === 'RED' ? 'bg-signal-red' : 'bg-mono-800'}`}
-        style={state === 'RED' ? { boxShadow: `0 0 14px ${glow}` } : undefined}
+        className={`w-3.5 h-3.5 rounded-full transition-all duration-150 ${
+          state === 'RED' ? 'bg-[#e22718] shadow-[0_0_8px_#e22718]' : 'bg-[#1a1a1a] border border-[#262626]'
+        }`}
       />
       {/* YELLOW */}
       <div
-        className={`w-4 h-4 rounded-full transition-all duration-300 ${state === 'YELLOW' ? 'bg-signal-amber' : 'bg-mono-800'}`}
-        style={state === 'YELLOW' ? { boxShadow: `0 0 14px ${glow}` } : undefined}
+        className={`w-3.5 h-3.5 rounded-full transition-all duration-150 ${
+          state === 'YELLOW' ? 'bg-[#f4b400] shadow-[0_0_8px_#f4b400]' : 'bg-[#1a1a1a] border border-[#262626]'
+        }`}
       />
       {/* GREEN */}
       <div
-        className={`w-4 h-4 rounded-full transition-all duration-300 ${state === 'GREEN' ? 'bg-signal-green' : 'bg-mono-800'}`}
-        style={state === 'GREEN' ? { boxShadow: `0 0 14px ${glow}` } : undefined}
+        className={`w-3.5 h-3.5 rounded-full transition-all duration-150 ${
+          state === 'GREEN' ? 'bg-[#0fa336] shadow-[0_0_8px_#0fa336]' : 'bg-[#1a1a1a] border border-[#262626]'
+        }`}
       />
     </div>
   );

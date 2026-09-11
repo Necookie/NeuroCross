@@ -1,63 +1,81 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import MStripeDivider from '../../../components/ui/MStripeDivider';
 
+/**
+ * LoadingScreen - BMW M High-Performance aesthetic:
+ * Pure black canvas (#000000), confident uppercase 700/900 display typography,
+ * signature 4px tricolor stripe, engineered telemetry status.
+ */
 export default function LoadingScreen() {
   return (
     <motion.div
-      className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-mono-950 overflow-hidden"
+      className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#000000] overflow-hidden text-white"
       initial={{ opacity: 1 }}
-      exit={{ opacity: 0, scale: 1.05, transition: { duration: 0.8, ease: "easeInOut" } }}
+      exit={{ opacity: 0, scale: 1.02, transition: { duration: 0.6, ease: "easeInOut" } }}
     >
-      {/* Title */}
+      {/* Top Brand Header */}
       <motion.div 
-        className="absolute top-[20%] text-center space-y-4 z-20"
+        className="text-center space-y-4 z-20 max-w-xl px-6"
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 1, delay: 0.2 }}
+        transition={{ duration: 0.8, delay: 0.2 }}
       >
-        <h1 className="text-5xl md:text-7xl font-black tracking-[0.2em] text-transparent bg-clip-text bg-gradient-to-r from-accent-400 to-primary-500 drop-shadow-[0_0_15px_rgba(56,189,248,0.5)]">
+        <div className="flex items-center justify-center gap-2 mb-2">
+          <span className="text-[11px] font-bold uppercase tracking-[2px] text-[#7e7e7e]">
+            SYSTEM DIAGNOSTICS
+          </span>
+          <span className="h-1 w-1 bg-[#e22718]" />
+          <span className="text-[11px] font-bold uppercase tracking-[1.5px] text-[#0066b1]">
+            NEUROCROSS TELEMETRY
+          </span>
+        </div>
+
+        <h1 className="text-5xl md:text-7xl font-black uppercase tracking-tight text-white m-0">
           NEUROCROSS
         </h1>
+
+        {/* 4px M Tricolor Divider */}
+        <div className="w-36 mx-auto py-2">
+          <MStripeDivider />
+        </div>
+
         <motion.p 
-          className="text-mono-400 text-sm md:text-base tracking-widest uppercase font-medium"
+          className="text-[#bbbbbb] text-xs uppercase tracking-[2px] font-medium"
           animate={{ opacity: [0.4, 1, 0.4] }}
-          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+          transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
         >
-          Initializing Simulation Core...
+          INITIALIZING SIMULATION CORE // REALTIME TELEMETRY MATRIX
         </motion.p>
       </motion.div>
 
-      {/* Decorative Road and Car */}
-      <div className="absolute top-1/2 left-0 right-0 h-40 -translate-y-1/2 flex items-center justify-center">
-        {/* Road background */}
-        <div className="absolute inset-0 bg-mono-900/80 shadow-[inset_0_20px_50px_rgba(0,0,0,0.8)] border-y border-mono-800" />
-        
-        {/* Dashed line */}
-        <div className="absolute left-0 right-0 h-1.5 bg-[repeating-linear-gradient(90deg,transparent,transparent_20px,rgba(255,255,255,0.2)_20px,rgba(255,255,255,0.2)_60px)]" />
-        
-        {/* Animated Car */}
-        <motion.div
-          className="absolute left-[-100px] h-12 w-24 rounded-lg bg-gradient-to-r from-primary-600 to-accent-500 shadow-[0_0_30px_rgba(56,189,248,0.4)] z-10 flex items-center justify-end px-2"
-          initial={{ x: "-100vw" }}
-          animate={{ x: "120vw" }}
-          transition={{
-            duration: 2.5,
-            ease: "easeInOut",
-            repeat: Infinity,
-            repeatDelay: 0.8
-          }}
-        >
-          {/* Headlights glow */}
-          <div className="absolute right-0 top-1/2 -translate-y-1/2 w-4 h-8 bg-white/20 blur-md rounded-full" />
-          <div className="w-1.5 h-4 bg-white rounded-full shadow-[0_0_15px_2px_rgba(255,255,255,0.9)]" />
-        </motion.div>
+      {/* Engineered Track & Vehicle Runner */}
+      <div className="w-full max-w-3xl px-6 mt-12">
+        <div className="relative h-14 bg-[#0d0d0d] border-y border-[#3c3c3c] flex items-center overflow-hidden">
+          {/* Dashed Lane Divider */}
+          <div className="absolute left-0 right-0 h-px bg-[repeating-linear-gradient(90deg,transparent,transparent_16px,rgba(255,255,255,0.25)_16px,rgba(255,255,255,0.25)_48px)]" />
+
+          {/* Precision Machined Vehicle Silhouette */}
+          <motion.div
+            className="absolute left-[-80px] h-6 w-16 bg-[#1a1a1a] border border-white flex items-center justify-end px-1"
+            initial={{ x: "-10vw" }}
+            animate={{ x: "65vw" }}
+            transition={{
+              duration: 2.2,
+              ease: "linear",
+              repeat: Infinity,
+            }}
+          >
+            {/* White Xenon Headlight Beam */}
+            <div className="w-1 h-3 bg-white shadow-[0_0_8px_#ffffff]" />
+          </motion.div>
+        </div>
+
+        <div className="flex justify-between items-center mt-3 text-[10px] uppercase font-bold tracking-[1.5px] text-[#7e7e7e]">
+          <span>STATUS: ALL SENSORS CALIBRATED</span>
+          <span>PLATFORM: ACTIVE</span>
+        </div>
       </div>
-
-      {/* Grid overlay for aesthetic tech vibe */}
-      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none" />
-
-      {/* Bottom glowing accents */}
-      <div className="absolute bottom-0 left-0 right-0 h-64 bg-gradient-to-t from-primary-900/10 to-transparent pointer-events-none" />
     </motion.div>
   );
 }

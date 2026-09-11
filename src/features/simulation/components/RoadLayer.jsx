@@ -169,7 +169,19 @@ const RoadLayer = ({ data, weather, speedFactor, intersectionType = 'cross' }) =
   const isSingleCross = intersectionType === 'cross';
 
   return (
-    <div className="relative w-full bg-mono-900 rounded-[20px] border border-mono-700/70 shadow-soft overflow-hidden asphalt inset-shadow" style={{ aspectRatio: '2 / 1' }}>
+    <div className="relative w-full bg-[#0a0a0a] rounded-none border border-[#3c3c3c] overflow-hidden asphalt" style={{ aspectRatio: '2 / 1' }}>
+      {/* Precision Telemetry Overlay */}
+      <div className="absolute top-0 left-0 right-0 z-30 flex items-center justify-between px-4 py-2 bg-[#0d0d0d]/90 border-b border-[#262626] text-[10px] uppercase font-bold tracking-[1.5px] text-[#bbbbbb]">
+        <div className="flex items-center gap-2">
+          <span className="w-1.5 h-1.5 bg-[#0fa336]" />
+          <span>SIMULATION MATRIX // {intersectionType.toUpperCase()} FEED</span>
+        </div>
+        <div className="flex items-center gap-4 text-[#7e7e7e]">
+          <span>ATMOSPHERE: {weather.toUpperCase()}</span>
+          <span>CYCLE RATE: {speedFactor.toFixed(1)}X</span>
+        </div>
+      </div>
+
       {weather === 'rain' && <RainEffect />}
 
       {intersectionType === 'roundabout' ? <SingleRoundaboutBackdrop /> : isTIntersection ? <TIntersectionBackdrop /> : <SingleCrossBackdrop />}
