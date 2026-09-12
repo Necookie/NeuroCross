@@ -4,19 +4,59 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { ThreeVehicleFactory } from '../three/ThreeVehicleFactory';
 import { ThreeEnvironment } from '../three/ThreeEnvironment';
 
-// Camera Presets
+// Expanded Camera Presets
 const CAMERA_PRESETS = {
   isometric: {
-    position: new THREE.Vector3(0, 115, 135),
+    position: new THREE.Vector3(0, 125, 145),
     target: new THREE.Vector3(0, 0, 0),
   },
   cinematic: {
     position: new THREE.Vector3(-95, 32, 85),
     target: new THREE.Vector3(0, 4, 0),
   },
-  topdown: {
-    position: new THREE.Vector3(0, 190, 0.01),
+  panorama: {
+    position: new THREE.Vector3(0, 210, 240),
     target: new THREE.Vector3(0, 0, 0),
+  },
+  topdown: {
+    position: new THREE.Vector3(0, 260, 0.01),
+    target: new THREE.Vector3(0, 0, 0),
+  },
+};
+
+// Configurable Graphic Quality Presets
+const GRAPHICS_PRESETS = {
+  low: {
+    id: 'low',
+    label: 'LOW',
+    shadows: 'off',
+    pixelRatio: 1.0,
+    pedestrians: 'off',
+    desc: 'Max 60 FPS for low-spec laptops & mobile',
+  },
+  medium: {
+    id: 'medium',
+    label: 'MED',
+    shadows: 'basic',
+    pixelRatio: 1.25,
+    pedestrians: 'normal',
+    desc: 'Balanced visual fidelity & smooth frame rate',
+  },
+  high: {
+    id: 'high',
+    label: 'HIGH',
+    shadows: 'pcfsoft',
+    pixelRatio: 1.5,
+    pedestrians: 'normal',
+    desc: 'Crisp PCF shadows & lively Manila city life',
+  },
+  ultra: {
+    id: 'ultra',
+    label: 'ULTRA',
+    shadows: 'pcfsoft',
+    pixelRatio: 2.0,
+    pedestrians: 'dense',
+    desc: 'Retina 2x resolution, 2K shadows & dense crowd',
   },
 };
 
@@ -47,6 +87,21 @@ const ThreeRoadLayer = ({
   const onSelectVehicleRef = useRef(onSelectVehicle);
   const weatherRef = useRef(weather);
   const intersectionTypeRef = useRef(intersectionType);
+
+  // Graphics Options State
+  const [graphicsPreset, setGraphicsPreset] = useState(() => {
+    try {
+      const saved = localStorage.getItem('neurocross_graphics_preset');
+      if (saved && GRAPHICS_PRESETS[saved]) return saved;
+    } catch {
+      // ignore
+    }
+    return 'high';
+  });
+  const graphicsPresetRef = useRef(graphicsPreset);
+  graphicsPresetRef.current = graphicsPreset;
+  const [showGraphicsMenu, setShowGraphicsMenu] = useState(false);
+  const [fps, setFps] = useState(60);
 
   useEffect(() => {
     selectedVehicleIdRef.current = selectedVehicleId;
@@ -91,6 +146,34 @@ const ThreeRoadLayer = ({
     }
   }, []);
 
+  // Apply Graphic Options Dynamically
+  useEffect(() => {
+    const config = GRAPHICS_PRESETS[graphicsPreset];
+    if (!config) return;
+
+    if (rendererRef.current) {
+      rendererRef.current.setPixelRatio(Math.min(window.devicePixelRatio || 1, config.pixelRatio));
+      rendererRef.current.shadowMap.enabled = config.shadows !== 'off';
+      rendererRef.current.shadowMap.type =
+        config.shadows === 'pcfsoft' ? THREE.PCFSoftShadowMap : THREE.BasicShadowMap;
+      rendererRef.current.shadowMap.needsUpdate = true;
+    }
+
+    if (environmentRef.current) {
+      environmentRef.current.setGraphicsOptions({
+        preset: graphicsPreset,
+        shadows: config.shadows,
+        pedestrians: config.pedestrians,
+      });
+    }
+
+    try {
+      localStorage.setItem('neurocross_graphics_preset', graphicsPreset);
+    } catch {
+      // ignore
+    }
+  }, [graphicsPreset]);
+
   // Initialize Scene, Camera, Renderer, Controls
   useEffect(() => {
     const container = containerRef.current;
@@ -103,16 +186,17 @@ const ThreeRoadLayer = ({
     // 1. Scene with Light Daylight Nature Sky & Fog
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0xebf4ed);
-    scene.fog = new THREE.FogExp2(0xebf4ed, 0.0022);
+    scene.fog = new THREE.FogExp2(0xebf4ed, 0.0016);
     sceneRef.current = scene;
 
-    // 2. Camera
-    const camera = new THREE.PerspectiveCamera(45, width / height, 1, 1000);
+    // 2. Camera (Extended Far Plane for 2000-unit City)
+    const camera = new THREE.PerspectiveCamera(45, width / height, 1, 1800);
     const initialPreset = CAMERA_PRESETS.isometric;
     camera.position.copy(initialPreset.position);
     cameraRef.current = camera;
 
-    // 3. Renderer (Capped at 1.5x pixel ratio for maximum frame rate)
+    // 3. Renderer with Dynamic Graphics Configuration
+    const currentConfig = GRAPHICS_PRESETS[graphicsPresetRef.current] || GRAPHICS_PRESETS.high;
     const renderer = new THREE.WebGLRenderer({
       antialias: true,
       powerPreference: 'high-performance',
@@ -120,33 +204,35 @@ const ThreeRoadLayer = ({
       precision: 'mediump',
     });
     renderer.setSize(width, height);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
-    renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, currentConfig.pixelRatio));
+    renderer.shadowMap.enabled = currentConfig.shadows !== 'off';
+    renderer.shadowMap.type =
+      currentConfig.shadows === 'pcfsoft' ? THREE.PCFSoftShadowMap : THREE.BasicShadowMap;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.0;
+    renderer.toneMappingExposure = 1.05;
     rendererRef.current = renderer;
 
     container.innerHTML = '';
     container.appendChild(renderer.domElement);
 
-    // 4. Orbit Controls
+    // 4. Orbit Controls (Expanded zoom max distance to 600)
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.08;
     controls.maxPolarAngle = Math.PI / 2.05;
     controls.minDistance = 25;
-    controls.maxDistance = 350;
+    controls.maxDistance = 600;
     controls.target.copy(initialPreset.target);
     controlsRef.current = controls;
 
     // 5. Build Environment
     const environment = new ThreeEnvironment(scene);
     environmentRef.current = environment;
+    environment.setGraphicsOptions(currentConfig);
     environment.setupAtmosphere(weatherRef.current);
     environment.buildLayout(intersectionTypeRef.current);
 
-    // 6. Nature Eco Selection Highlight Reticle
+    // 6. Selection Highlight Reticle
     const markerGroup = new THREE.Group();
     markerGroup.visible = false;
 
@@ -182,24 +268,18 @@ const ThreeRoadLayer = ({
     scene.add(markerGroup);
     selectedMarkerRef.current = markerGroup;
 
-    // 7. Raycaster for clicking vehicles
+    // 7. Raycasting for Vehicle Click
     const raycaster = new THREE.Raycaster();
     const mouse = new THREE.Vector2();
-    let isDragging = false;
-    let pointerDownPos = { x: 0, y: 0 };
+    let downPos = { x: 0, y: 0 };
 
     const onPointerDown = (e) => {
-      pointerDownPos = { x: e.clientX, y: e.clientY };
-      isDragging = false;
-    };
-
-    const onPointerMove = (e) => {
-      const dist = Math.hypot(e.clientX - pointerDownPos.x, e.clientY - pointerDownPos.y);
-      if (dist > 5) isDragging = true;
+      downPos = { x: e.clientX, y: e.clientY };
     };
 
     const onPointerUp = (e) => {
-      if (isDragging) return;
+      const dist = Math.hypot(e.clientX - downPos.x, e.clientY - downPos.y);
+      if (dist > 5) return;
 
       const rect = renderer.domElement.getBoundingClientRect();
       mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
@@ -209,22 +289,52 @@ const ThreeRoadLayer = ({
 
       const targetGroups = [];
       vehiclesMap.forEach((veh) => {
-        targetGroups.push(veh.group);
+        targetGroups.push({ group: veh.group, id: veh.data.id });
       });
 
-      const intersects = raycaster.intersectObjects(targetGroups, true);
+      const meshesToCheck = [];
+      targetGroups.forEach(({ group, id }) => {
+        group.traverse((child) => {
+          if (child.isMesh) {
+            child.userData.vehicleId = id;
+            meshesToCheck.push(child);
+          }
+        });
+      });
+
+      const intersects = raycaster.intersectObjects(meshesToCheck, false);
       if (intersects.length > 0) {
-        let curr = intersects[0].object;
-        while (curr && !curr.userData?.id && curr.parent) {
-          curr = curr.parent;
+        const hitId = intersects[0].object.userData.vehicleId;
+        if (hitId && onSelectVehicleRef.current) {
+          onSelectVehicleRef.current(hitId);
         }
-        if (curr?.userData?.id) {
-          onSelectVehicleRef.current?.(curr.userData.id);
-          return;
+      } else {
+        if (onSelectVehicleRef.current) {
+          onSelectVehicleRef.current(null);
         }
       }
+    };
 
-      onSelectVehicleRef.current?.(null);
+    const onPointerMove = (e) => {
+      const rect = renderer.domElement.getBoundingClientRect();
+      mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+
+      raycaster.setFromCamera(mouse, camera);
+
+      const hitList = [];
+      vehiclesMap.forEach((veh) => {
+        veh.group.traverse((child) => {
+          if (child.isMesh) hitList.push(child);
+        });
+      });
+
+      const intersects = raycaster.intersectObjects(hitList, false);
+      if (intersects.length > 0) {
+        renderer.domElement.style.cursor = 'pointer';
+      } else {
+        renderer.domElement.style.cursor = 'default';
+      }
     };
 
     const domElement = renderer.domElement;
@@ -232,11 +342,11 @@ const ThreeRoadLayer = ({
     domElement.addEventListener('pointermove', onPointerMove);
     domElement.addEventListener('pointerup', onPointerUp);
 
-    // 8. Handle Resize
+    // 8. Resize Observer
     const handleResize = () => {
-      if (!containerRef.current || !rendererRef.current || !cameraRef.current) return;
-      const w = containerRef.current.clientWidth || 800;
-      const h = containerRef.current.clientHeight || 400;
+      if (!container) return;
+      const w = container.clientWidth || 800;
+      const h = container.clientHeight || 400;
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
       renderer.setSize(w, h);
@@ -245,8 +355,11 @@ const ThreeRoadLayer = ({
     const resizeObserver = new ResizeObserver(handleResize);
     resizeObserver.observe(container);
 
-    // 9. Ultra-Smooth 60 FPS Render Loop
+    // 9. Ultra-Smooth 60 FPS Render Loop with Dead-Reckoning Velocity Extrapolation
     let lastTime = performance.now();
+    let frameCount = 0;
+    let fpsLastSample = performance.now();
+
     const animate = () => {
       animFrameIdRef.current = requestAnimationFrame(animate);
 
@@ -255,26 +368,50 @@ const ThreeRoadLayer = ({
       lastTime = now;
       const elapsedTime = clockRef.current.getElapsedTime();
 
+      // FPS Calculation (Updated every 500ms)
+      frameCount++;
+      if (now - fpsLastSample >= 500) {
+        setFps(Math.round((frameCount * 1000) / (now - fpsLastSample)));
+        frameCount = 0;
+        fpsLastSample = now;
+      }
+
       // Update rain & animated pedestrians
       if (environmentRef.current) {
         environmentRef.current.updateRain(dt);
         environmentRef.current.updatePedestrians(dt, elapsedTime, latestLightStateRef.current);
       }
 
-      // Continuous critically-damped spring interpolation (Zero Stutter)
-      const blendRate = 1.0 - Math.exp(-16 * dt * Math.max(0.6, speedFactorRef.current));
+      // Continuous dead-reckoning extrapolation for ultra-smooth 60 FPS vehicle motion
+      const nowSec = now / 1000;
+      const blendRate = 1.0 - Math.exp(-22 * dt * Math.max(0.6, speedFactorRef.current));
       let followedGroup = null;
 
       vehiclesMap.forEach((veh) => {
-        const { group, targetPos, targetAngle, data: carData } = veh;
+        const {
+          group,
+          targetPos,
+          targetAngle,
+          velX = 0,
+          velZ = 0,
+          lastUpdateTime = nowSec,
+          data: carData,
+        } = veh;
+
+        // Dead-reckoning forward projection between server ticks
+        const elapsedSincePacket = Math.min(nowSec - lastUpdateTime, 0.22);
+        const anticipatedX = targetPos.x + velX * elapsedSincePacket;
+        const anticipatedZ = targetPos.z + velZ * elapsedSincePacket;
 
         // Smooth position glide
-        group.position.x += (targetPos.x - group.position.x) * blendRate;
-        group.position.z += (targetPos.z - group.position.z) * blendRate;
+        group.position.x += (anticipatedX - group.position.x) * blendRate;
+        group.position.z += (anticipatedZ - group.position.z) * blendRate;
         group.position.y = 0;
 
         // Smooth shortest angular distance interpolation
-        const angleDiff = THREE.MathUtils.euclideanModulo(targetAngle - group.rotation.y + Math.PI, Math.PI * 2) - Math.PI;
+        const angleDiff =
+          THREE.MathUtils.euclideanModulo(targetAngle - group.rotation.y + Math.PI, Math.PI * 2) -
+          Math.PI;
         group.rotation.y += angleDiff * blendRate;
 
         // Dynamics
@@ -377,7 +514,7 @@ const ThreeRoadLayer = ({
     }
   }, [weather]);
 
-  // Synchronize Simulation Data (Vehicles & Signals)
+  // Synchronize Simulation Data (Vehicles & Signals with Dead-Reckoning Tracking)
   useEffect(() => {
     if (!sceneRef.current || !data) return;
 
@@ -390,7 +527,7 @@ const ThreeRoadLayer = ({
       environmentRef.current.updateSignalStates(int0.light_state);
     }
 
-    // 2. Reconcile Fleet Vehicles
+    // 2. Reconcile Fleet Vehicles with Instantaneous Velocity Calculation
     const activeCarMap = new Map();
     intersections.forEach((ix) => {
       if (!ix.roads) return;
@@ -405,8 +542,9 @@ const ThreeRoadLayer = ({
 
     const vehiclesMap = vehiclesMapRef.current;
     const scene = sceneRef.current;
+    const nowSec = performance.now() / 1000;
 
-    // Remove exited
+    // Remove exited vehicles
     vehiclesMap.forEach((veh, id) => {
       if (!activeCarMap.has(id)) {
         scene.remove(veh.group);
@@ -430,12 +568,21 @@ const ThreeRoadLayer = ({
           group,
           targetPos: new THREE.Vector3(targetX, 0, targetZ),
           targetAngle,
+          velX: 0,
+          velZ: 0,
+          lastUpdateTime: nowSec,
           data: car,
         });
       } else {
         const veh = vehiclesMap.get(id);
+        const deltaT = Math.max(0.016, nowSec - veh.lastUpdateTime);
+
+        // Compute forward velocity vector for dead-reckoning extrapolation
+        veh.velX = (targetX - veh.targetPos.x) / deltaT;
+        veh.velZ = (targetZ - veh.targetPos.z) / deltaT;
         veh.targetPos.set(targetX, 0, targetZ);
         veh.targetAngle = targetAngle;
+        veh.lastUpdateTime = nowSec;
         veh.data = car;
       }
     });
@@ -444,16 +591,20 @@ const ThreeRoadLayer = ({
   return (
     <div
       className="relative w-full bg-[#ebf4ed] rounded-none border border-[#d1ded5] overflow-hidden shadow-sm select-none"
-      style={{ aspectRatio: '2 / 1', minHeight: '440px' }}
+      style={{ aspectRatio: '2 / 1', minHeight: '460px' }}
     >
       {/* 3D WebGL Canvas Container */}
       <div ref={containerRef} className="w-full h-full cursor-grab active:cursor-grabbing" />
 
-      {/* Top Left: Active Camera HUD Pill */}
+      {/* Top Left: HUD Status Bar with Live FPS & Active Camera */}
       <div className="absolute top-3 left-3 z-20 flex items-center gap-2 bg-[#ffffff]/90 backdrop-blur-md border border-[#d1ded5] px-3 py-1.5 text-[10px] uppercase font-bold tracking-[1.5px] text-[#283e32] shadow-sm">
         <span className="w-2 h-2 rounded-full bg-[#16a34a] animate-pulse" />
-        <span className="text-[#5d7567]">CAMERA:</span>
+        <span className="text-[#16a34a] font-mono">{fps} FPS</span>
+        <span className="text-[#cfdcd3]">|</span>
+        <span className="text-[#5d7567]">CAM:</span>
         <span className="text-[#0f3d28]">{cameraMode}</span>
+        <span className="text-[#cfdcd3]">|</span>
+        <span className="text-[#16a34a]">{graphicsPreset.toUpperCase()}</span>
         {selectedVehicleId && (
           <span className="ml-2 pl-2 border-l border-[#d1ded5] text-[#16a34a]">
             TARGET #{selectedVehicleId}
@@ -461,8 +612,8 @@ const ThreeRoadLayer = ({
         )}
       </div>
 
-      {/* Top Right: Camera Presets & Follow Selector */}
-      <div className="absolute top-3 right-3 z-20 flex items-center gap-1 bg-[#ffffff]/90 backdrop-blur-md border border-[#d1ded5] p-1 shadow-sm">
+      {/* Top Right: Camera Presets & Graphic Options Menu Toggle */}
+      <div className="absolute top-3 right-3 z-20 flex items-center gap-1.5 bg-[#ffffff]/90 backdrop-blur-md border border-[#d1ded5] p-1 shadow-sm">
         <button
           type="button"
           onClick={() => setCameraPreset('isometric')}
@@ -487,6 +638,19 @@ const ThreeRoadLayer = ({
           title="Low-Angle Cinematic Perspective"
         >
           CINE
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setCameraPreset('panorama')}
+          className={`px-2.5 py-1 text-[10px] font-bold uppercase tracking-[1.5px] transition-all ${
+            cameraMode === 'panorama'
+              ? 'bg-[#0f3d28] text-white shadow-sm'
+              : 'text-[#475e50] hover:text-[#0f3d28] hover:bg-[#ebf1ec]'
+          }`}
+          title="Wide Metropolitan Panorama"
+        >
+          PANO
         </button>
 
         <button
@@ -517,7 +681,99 @@ const ThreeRoadLayer = ({
         >
           CHASE
         </button>
+
+        <div className="w-[1px] h-4 bg-[#d1ded5] mx-0.5" />
+
+        {/* Graphics Options Toggle Button */}
+        <button
+          type="button"
+          onClick={() => setShowGraphicsMenu((prev) => !prev)}
+          className={`flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[1.5px] transition-all ${
+            showGraphicsMenu
+              ? 'bg-[#16a34a] text-white shadow-sm'
+              : 'bg-[#ebf4ed] text-[#164e35] hover:bg-[#d9ebd9]'
+          }`}
+          title="Configure 3D Graphics & Performance"
+        >
+          <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20">
+            <path d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" />
+          </svg>
+          <span>GRAPHICS</span>
+        </button>
       </div>
+
+      {/* Floating Graphics & Performance Modal */}
+      {showGraphicsMenu && (
+        <div className="absolute top-14 right-3 z-30 w-72 bg-[#ffffff]/95 backdrop-blur-lg border border-[#d1ded5] shadow-xl p-4 text-[#1e293b] animate-in fade-in slide-in-from-top-2 duration-150">
+          <div className="flex items-center justify-between pb-2.5 border-b border-[#e2e8f0]">
+            <div className="flex items-center gap-1.5">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#16a34a]" />
+              <h3 className="text-xs font-black uppercase tracking-[1.5px] text-[#0f3d28]">
+                Display & Graphics
+              </h3>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowGraphicsMenu(false)}
+              className="text-[#64748b] hover:text-[#0f3d28] text-sm font-bold px-1"
+            >
+              ✕
+            </button>
+          </div>
+
+          {/* Quality Presets Grid */}
+          <div className="mt-3">
+            <label className="text-[10px] font-bold uppercase tracking-[1.5px] text-[#64748b]">
+              Quality Presets
+            </label>
+            <div className="grid grid-cols-4 gap-1 mt-1.5">
+              {Object.values(GRAPHICS_PRESETS).map((preset) => (
+                <button
+                  key={preset.id}
+                  type="button"
+                  onClick={() => setGraphicsPreset(preset.id)}
+                  className={`py-1.5 text-[10px] font-bold tracking-wider uppercase transition-all ${
+                    graphicsPreset === preset.id
+                      ? 'bg-[#0f3d28] text-white shadow-sm'
+                      : 'bg-[#f1f5f9] text-[#475569] hover:bg-[#e2e8f0]'
+                  }`}
+                >
+                  {preset.label}
+                </button>
+              ))}
+            </div>
+            <p className="text-[10px] text-[#64748b] mt-1.5 italic">
+              {GRAPHICS_PRESETS[graphicsPreset]?.desc}
+            </p>
+          </div>
+
+          {/* Detailed Features Spec */}
+          <div className="mt-3.5 pt-3 border-t border-[#e2e8f0] space-y-2 text-[11px]">
+            <div className="flex justify-between items-center">
+              <span className="text-[#64748b] font-medium">PCF Shadows</span>
+              <span className="font-bold text-[#0f3d28] uppercase">
+                {GRAPHICS_PRESETS[graphicsPreset]?.shadows}
+              </span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-[#64748b] font-medium">Resolution Scale</span>
+              <span className="font-bold text-[#0f3d28]">
+                {GRAPHICS_PRESETS[graphicsPreset]?.pixelRatio}x
+              </span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-[#64748b] font-medium">Pedestrians Crowd</span>
+              <span className="font-bold text-[#0f3d28] uppercase">
+                {GRAPHICS_PRESETS[graphicsPreset]?.pedestrians}
+              </span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-[#64748b] font-medium">Live Frame Rate</span>
+              <span className="font-bold text-[#16a34a] font-mono">{fps} FPS</span>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Bottom Left: Mouse Navigation Telemetry Watermark */}
       <div className="absolute bottom-2.5 left-3 pointer-events-none z-20 flex items-center gap-2 text-[9px] font-bold uppercase tracking-[1.5px] text-[#4d6656]">
@@ -535,9 +791,10 @@ const ThreeRoadLayer = ({
         <div className="flex w-3.5 h-1 overflow-hidden">
           <div className="flex-1 bg-[#0f3d28]" />
           <div className="flex-1 bg-[#16a34a]" />
+          <div className="flex-1 bg-[#16a34a]" />
           <div className="flex-1 bg-[#84cc16]" />
         </div>
-        <span>ECO 3D ACCELERATED</span>
+        <span>PHILIPPINES 3D ENGINE • {graphicsPreset.toUpperCase()}</span>
       </div>
     </div>
   );
