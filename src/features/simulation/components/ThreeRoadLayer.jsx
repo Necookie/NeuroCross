@@ -60,6 +60,52 @@ const GRAPHICS_PRESETS = {
   },
 };
 
+// Smart Terrain Elevation Clamping (Sidewalks, Roads, & MMDA Elevated Footbridge)
+function getGroundHeight(x, z, layoutType = 'cross') {
+  // 1. MMDA Footbridge Deck & Climbing Stair Ramps
+  if (layoutType !== 'roundabout' && Math.abs(z - (-84)) <= 3.2) {
+    if (Math.abs(x) <= 52) {
+      return 9.2; // Main elevated footbridge deck
+    } else if (x < -52 && x >= -70) {
+      const t = (x - (-70)) / 18;
+      return 0.35 + t * 8.85; // West stairs
+    } else if (x > 52 && x <= 70) {
+      const t = (70 - x) / 18;
+      return 0.35 + t * 8.85; // East stairs
+    }
+  }
+
+  // 2. Roundabout Monument Island
+  if (layoutType === 'roundabout') {
+    const dist = Math.hypot(x, z);
+    if (dist < 34) {
+      return dist < 24 ? 2.2 : 1.2;
+    }
+    if (dist <= 72) {
+      return 0.0;
+    }
+    return 0.35;
+  }
+
+  // 3. T-Intersection Road vs Sidewalk
+  if (layoutType === 'tintersection') {
+    const inMainRoad = z >= -72 && z <= 12;
+    const inStemRoad = z > 12 && Math.abs(x) <= 32;
+    if (inMainRoad || inStemRoad) {
+      return 0.0;
+    }
+    return 0.35;
+  }
+
+  // 4. Crossroads Road vs Sidewalk
+  const inHRoad = Math.abs(z) <= 48;
+  const inVRoad = Math.abs(x) <= 48;
+  if (inHRoad || inVRoad) {
+    return 0.0;
+  }
+  return 0.35;
+}
+
 const ThreeRoadLayer = ({
   data,
   weather = 'sunny',
@@ -87,6 +133,29 @@ const ThreeRoadLayer = ({
   const onSelectVehicleRef = useRef(onSelectVehicle);
   const weatherRef = useRef(weather);
   const intersectionTypeRef = useRef(intersectionType);
+
+  // First-Person Walking Character Controller State
+  const walkPlayerRef = useRef({
+    position: new THREE.Vector3(-54, 2.75, -44), // Starting on sidewalk near Jollibee & crosswalk
+    velocity: new THREE.Vector3(0, 0, 0),
+    yaw: Math.PI / 2, // Facing East towards the intersection
+    pitch: 0,
+    isGrounded: true,
+    walkPhase: 0,
+    baseEyeHeight: 2.4, // Human eye-level elevation
+  });
+
+  const keysRef = useRef({
+    forward: false,
+    backward: false,
+    left: false,
+    right: false,
+    jump: false,
+    sprint: false,
+  });
+
+  const isLockedRef = useRef(false);
+  const [isPointerLocked, setIsPointerLocked] = useState(false);
 
   // Graphics Options State
   const [graphicsPreset, setGraphicsPreset] = useState(() => {
@@ -132,7 +201,30 @@ const ThreeRoadLayer = ({
     if (!controlsRef.current || !cameraRef.current) return;
 
     if (presetKey === 'follow') {
+      controlsRef.current.enabled = true;
+      if (document.pointerLockElement) {
+        document.exitPointerLock?.();
+      }
       return;
+    }
+
+    if (presetKey === 'walk') {
+      controlsRef.current.enabled = false;
+      // Request pointer lock for immersive first person mouse look
+      if (rendererRef.current?.domElement && !isLockedRef.current) {
+        try {
+          rendererRef.current.domElement.requestPointerLock?.();
+        } catch {
+          // ignore
+        }
+      }
+      return;
+    }
+
+    // Exiting walk mode -> restore OrbitControls
+    controlsRef.current.enabled = true;
+    if (document.pointerLockElement) {
+      document.exitPointerLock?.();
     }
 
     const preset = CAMERA_PRESETS[presetKey];
@@ -144,6 +236,64 @@ const ThreeRoadLayer = ({
       controls.target.copy(preset.target);
       controls.update();
     }
+  }, []);
+
+  // Keyboard Controls Listener for WASD, Space, Shift, and V
+  useEffect(() => {
+    const onKeyDown = (e) => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+      if (e.code === 'KeyW' || e.code === 'ArrowUp') keysRef.current.forward = true;
+      if (e.code === 'KeyS' || e.code === 'ArrowDown') keysRef.current.backward = true;
+      if (e.code === 'KeyA' || e.code === 'ArrowLeft') keysRef.current.left = true;
+      if (e.code === 'KeyD' || e.code === 'ArrowRight') keysRef.current.right = true;
+      if (e.code === 'Space') {
+        keysRef.current.jump = true;
+        if (cameraModeRef.current === 'walk') {
+          e.preventDefault();
+        }
+      }
+      if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') keysRef.current.sprint = true;
+
+      // 'V' key toggles Walking POV mode
+      if (e.code === 'KeyV') {
+        if (cameraModeRef.current === 'walk') {
+          setCameraPreset('isometric');
+        } else {
+          setCameraPreset('walk');
+        }
+      }
+    };
+
+    const onKeyUp = (e) => {
+      if (e.code === 'KeyW' || e.code === 'ArrowUp') keysRef.current.forward = false;
+      if (e.code === 'KeyS' || e.code === 'ArrowDown') keysRef.current.backward = false;
+      if (e.code === 'KeyA' || e.code === 'ArrowLeft') keysRef.current.left = false;
+      if (e.code === 'KeyD' || e.code === 'ArrowRight') keysRef.current.right = false;
+      if (e.code === 'Space') keysRef.current.jump = false;
+      if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') keysRef.current.sprint = false;
+    };
+
+    window.addEventListener('keydown', onKeyDown);
+    window.addEventListener('keyup', onKeyUp);
+    return () => {
+      window.removeEventListener('keydown', onKeyDown);
+      window.removeEventListener('keyup', onKeyUp);
+    };
+  }, [setCameraPreset]);
+
+  // Pointer Lock Change Listener
+  useEffect(() => {
+    const onPointerLockChange = () => {
+      const locked = document.pointerLockElement === rendererRef.current?.domElement;
+      isLockedRef.current = locked;
+      setIsPointerLocked(locked);
+    };
+
+    document.addEventListener('pointerlockchange', onPointerLockChange);
+    return () => {
+      document.removeEventListener('pointerlockchange', onPointerLockChange);
+    };
   }, []);
 
   // Apply Graphic Options Dynamically
@@ -268,7 +418,24 @@ const ThreeRoadLayer = ({
     scene.add(markerGroup);
     selectedMarkerRef.current = markerGroup;
 
-    // 7. Raycasting for Vehicle Click
+    // 7. Pointer Movement & Mouse Look Handlers
+    const onMouseMove = (e) => {
+      if (cameraModeRef.current !== 'walk') return;
+
+      if (isLockedRef.current) {
+        const sensitivity = 0.0024;
+        walkPlayerRef.current.yaw -= e.movementX * sensitivity;
+        walkPlayerRef.current.pitch -= e.movementY * sensitivity;
+        walkPlayerRef.current.pitch = Math.max(
+          -Math.PI * 0.46,
+          Math.min(Math.PI * 0.46, walkPlayerRef.current.pitch)
+        );
+      }
+    };
+
+    document.addEventListener('mousemove', onMouseMove);
+
+    // Raycasting for Vehicle Click
     const raycaster = new THREE.Raycaster();
     const mouse = new THREE.Vector2();
     let downPos = { x: 0, y: 0 };
@@ -279,6 +446,19 @@ const ThreeRoadLayer = ({
 
     const onPointerUp = (e) => {
       const dist = Math.hypot(e.clientX - downPos.x, e.clientY - downPos.y);
+
+      // In walk mode, clicking requests pointer lock
+      if (cameraModeRef.current === 'walk') {
+        if (dist <= 5 && !isLockedRef.current) {
+          try {
+            renderer.domElement.requestPointerLock?.();
+          } catch {
+            // ignore
+          }
+        }
+        return;
+      }
+
       if (dist > 5) return;
 
       const rect = renderer.domElement.getBoundingClientRect();
@@ -316,6 +496,22 @@ const ThreeRoadLayer = ({
     };
 
     const onPointerMove = (e) => {
+      // In walk mode, support dragging to look around if not pointer-locked
+      if (cameraModeRef.current === 'walk' && !isLockedRef.current && e.buttons > 0) {
+        const dx = e.movementX || 0;
+        const dy = e.movementY || 0;
+        const dragSensitivity = 0.0035;
+        walkPlayerRef.current.yaw -= dx * dragSensitivity;
+        walkPlayerRef.current.pitch -= dy * dragSensitivity;
+        walkPlayerRef.current.pitch = Math.max(
+          -Math.PI * 0.46,
+          Math.min(Math.PI * 0.46, walkPlayerRef.current.pitch)
+        );
+        return;
+      }
+
+      if (cameraModeRef.current === 'walk') return;
+
       const rect = renderer.domElement.getBoundingClientRect();
       mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
       mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
@@ -355,7 +551,7 @@ const ThreeRoadLayer = ({
     const resizeObserver = new ResizeObserver(handleResize);
     resizeObserver.observe(container);
 
-    // 9. Ultra-Smooth 60 FPS Render Loop with Dead-Reckoning Velocity Extrapolation
+    // 9. Ultra-Smooth 60 FPS Render Loop with First-Person Walking Character & Dead-Reckoning
     let lastTime = performance.now();
     let frameCount = 0;
     let fpsLastSample = performance.now();
@@ -446,8 +642,91 @@ const ThreeRoadLayer = ({
         selectedMarkerRef.current.visible = false;
       }
 
-      // Smooth Follow Vehicle camera
-      if (cameraModeRef.current === 'follow' && followedGroup) {
+      // First-Person Walking Character POV Simulation
+      if (cameraModeRef.current === 'walk') {
+        const player = walkPlayerRef.current;
+        const keys = keysRef.current;
+
+        // 1. Calculate direction vectors from yaw
+        const forward = new THREE.Vector3(-Math.sin(player.yaw), 0, -Math.cos(player.yaw));
+        const right = new THREE.Vector3(Math.cos(player.yaw), 0, -Math.sin(player.yaw));
+
+        const moveDir = new THREE.Vector3();
+        if (keys.forward) moveDir.add(forward);
+        if (keys.backward) moveDir.sub(forward);
+        if (keys.right) moveDir.add(right);
+        if (keys.left) moveDir.sub(right);
+
+        // 2. Horizontal Velocity Acceleration & Friction
+        const isMoving = moveDir.lengthSq() > 0;
+        if (isMoving) {
+          moveDir.normalize();
+          const targetSpeed = keys.sprint ? 24.0 : 13.5;
+          player.velocity.x += (moveDir.x * targetSpeed - player.velocity.x) * 14 * dt;
+          player.velocity.z += (moveDir.z * targetSpeed - player.velocity.z) * 14 * dt;
+          player.walkPhase += dt * (keys.sprint ? 16 : 10);
+        } else {
+          player.velocity.x += (0 - player.velocity.x) * 16 * dt;
+          player.velocity.z += (0 - player.velocity.z) * 16 * dt;
+        }
+
+        // 3. Jumping & Gravity
+        if (keys.jump && player.isGrounded) {
+          player.velocity.y = 15.5; // Upward jump impulse
+          player.isGrounded = false;
+        }
+        player.velocity.y -= 38.0 * dt; // Gravity
+
+        // 4. Advance player coordinates
+        player.position.x += player.velocity.x * dt;
+        player.position.z += player.velocity.z * dt;
+        player.position.y += player.velocity.y * dt;
+
+        // Map boundary limits
+        player.position.x = Math.max(-380, Math.min(380, player.position.x));
+        player.position.z = Math.max(-380, Math.min(380, player.position.z));
+
+        // 5. Smart Terrain Elevation Clamping (Sidewalks, Roads, and MMDA Footbridge)
+        const groundHeight = getGroundHeight(
+          player.position.x,
+          player.position.z,
+          intersectionTypeRef.current
+        );
+
+        if (player.position.y <= groundHeight + player.baseEyeHeight) {
+          player.position.y = groundHeight + player.baseEyeHeight;
+          player.velocity.y = 0;
+          player.isGrounded = true;
+        }
+
+        // 6. Natural First-Person Head Bobbing & Stride Sway
+        const currentSpeed = Math.hypot(player.velocity.x, player.velocity.z);
+        const bobFactor = Math.min(currentSpeed / 13.5, 1.0);
+        const bobAmount = keys.sprint ? 0.12 : 0.07;
+        const headBobY = player.isGrounded
+          ? Math.sin(player.walkPhase * 2) * bobAmount * bobFactor
+          : 0;
+        const headSwayX = player.isGrounded
+          ? Math.cos(player.walkPhase) * (bobAmount * 0.4) * bobFactor
+          : 0;
+
+        camera.position.set(
+          player.position.x + headSwayX,
+          player.position.y + headBobY,
+          player.position.z
+        );
+
+        // 7. Look Direction
+        const lookDir = new THREE.Vector3(
+          -Math.sin(player.yaw) * Math.cos(player.pitch),
+          Math.sin(player.pitch),
+          -Math.cos(player.yaw) * Math.cos(player.pitch)
+        );
+        const lookTarget = camera.position.clone().add(lookDir);
+        camera.lookAt(lookTarget);
+        controls.target.copy(lookTarget);
+      } else if (cameraModeRef.current === 'follow' && followedGroup) {
+        // Smooth Follow Vehicle camera
         const angle = followedGroup.rotation.y;
         const distBehind = 28;
         const heightAbove = 14;
@@ -470,9 +749,11 @@ const ThreeRoadLayer = ({
         controls.target.x += (lookAtX - controls.target.x) * camBlend;
         controls.target.y += (2 - controls.target.y) * camBlend;
         controls.target.z += (lookAtZ - controls.target.z) * camBlend;
+        controls.update();
+      } else {
+        controls.update();
       }
 
-      controls.update();
       renderer.render(scene, camera);
     };
 
@@ -483,6 +764,7 @@ const ThreeRoadLayer = ({
         cancelAnimationFrame(animFrameIdRef.current);
       }
       resizeObserver.disconnect();
+      document.removeEventListener('mousemove', onMouseMove);
       domElement.removeEventListener('pointerdown', onPointerDown);
       domElement.removeEventListener('pointermove', onPointerMove);
       domElement.removeEventListener('pointerup', onPointerUp);
@@ -594,7 +876,59 @@ const ThreeRoadLayer = ({
       style={{ aspectRatio: '2 / 1', minHeight: '460px' }}
     >
       {/* 3D WebGL Canvas Container */}
-      <div ref={containerRef} className="w-full h-full cursor-grab active:cursor-grabbing" />
+      <div
+        ref={containerRef}
+        className={`w-full h-full ${
+          cameraMode === 'walk' ? 'cursor-crosshair' : 'cursor-grab active:cursor-grabbing'
+        }`}
+      />
+
+      {/* First-Person Center Crosshair Reticle */}
+      {cameraMode === 'walk' && (
+        <div className="absolute inset-0 pointer-events-none z-20 flex items-center justify-center">
+          <div className="relative w-6 h-6 flex items-center justify-center">
+            <div className="w-1.5 h-1.5 bg-white rounded-full shadow-[0_0_4px_rgba(0,0,0,0.9)]" />
+            <div className="absolute w-4 h-[1.5px] bg-white/80 shadow-sm" />
+            <div className="absolute h-4 w-[1.5px] bg-white/80 shadow-sm" />
+          </div>
+        </div>
+      )}
+
+      {/* Walking Controls HUD Floating Pill */}
+      {cameraMode === 'walk' && (
+        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2.5 bg-[#0f3d28]/95 backdrop-blur-md border border-[#16a34a]/70 px-4 py-2 text-[10px] uppercase font-bold tracking-[1.5px] text-white shadow-2xl rounded-full">
+          <div className="flex items-center gap-1">
+            <span className="px-1.5 py-0.5 bg-[#16a34a] rounded text-white font-mono">WASD</span>
+            <span className="text-[#a7f3d0]">MOVE</span>
+          </div>
+          <span className="text-[#34d399]/40">·</span>
+          <div className="flex items-center gap-1">
+            <span className="px-1.5 py-0.5 bg-[#16a34a] rounded text-white font-mono">SPACE</span>
+            <span className="text-[#a7f3d0]">JUMP</span>
+          </div>
+          <span className="text-[#34d399]/40">·</span>
+          <div className="flex items-center gap-1">
+            <span className="px-1.5 py-0.5 bg-[#16a34a] rounded text-white font-mono">SHIFT</span>
+            <span className="text-[#a7f3d0]">SPRINT</span>
+          </div>
+          <span className="text-[#34d399]/40">·</span>
+          <div className="flex items-center gap-1">
+            <span className="px-1.5 py-0.5 bg-[#16a34a] rounded text-white font-mono">MOUSE</span>
+            <span className="text-[#a7f3d0]">
+              {isPointerLocked ? 'LOOK (ESC TO FREE)' : 'CLICK TO LOCK LOOK'}
+            </span>
+          </div>
+          <span className="text-[#34d399]/40">·</span>
+          <button
+            type="button"
+            onClick={() => setCameraPreset('isometric')}
+            className="ml-1 px-2.5 py-0.5 bg-[#ef4444] hover:bg-[#dc2626] rounded text-white transition-all pointer-events-auto"
+            title="Exit First-Person Walking View (or press V)"
+          >
+            EXIT (V)
+          </button>
+        </div>
+      )}
 
       {/* Top Left: HUD Status Bar with Live FPS & Active Camera */}
       <div className="absolute top-3 left-3 z-20 flex items-center gap-2 bg-[#ffffff]/90 backdrop-blur-md border border-[#d1ded5] px-3 py-1.5 text-[10px] uppercase font-bold tracking-[1.5px] text-[#283e32] shadow-sm">
@@ -680,6 +1014,21 @@ const ThreeRoadLayer = ({
           title={selectedVehicleId ? 'Follow Selected Vehicle' : 'Select a vehicle first to follow'}
         >
           CHASE
+        </button>
+
+        {/* First-Person Walking POV Button */}
+        <button
+          type="button"
+          onClick={() => setCameraPreset('walk')}
+          className={`flex items-center gap-1 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[1.5px] transition-all ${
+            cameraMode === 'walk'
+              ? 'bg-[#16a34a] text-white shadow-sm ring-1 ring-[#84cc16]'
+              : 'text-[#16a34a] hover:bg-[#16a34a]/15'
+          }`}
+          title="First-Person Walking Character Mode (WASD + Space + Mouse Look, or press V)"
+        >
+          <span>🚶</span>
+          <span>WALK</span>
         </button>
 
         <div className="w-[1px] h-4 bg-[#d1ded5] mx-0.5" />
@@ -777,20 +1126,35 @@ const ThreeRoadLayer = ({
 
       {/* Bottom Left: Mouse Navigation Telemetry Watermark */}
       <div className="absolute bottom-2.5 left-3 pointer-events-none z-20 flex items-center gap-2 text-[9px] font-bold uppercase tracking-[1.5px] text-[#4d6656]">
-        <span>L-DRAG: ORBIT</span>
-        <span>·</span>
-        <span>R-DRAG: PAN</span>
-        <span>·</span>
-        <span>SCROLL: ZOOM</span>
-        <span>·</span>
-        <span>CLICK CAR: TELEMETRY</span>
+        {cameraMode === 'walk' ? (
+          <>
+            <span>WASD: WALK</span>
+            <span>·</span>
+            <span>SPACE: JUMP</span>
+            <span>·</span>
+            <span>SHIFT: SPRINT</span>
+            <span>·</span>
+            <span>MOUSE: LOOK</span>
+            <span>·</span>
+            <span>V: TOGGLE POV</span>
+          </>
+        ) : (
+          <>
+            <span>L-DRAG: ORBIT</span>
+            <span>·</span>
+            <span>R-DRAG: PAN</span>
+            <span>·</span>
+            <span>SCROLL: ZOOM</span>
+            <span>·</span>
+            <span>CLICK CAR: TELEMETRY</span>
+          </>
+        )}
       </div>
 
       {/* Bottom Right: Engine Identifier */}
       <div className="absolute bottom-2.5 right-3 pointer-events-none z-20 flex items-center gap-2 text-[9px] font-bold uppercase tracking-[1.5px] text-[#4d6656]">
         <div className="flex w-3.5 h-1 overflow-hidden">
           <div className="flex-1 bg-[#0f3d28]" />
-          <div className="flex-1 bg-[#16a34a]" />
           <div className="flex-1 bg-[#16a34a]" />
           <div className="flex-1 bg-[#84cc16]" />
         </div>
