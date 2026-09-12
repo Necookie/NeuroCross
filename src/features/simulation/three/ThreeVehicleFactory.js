@@ -24,8 +24,111 @@ const hashId = (value) => {
 };
 
 // ==========================================
+// PROCEDURAL PHOTOREALISTIC LIGHT TEXTURES
+// ==========================================
+let headlightPoolTexture = null;
+const getHeadlightPoolTexture = () => {
+  if (headlightPoolTexture) return headlightPoolTexture;
+  if (typeof document === 'undefined') return new THREE.Texture();
+
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = 256;
+  const ctx = canvas.getContext('2d');
+
+  ctx.clearRect(0, 0, 512, 256);
+
+  // Left beam projection fan (centered at y = 88)
+  const gradL = ctx.createRadialGradient(40, 88, 6, 260, 88, 240);
+  gradL.addColorStop(0, 'rgba(240, 250, 255, 0.95)');
+  gradL.addColorStop(0.15, 'rgba(215, 240, 255, 0.65)');
+  gradL.addColorStop(0.45, 'rgba(180, 225, 250, 0.28)');
+  gradL.addColorStop(0.8, 'rgba(150, 210, 245, 0.08)');
+  gradL.addColorStop(1, 'rgba(0, 0, 0, 0)');
+  ctx.fillStyle = gradL;
+  ctx.beginPath();
+  ctx.ellipse(260, 88, 240, 68, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Right beam projection fan (centered at y = 168)
+  const gradR = ctx.createRadialGradient(40, 168, 6, 260, 168, 240);
+  gradR.addColorStop(0, 'rgba(240, 250, 255, 0.95)');
+  gradR.addColorStop(0.15, 'rgba(215, 240, 255, 0.65)');
+  gradR.addColorStop(0.45, 'rgba(180, 225, 250, 0.28)');
+  gradR.addColorStop(0.8, 'rgba(150, 210, 245, 0.08)');
+  gradR.addColorStop(1, 'rgba(0, 0, 0, 0)');
+  ctx.fillStyle = gradR;
+  ctx.beginPath();
+  ctx.ellipse(260, 168, 240, 68, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Central overlap hot-spot fanning forward
+  const gradC = ctx.createRadialGradient(60, 128, 8, 280, 128, 220);
+  gradC.addColorStop(0, 'rgba(255, 255, 255, 0.9)');
+  gradC.addColorStop(0.2, 'rgba(230, 248, 255, 0.5)');
+  gradC.addColorStop(0.55, 'rgba(190, 230, 255, 0.18)');
+  gradC.addColorStop(1, 'rgba(0, 0, 0, 0)');
+  ctx.fillStyle = gradC;
+  ctx.beginPath();
+  ctx.ellipse(280, 128, 220, 85, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  headlightPoolTexture = new THREE.CanvasTexture(canvas);
+  return headlightPoolTexture;
+};
+
+let beamVolumetricTexture = null;
+const getBeamVolumetricTexture = () => {
+  if (beamVolumetricTexture) return beamVolumetricTexture;
+  if (typeof document === 'undefined') return new THREE.Texture();
+
+  const canvas = document.createElement('canvas');
+  canvas.width = 64;
+  canvas.height = 256;
+  const ctx = canvas.getContext('2d');
+
+  // Gradient from bright narrow apex (top) to soft feathered base (bottom)
+  const grad = ctx.createLinearGradient(0, 0, 0, 256);
+  grad.addColorStop(0, 'rgba(255, 255, 255, 0.95)');
+  grad.addColorStop(0.12, 'rgba(235, 248, 255, 0.55)');
+  grad.addColorStop(0.45, 'rgba(200, 235, 255, 0.22)');
+  grad.addColorStop(0.8, 'rgba(175, 220, 250, 0.06)');
+  grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, 64, 256);
+
+  beamVolumetricTexture = new THREE.CanvasTexture(canvas);
+  return beamVolumetricTexture;
+};
+
+let brakeGlowTexture = null;
+const getBrakeGlowTexture = () => {
+  if (brakeGlowTexture) return brakeGlowTexture;
+  if (typeof document === 'undefined') return new THREE.Texture();
+
+  const canvas = document.createElement('canvas');
+  canvas.width = 128;
+  canvas.height = 128;
+  const ctx = canvas.getContext('2d');
+
+  const grad = ctx.createRadialGradient(64, 64, 4, 64, 64, 60);
+  grad.addColorStop(0, 'rgba(255, 40, 40, 0.95)');
+  grad.addColorStop(0.3, 'rgba(225, 29, 72, 0.55)');
+  grad.addColorStop(0.65, 'rgba(180, 20, 50, 0.18)');
+  grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+
+  ctx.fillStyle = grad;
+  ctx.beginPath();
+  ctx.arc(64, 64, 62, 0, Math.PI * 2);
+  ctx.fill();
+
+  brakeGlowTexture = new THREE.CanvasTexture(canvas);
+  return brakeGlowTexture;
+};
+
+// ==========================================
 // PRE-ALLOCATED SHARED REUSABLE GEOMETRIES
-// (Prevents GPU garbage collection spikes)
 // ==========================================
 const wheelGeo = new THREE.CylinderGeometry(0.7, 0.7, 0.5, 12);
 wheelGeo.rotateX(Math.PI / 2);
@@ -40,9 +143,20 @@ const largeRimGeo = new THREE.CylinderGeometry(0.5, 0.5, 0.57, 8);
 largeRimGeo.rotateX(Math.PI / 2);
 
 // Volumetric Headlight Cone Geometry
-const beamGeo = new THREE.ConeGeometry(3.2, 22, 12, 1, true);
-beamGeo.rotateZ(-Math.PI / 2);
-beamGeo.translate(11, 0, 0);
+// Narrow apex at origin (X=0), fanning forward to base at X=24
+const singleBeamGeo = new THREE.ConeGeometry(2.0, 24, 12, 1, true);
+singleBeamGeo.rotateZ(Math.PI / 2);
+singleBeamGeo.translate(12, 0, 0);
+
+// Road Surface Headlight Projection Quad (X=28 long, Z=14 wide)
+const roadPoolGeo = new THREE.PlaneGeometry(28, 14);
+roadPoolGeo.rotateX(-Math.PI / 2);
+roadPoolGeo.translate(14, 0, 0);
+
+// Road Surface Rear Brake Glow Quad
+const roadBrakeGeo = new THREE.PlaneGeometry(12, 8);
+roadBrakeGeo.rotateX(-Math.PI / 2);
+roadBrakeGeo.translate(-6, 0, 0);
 
 // Chassis Geometries
 const coupeBodyGeo = new THREE.BoxGeometry(8.0, 1.0, 3.4);
@@ -68,9 +182,13 @@ const bikeRiderGeo = new THREE.BoxGeometry(1.0, 1.5, 0.8);
 const quadExhaustGeo = new THREE.CylinderGeometry(0.18, 0.18, 0.4, 8);
 quadExhaustGeo.rotateZ(Math.PI / 2);
 
-// Lens Geometries
-const headlightLensGeo = new THREE.BoxGeometry(0.15, 0.35, 0.7);
-const taillightLensGeo = new THREE.BoxGeometry(0.15, 0.3, 0.8);
+// Lens and Light Cluster Geometries
+const projectorSphereGeo = new THREE.SphereGeometry(0.18, 8, 8);
+const drlBrowGeo = new THREE.BoxGeometry(0.15, 0.08, 0.65);
+const turnSignalGeo = new THREE.BoxGeometry(0.15, 0.25, 0.25);
+const taillightBarGeo = new THREE.BoxGeometry(0.18, 0.15, 3.0);
+const taillightClampGeo = new THREE.BoxGeometry(0.2, 0.35, 0.7);
+const chmslGeo = new THREE.BoxGeometry(0.12, 0.08, 1.0);
 const strobeGeo = new THREE.SphereGeometry(0.35, 8, 8);
 
 // ==========================================
@@ -100,17 +218,14 @@ const carbonMat = new THREE.MeshStandardMaterial({
   metalness: 0.6,
 });
 
-const headlightMat = new THREE.MeshBasicMaterial({
+// Crystalline LED Projector Material (Ice White / Xenon)
+const projectorMat = new THREE.MeshBasicMaterial({
   color: 0xffffff,
 });
 
-const beamMat = new THREE.MeshBasicMaterial({
-  color: 0xe8f5ec,
-  transparent: true,
-  opacity: 0.18,
-  depthWrite: false,
-  blending: THREE.AdditiveBlending,
-  side: THREE.DoubleSide,
+// LED DRL Accent Brow Material
+const drlMat = new THREE.MeshBasicMaterial({
+  color: 0xf0f9ff,
 });
 
 // Cache for vehicle body materials by hex color to prevent recreating
@@ -131,8 +246,9 @@ const getBodyMaterial = (colorHex) => {
 
 export class ThreeVehicleFactory {
   /**
-   * Builds an ultra-high performance procedural 3D vehicle group.
-   * Zero dynamic point/spot lights for consistent 60-120 FPS.
+   * Builds an ultra-realistic procedural 3D vehicle with modern LED clusters,
+   * dual volumetric forward beams, asphalt ground projection pools,
+   * continuous OLED rear lightbars, and dynamic braking bloom.
    */
   static createVehicle(data) {
     const type = data.type || 'coupe';
@@ -149,24 +265,59 @@ export class ThreeVehicleFactory {
 
     const bodyMaterial = getBodyMaterial(bodyColor);
 
-    // Each vehicle instance gets cloned taillight & signal materials for state updates
+    // Dynamic materials for taillight, brake, turn signals
     const taillightMat = new THREE.MeshBasicMaterial({
-      color: 0xdc2626,
+      color: 0x991b1b, // Deep cherry red during cruise
+    });
+
+    const chmslMat = new THREE.MeshBasicMaterial({
+      color: 0x7f1d1d,
     });
 
     const leftSignalMat = new THREE.MeshBasicMaterial({
-      color: 0x451a03,
+      color: 0x451a03, // Amber dark idle
     });
 
     const rightSignalMat = new THREE.MeshBasicMaterial({
       color: 0x451a03,
     });
 
+    // Volumetric Headlight Beam Material (textured additive gradient)
+    const beamMaterial = new THREE.MeshBasicMaterial({
+      color: 0xe0f2fe,
+      map: getBeamVolumetricTexture(),
+      transparent: true,
+      opacity: 0.22,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+      side: THREE.DoubleSide,
+    });
+
+    // Road Surface Headlight Projection Pool Material
+    const roadPoolMat = new THREE.MeshBasicMaterial({
+      color: 0xe8f5ff,
+      map: getHeadlightPoolTexture(),
+      transparent: true,
+      opacity: 0.45,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+    });
+
+    // Road Surface Rear Brake Reflection Pool Material
+    const roadBrakeMat = new THREE.MeshBasicMaterial({
+      color: 0xff2222,
+      map: getBrakeGlowTexture(),
+      transparent: true,
+      opacity: 0.12,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+    });
+
     let wheels = [];
     let strobeMeshBlue = null;
     let strobeMeshRed = null;
 
-    // Construct vehicle geometry using shared geometries
+    // Construct vehicle-specific 3D geometry
     switch (type) {
       case 'prototype': {
         const chassis = new THREE.Mesh(protoBodyGeo, bodyMaterial);
@@ -291,7 +442,7 @@ export class ThreeVehicleFactory {
 
         group.add(body, cabin, exhaust1, exhaust2);
 
-        // Pursuit Emergency Strobe Bar for Interceptor
+        // Emergency Pursuit Lightbar
         if (isInterceptor) {
           const bar = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.25, 2.2), carbonMat);
           bar.position.set(-0.3, 2.15, 0);
@@ -310,43 +461,81 @@ export class ThreeVehicleFactory {
       }
     }
 
-    // Attach wheels to group
     wheels.forEach((w) => group.add(w));
 
-    // Headlight Meshes & High-Efficiency Volumetric Beams
-    const headlightL = new THREE.Mesh(headlightLensGeo, headlightMat);
-    headlightL.position.set(4.05, 0.8, -1.2);
+    // ==========================================
+    // REALISTIC LIGHTING SYSTEM
+    // ==========================================
 
-    const headlightR = new THREE.Mesh(headlightLensGeo, headlightMat);
-    headlightR.position.set(4.05, 0.8, 1.2);
+    // 1. Dual Crystalline LED Projector Headlights
+    // Left Cluster
+    const projLeftInner = new THREE.Mesh(projectorSphereGeo, projectorMat);
+    projLeftInner.position.set(4.08, 0.8, -1.1);
+    const projLeftOuter = new THREE.Mesh(projectorSphereGeo, projectorMat);
+    projLeftOuter.position.set(4.06, 0.8, -1.35);
+    const drlLeft = new THREE.Mesh(drlBrowGeo, drlMat);
+    drlLeft.position.set(4.06, 0.95, -1.2);
+    const signalL = new THREE.Mesh(turnSignalGeo, leftSignalMat);
+    signalL.position.set(4.04, 0.8, -1.6);
 
-    const beamL = new THREE.Mesh(beamGeo, beamMat);
-    beamL.position.set(4.1, 0.8, -1.2);
+    // Right Cluster
+    const projRightInner = new THREE.Mesh(projectorSphereGeo, projectorMat);
+    projRightInner.position.set(4.08, 0.8, 1.1);
+    const projRightOuter = new THREE.Mesh(projectorSphereGeo, projectorMat);
+    projRightOuter.position.set(4.06, 0.8, 1.35);
+    const drlRight = new THREE.Mesh(drlBrowGeo, drlMat);
+    drlRight.position.set(4.06, 0.95, 1.2);
+    const signalR = new THREE.Mesh(turnSignalGeo, rightSignalMat);
+    signalR.position.set(4.04, 0.8, 1.6);
 
-    const beamR = new THREE.Mesh(beamGeo, beamMat);
-    beamR.position.set(4.1, 0.8, 1.2);
+    group.add(
+      projLeftInner, projLeftOuter, drlLeft, signalL,
+      projRightInner, projRightOuter, drlRight, signalR
+    );
 
-    // Taillight Meshes
-    const taillightL = new THREE.Mesh(taillightLensGeo, taillightMat);
-    taillightL.position.set(-4.05, 0.8, -1.2);
+    // 2. Dual Volumetric Forward Headlight Beams (Originate at lenses, fan forward)
+    const beamL = new THREE.Mesh(singleBeamGeo, beamMaterial);
+    beamL.position.set(4.1, 0.8, -1.22);
 
-    const taillightR = new THREE.Mesh(taillightLensGeo, taillightMat);
-    taillightR.position.set(-4.05, 0.8, 1.2);
+    const beamR = new THREE.Mesh(singleBeamGeo, beamMaterial);
+    beamR.position.set(4.1, 0.8, 1.22);
 
-    // Amber Turn Indicators
-    const signalL = new THREE.Mesh(headlightLensGeo, leftSignalMat);
-    signalL.position.set(4.05, 0.8, -1.55);
+    group.add(beamL, beamR);
 
-    const signalR = new THREE.Mesh(headlightLensGeo, rightSignalMat);
-    signalR.position.set(4.05, 0.8, 1.55);
+    // 3. Road Surface Headlight Ground Projection Pool (Illuminates asphalt ahead)
+    const roadHeadlightPool = new THREE.Mesh(roadPoolGeo, roadPoolMat);
+    roadHeadlightPool.position.set(4.0, 0.035, 0);
+    group.add(roadHeadlightPool);
 
-    group.add(headlightL, headlightR, beamL, beamR, taillightL, taillightR, signalL, signalR);
+    // 4. OLED Rear Taillight Strip & C-Clamp Clusters
+    const taillightBar = new THREE.Mesh(taillightBarGeo, taillightMat);
+    taillightBar.position.set(-4.06, 0.82, 0);
 
-    // Save handles for zero-alloc update loop
+    const taillightClampL = new THREE.Mesh(taillightClampGeo, taillightMat);
+    taillightClampL.position.set(-4.04, 0.85, -1.25);
+
+    const taillightClampR = new THREE.Mesh(taillightClampGeo, taillightMat);
+    taillightClampR.position.set(-4.04, 0.85, 1.25);
+
+    // Central High-Mount Stop Light (CHMSL)
+    const chmslMesh = new THREE.Mesh(chmslGeo, chmslMat);
+    chmslMesh.position.set(-2.6, 1.85, 0);
+
+    group.add(taillightBar, taillightClampL, taillightClampR, chmslMesh);
+
+    // 5. Road Surface Rear Brake Reflection Pool (Blooms on deceleration)
+    const roadBrakePool = new THREE.Mesh(roadBrakeGeo, roadBrakeMat);
+    roadBrakePool.position.set(-4.0, 0.035, 0);
+    group.add(roadBrakePool);
+
+    // Save handles for real-time dynamic modulation
     group.userData.handles = {
       taillightMat,
+      chmslMat,
       leftSignalMat,
       rightSignalMat,
+      roadBrakeMat,
+      roadHeadlightPool,
       wheels,
       strobeMeshBlue,
       strobeMeshRed,
@@ -402,8 +591,8 @@ export class ThreeVehicleFactory {
   }
 
   /**
-   * Super-fast 60 FPS physics and dynamic state updater.
-   * Modulates colors and spins wheels with zero memory allocations.
+   * High-Precision Physics & Dynamic Lighting Updater
+   * Modulates brake bloom, road light pools, wheel rotation, and turn signals.
    */
   static updateVehiclePhysics(group, carData, timeSeconds = 0) {
     const h = group.userData.handles;
@@ -413,23 +602,29 @@ export class ThreeVehicleFactory {
     const isBraking = (carData.brakeIntensity && carData.brakeIntensity > 0.2) ||
       carData.status === 'slowing' || carData.status === 'stopped';
 
-    // 1. Taillight / Brake glow modulation
+    // 1. Realistic Dynamic Taillight & Brake Bloom
     if (isBraking) {
-      h.taillightMat.color.setHex(0xff0000);
+      // Intense incandescent red bloom
+      h.taillightMat.color.setHex(0xff0022);
+      h.chmslMat.color.setHex(0xff0000);
+      h.roadBrakeMat.opacity = Math.min(0.85, 0.45 + (carData.brakeIntensity || 0.4) * 0.4);
     } else {
-      h.taillightMat.color.setHex(0x7f1d1d);
+      // Standard cruise OLED running red
+      h.taillightMat.color.setHex(0x991b1b);
+      h.chmslMat.color.setHex(0x3f0a0a);
+      h.roadBrakeMat.opacity = 0.12;
     }
 
-    // 2. Wheel rotation proportional to velocity
+    // 2. Continuous Wheel Rotation
     const wheelRotDelta = speed * 0.04;
     h.wheels.forEach((w) => {
       w.rotation.z -= wheelRotDelta;
     });
 
-    // 3. Turn Signals (amber blinker)
+    // 3. Realistic Pulsing Amber Turn Signals
     const isSignaling = (carData.pathMode === 'cross' || carData.pathMode === 'tintersection') &&
       carData.route !== 'straight' && carData.pos > 30 && carData.pos < 310;
-    const blinkState = Math.sin(timeSeconds * 8) > 0;
+    const blinkState = Math.sin(timeSeconds * 9) > 0;
 
     if (isSignaling && carData.route === 'left') {
       h.leftSignalMat.color.setHex(blinkState ? 0xf59e0b : 0x451a03);
@@ -442,11 +637,19 @@ export class ThreeVehicleFactory {
       h.rightSignalMat.color.setHex(0x451a03);
     }
 
-    // 4. Interceptor Strobe Alternation (Green & Amber)
+    // 4. Emergency Interceptor Strobe Double-Pulse
     if (h.isInterceptor && h.strobeMeshBlue && h.strobeMeshRed) {
-      const strobePhase = Math.sin(timeSeconds * 16) > 0;
-      h.strobeMeshBlue.material.color.setHex(strobePhase ? 0x22c55e : 0x064e3b);
-      h.strobeMeshRed.material.color.setHex(strobePhase ? 0x78350f : 0xf59e0b);
+      const fastCycle = Math.sin(timeSeconds * 18);
+      const isPulse = fastCycle > 0.2;
+      const isAlternate = Math.sin(timeSeconds * 6) > 0;
+
+      if (isAlternate) {
+        h.strobeMeshBlue.material.color.setHex(isPulse ? 0x22c55e : 0x064e3b);
+        h.strobeMeshRed.material.color.setHex(0x451a03);
+      } else {
+        h.strobeMeshBlue.material.color.setHex(0x064e3b);
+        h.strobeMeshRed.material.color.setHex(isPulse ? 0xf59e0b : 0x451a03);
+      }
     }
   }
 }
