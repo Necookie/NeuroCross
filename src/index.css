@@ -4,31 +4,34 @@
 
 @layer base {
   :root {
-    --canvas: #000000;
-    --surface-soft: #0d0d0d;
-    --surface-card: #1a1a1a;
-    --surface-elevated: #262626;
-    --carbon: #2b2b2b;
-    --hairline: #3c3c3c;
-    --hairline-strong: #262626;
-    --m-blue-light: #0066b1;
-    --m-blue-dark: #1c69d4;
-    --m-red: #e22718;
-    --electric-blue: #0653b6;
-    --ink: #ffffff;
-    --body: #bbbbbb;
-    --body-strong: #e6e6e6;
-    --muted: #7e7e7e;
+    --canvas: #f4f7f4;
+    --surface-soft: #ebf2ec;
+    --surface-card: #ffffff;
+    --surface-elevated: #e2ebe3;
+    --hairline: #d1ded5;
+    --hairline-strong: #b7c9be;
+
+    /* Botanical Nature Accents */
+    --pine-dark: #0f3d28;
+    --leaf-green: #16a34a;
+    --sprout-lime: #84cc16;
+    --solar-amber: #d97706;
+    --safety-coral: #dc2626;
+
+    --ink: #0f3d28;
+    --body: #283e32;
+    --body-strong: #14281e;
+    --muted: #5d7567;
 
     /* Traffic signal tones */
-    --signal-red: #e22718;
-    --signal-amber: #f4b400;
-    --signal-green: #0fa336;
+    --signal-red: #dc2626;
+    --signal-amber: #f59e0b;
+    --signal-green: #16a34a;
   }
 
   body {
-    background-color: #000000;
-    color: #ffffff;
+    background-color: #f4f7f4;
+    color: #283e32;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     font-weight: 300;
     margin: 0;
@@ -40,12 +43,12 @@
   h1, h2, h3, h4, h5, h6 {
     font-weight: 700;
     text-transform: uppercase;
-    color: #ffffff;
+    color: #0f3d28;
   }
 
   #root {
     min-height: 100vh;
-    background-color: #000000;
+    background-color: #f4f7f4;
   }
 }
 
@@ -55,9 +58,9 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    background-color: #000000;
+    background-color: #0f3d28;
     color: #ffffff;
-    border: 1px solid #ffffff;
+    border: 1px solid #0f3d28;
     border-radius: 0px;
     padding: 14px 28px;
     font-size: 14px;
@@ -69,8 +72,9 @@
   }
 
   .btn-primary:hover {
-    background-color: #ffffff;
-    color: #000000;
+    background-color: #16a34a;
+    border-color: #16a34a;
+    color: #ffffff;
   }
 
   .btn-primary-outline {
@@ -78,8 +82,8 @@
     align-items: center;
     justify-content: center;
     background-color: transparent;
-    color: #ffffff;
-    border: 1px solid #ffffff;
+    color: #0f3d28;
+    border: 1px solid #0f3d28;
     border-radius: 0px;
     padding: 12px 24px;
     font-size: 14px;
@@ -91,17 +95,17 @@
   }
 
   .btn-primary-outline:hover {
-    background-color: #ffffff;
-    color: #000000;
+    background-color: #0f3d28;
+    color: #ffffff;
   }
 
   .btn-machined {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    background-color: #1a1a1a;
-    color: #bbbbbb;
-    border: 1px solid #3c3c3c;
+    background-color: #ffffff;
+    color: #283e32;
+    border: 1px solid #d1ded5;
     border-radius: 0px;
     padding: 10px 16px;
     font-size: 12px;
@@ -113,15 +117,15 @@
   }
 
   .btn-machined:hover {
-    border-color: #ffffff;
-    color: #ffffff;
-    background-color: #262626;
+    border-color: #0f3d28;
+    color: #0f3d28;
+    background-color: #ebf2ec;
   }
 
   .btn-machined-active {
-    background-color: #262626;
+    background-color: #0f3d28;
     color: #ffffff;
-    border-color: #ffffff;
+    border-color: #0f3d28;
   }
 
   .btn-icon {
@@ -131,42 +135,42 @@
     width: 48px;
     height: 48px;
     border-radius: 9999px;
-    background-color: #1a1a1a;
-    border: 1px solid #3c3c3c;
-    color: #ffffff;
+    background-color: #ffffff;
+    border: 1px solid #d1ded5;
+    color: #0f3d28;
     transition: all 0.15s ease;
     cursor: pointer;
   }
 
   .btn-icon:hover {
-    background-color: #262626;
-    border-color: #ffffff;
+    background-color: #ebf2ec;
+    border-color: #0f3d28;
   }
 
   /* Card Surfaces & Spec Cells */
   .surface-card {
-    background-color: #1a1a1a;
-    border: 1px solid #3c3c3c;
+    background-color: #ffffff;
+    border: 1px solid #d1ded5;
     border-radius: 0px;
   }
 
   .spec-cell {
-    background-color: #0d0d0d;
-    border: 1px solid #3c3c3c;
+    background-color: #ffffff;
+    border: 1px solid #d1ded5;
     border-radius: 0px;
     padding: 20px 24px;
   }
 
-  /* M Tricolor Stripe */
+  /* Eco Botanical Tricolor Stripe */
   .m-stripe {
     height: 4px;
-    background: linear-gradient(90deg, #0066b1 0%, #0066b1 33.33%, #1c69d4 33.33%, #1c69d4 66.66%, #e22718 66.66%, #e22718 100%);
+    background: linear-gradient(90deg, #0f3d28 0%, #0f3d28 33.33%, #16a34a 33.33%, #16a34a 66.66%, #84cc16 66.66%, #84cc16 100%);
   }
 
   /* Simulation Road Surface */
   .asphalt {
-    background-color: #0d0d0d;
-    background-image: radial-gradient(circle at 50% 50%, #171717 0%, #0d0d0d 100%);
+    background-color: #212924;
+    background-image: radial-gradient(circle at 50% 50%, #29342d 0%, #212924 100%);
   }
 }
 

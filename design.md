@@ -1,260 +1,102 @@
-# NeuroCross Design System
+# NeuroCross Design System: Nature-Forward Eco-Mobility Proving Ground
 
-Using the BMW high-performance design model as reference.
+A light, sustainable, high-precision autonomous mobility design language inspired by modern ecological research facilities, clean daylight Scandinavian engineering, and botanical nature.
+
+---
 
 ## Overview
 
-NeuroCross's marketing and interface surface is a near-pure black canvas (`{colors.canvas}` — #000) holding white NeuroCross Type Next Latin headlines in **confident UPPERCASE**. The system has no decorative voltage of its own; brand energy comes from **full-bleed high-performance imagery & visualization** — autonomous vehicle dynamics, neural network telemetry, carbon-fiber hardware detail, simulation corridors, and live signal flow — placed as edge-to-edge content that fills entire bands. UI chrome around the visuals stays minimal: thin sans-serif copy, dividers as 1px hairlines (`{colors.hairline}`), all-caps button labels with no fill until hovered.
+NeuroCross's interface surface is an airy, bright natural stone canvas (`{colors.canvas}` — #f4f7f4) holding deep botanical pine NeuroCross Type Next Latin headlines in **confident UPPERCASE** (`{colors.ink}` — #0f3d28). Visual vitality stems from **daylight simulation corridors, lush green tree canopies, organic eco-asphalt roadways, and live neural telemetry** set against clean laboratory-grade white surfaces. UI chrome around the visuals is disciplined: thin sans-serif copy, dividers as delicate nature hairlines (`{colors.hairline}` — #d1ded5), and all-caps button labels with crisp botanical outlines.
 
-The **NeuroCross tricolor stripe** — `{colors.m-blue-light}` (#0066b1) → `{colors.m-blue-dark}` (#1c69d4) → `{colors.m-red}` (#e22718) — appears sparingly as the brand's signature accent, used on the NeuroCross wordmark, telemetry chrome, vehicle-tech callouts, and system badges. It is never a CTA color and never used as a background fill — the tricolor is exclusively a brand-identity marker.
+The **NeuroCross Eco-Botanical Stripe** — `{colors.pine-dark}` (#0f3d28) → `{colors.leaf-green}` (#16a34a) → `{colors.sprout-lime}` (#84cc16) — serves as the brand's signature identity marker across telemetry headers, vehicle callouts, and status dividers. It embodies sustainable speed, clean electric propulsion, and autonomous synergy with nature.
 
-Type voice runs **NeuroCross Type Next Latin** (with Inter 700/300 as the primary open-source standard) in two cuts: regular for display + nav labels and Light for body + secondary copy. Display sizes use weight 700 (signature heavy-but-tight setting), while body type drops to weight 300 (Light). The contrast between heavy display and light body is the system's editorial signature.
+Type voice runs **NeuroCross Type Next Latin** (with Inter 700/300 as standard) with a signature split: weight 700 for heavy, machined display headlines and weight 300 (Light) for engineered body copy and metadata.
 
 **Key Characteristics:**
-- Near-pure black canvas (`{colors.canvas}` — #000) with white type. The system inverts almost nothing — there is no light-mode marketing surface.
-- Display headlines in UPPERCASE NeuroCross Type Next Latin at weight 700. Sub-heads stay sentence-case at lighter weight.
-- NeuroCross tricolor (`{colors.m-blue-light}` / `{colors.m-blue-dark}` / `{colors.m-red}`) used as 4px brand-stripe dividers, NeuroCross wordmark accents, and telemetry chrome — never as buttons or fills.
-- Imagery fills entire bands edge-to-edge. Vehicles and simulations are always the visual subject; UI chrome backs off to small white labels overlaid on visuals.
-- Buttons are flat with `{rounded.none}` (0px) corners and uppercase letterspaced labels. The "industrial precision" rectangular silhouette IS the brand.
-- Border radius is mostly zero across the system. The few exceptions: `{rounded.full}` on circular icon buttons (carousel arrows, launcher) and `{rounded.sm}` on a handful of small toggle pills.
-- Spacing is generous and grid-aligned: `{spacing.section}` (96px) between major bands; `{spacing.xxl}` (64px) inside hero visual bands; `{spacing.xl}` (40px) inside content cards.
+- **Luminous Natural Canvas**: Natural stone-sage background (`{colors.canvas}` — #f4f7f4) paired with pure white technical cards (`{colors.surface-card}` — #ffffff).
+- **Botanical Forest & Sprout Palette**: Deep pine greens (`#0f3d28`), vibrant leaf greens (`#16a34a`), and crisp spring sprouts (`#84cc16`).
+- **Machined Industrial Precision**: 0px border radius (`{rounded.none}`) across cards, tables, and buttons. Engineered clean edges harmonize with organic environmental elements.
+- **Eco-Botanical Tricolor**: 4px brand-stripe divider representing sustainability, electrification, and intelligent autonomous control.
+- **Airy Daylight Visualization**: 3D simulation canvas set in a sunlit proving ground surrounded by rich green meadows, bio-swales, eco-architecture, and lush trees.
+
+---
 
 ## Colors
 
-### Brand & Accent
-- **Primary** (`{colors.primary}` — #ffffff): The system's primary type and CTA color. Used for h1/h2/h3 display, body text on dark, and primary button labels (the buttons themselves are transparent or canvas-colored — the white text + outline IS the button).
-- **M Blue Light** (`{colors.m-blue-light}` — #0066b1): The first stop in the NeuroCross tricolor stripe. Used on badge accents and telemetry chrome.
-- **M Blue Dark** (`{colors.m-blue-dark}` — #1c69d4): The middle stop. The same hex as `{colors.neurocross-blue}` — NeuroCross heritage corporate blue, repurposed as the middle band of the stripe.
-- **M Red** (`{colors.m-red}` — #e22718): The third stop. The signature power red, used in the stripe and on speed/flow callouts.
-- **Electric Blue** (`{colors.electric-blue}` — #0653b6): A separate autonomous/electric accent used on NeuroCross electric model and neural telemetry pages. Distinct from the heritage blue — feels colder, more digital.
+### Brand & Nature Accents
+- **Deep Forest Pine** (`{colors.pine-dark}` — #0f3d28): Primary brand anchor for titles, display headers, and primary active elements.
+- **Vivid Leaf Green** (`{colors.leaf-green}` — #16a34a): High-energy environmental green used for active flows, cruise velocity, and system health.
+- **Spring Sprout Lime** (`{colors.sprout-lime}` — #84cc16): Tertiary botanical highlight in the tricolor stripe and eco-efficiency indicators.
+- **Sage Moss** (`{colors.sage-moss}` — #4b7a5e): Subdued engineering tone for secondary telemetry labels and chart lines.
+- **Solar Amber** (`{colors.solar-amber}` — #d97706): Warm solar highlight for wait states, warnings, and turn signals.
+- **Safety Coral** (`{colors.safety-coral}` — #dc2626): Used strictly for collision prevention and emergency disengagements.
 
-### Surface
-- **Canvas** (`{colors.canvas}` — #000000): The default page floor across every surface. True black.
-- **Surface Soft** (`{colors.surface-soft}` — #0d0d0d): A barely-different-from-black used for spec table cells and footer-adjacent strips.
-- **Surface Card** (`{colors.surface-card}` — #1a1a1a): Cards, secondary buttons, icon-button backgrounds.
-- **Surface Elevated** (`{colors.surface-elevated}` — #262626): One step lighter, used for nested cards inside dark bands.
-- **Carbon Gray** (`{colors.carbon-gray}` — #2b2b2b): Carbon-fiber-inspired surface tone used on technical-spec cards.
+### Surface & Canvas
+- **Canvas Ground** (`{colors.canvas}` — #f4f7f4): Light, breathable natural stone and mist page background.
+- **Surface Card** (`{colors.surface-card}` — #ffffff): Crisp white laboratory card surfaces.
+- **Surface Soft** (`{colors.surface-soft}` — #ebf1ec): Soft eucalyptus-tinted cells for telemetry and secondary containers.
+- **Surface Elevated** (`{colors.surface-elevated}` — #e2eae4): Elevated panels and hover surfaces.
+- **Asphalt Eco** (`{colors.eco-asphalt}` — #212924): Dark mineral granite roadway surface for high-contrast lane viewing.
+- **Meadow Grass** (`{colors.meadow-grass}` — #46784a): Lush proving ground turf floor in the 3D visualization.
 
-### Hairlines & Borders
-- **Hairline** (`{colors.hairline}` — #3c3c3c): The 1px divider tone on dark surfaces. Used between body sections, between table rows, around card outlines.
-- **Hairline Strong** (`{colors.hairline-strong}` — #262626): Same hex as `{colors.surface-elevated}` — borders feel like one-step elevations rather than ink lines.
+### Hairlines & Dividers
+- **Hairline** (`{colors.hairline}` — #d1ded5): Clean 1px dividing lines separating cards and technical sections.
+- **Hairline Strong** (`{colors.hairline-strong}` — #b7c9be): Pronounced border lines on interactive controls and headers.
 
-### Text
-- **Ink / On Dark** (`{colors.on-dark}` — #ffffff): All headline and primary text on dark canvas.
-- **Body** (`{colors.body}` — #bbbbbb): Default running-text color (slightly cooler than pure white). Used for body paragraphs and secondary metadata.
-- **Body Strong** (`{colors.body-strong}` — #e6e6e6): Emphasized body / lead paragraph.
-- **Muted** (`{colors.muted}` — #7e7e7e): Footer links, breadcrumbs, captions.
+### Text & Ink
+- **Primary Ink** (`{colors.ink}` — #0f3d28): Display headlines and primary numerical readouts.
+- **Body Text** (`{colors.body}` — #283e32): Running body text with high legibility and soft contrast.
+- **Muted Label** (`{colors.muted}` — #5d7567): Secondary metadata, unit labels, and captions.
 
-### Semantic
-- **Warning** (`{colors.warning}` — #f4b400): Used very sparingly on technical-warning callouts.
-- **Success** (`{colors.success}` — #0fa336): Confirmation states.
+---
 
 ## Typography
 
 ### Font Family
-**NeuroCross Type Next Latin** is the display + body typeface standard. The system uses two cuts: regular and Light. The open fallback stack walks `Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`.
+- Primary: **Inter**, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif.
+- Display Cut: **700 (Bold)** UPPERCASE for headlines, metrics, and navigation.
+- Body Cut: **300 (Light)** for technical descriptions, status messages, and parameters.
+- Contrast Principle: Bold 700 uppercase display juxtaposed against ultra-clean 300 light body.
+- Tracking: 1.5px letter-spacing on all buttons, metric labels, and category badges.
 
-The split is a deliberate weight-pair:
-- Display (700) for headlines, navigation labels, button text, and category labels — the "stamped" voice
-- Light (300) for body paragraphs, descriptive copy, and secondary metadata — the "engineered" voice
-
-The contrast between heavy display and light body is NeuroCross's editorial signature — never blur it by using regular (400) display or medium (500) body.
-
-### Hierarchy
-
-| Token | Size | Weight | Line Height | Letter Spacing | Use |
-|---|---|---|---|---|---|
-| `{typography.display-xl}` | 80px | 700 | 1.0 | 0 | Hero h1 ("THE ULTIMATE SIMULATION", "MORE NEUROCROSS.") |
-| `{typography.display-lg}` | 56px | 700 | 1.05 | 0 | Section heads ("MORE FROM NEUROCROSS MAGAZINE.") |
-| `{typography.display-md}` | 40px | 700 | 1.1 | 0 | Sub-section heads, model & engine names |
-| `{typography.display-sm}` | 32px | 700 | 1.15 | 0 | CTA-band heads, category page titles |
-| `{typography.title-lg}` | 24px | 700 | 1.3 | 0 | Card titles in 3-up grids |
-| `{typography.title-md}` | 20px | 400 | 1.4 | 0 | Card sub-titles, lead paragraphs |
-| `{typography.title-sm}` | 18px | 400 | 1.4 | 0 | Spec callouts, intro paragraphs |
-| `{typography.label-uppercase}` | 14px | 700 | 1.3 | 1.5px | Category tabs, "VIEW MORE" inline labels |
-| `{typography.body-md}` | 16px | 300 (Light) | 1.5 | 0 | Default body — Type Next Latin Light |
-| `{typography.body-sm}` | 14px | 300 (Light) | 1.5 | 0 | Footer body, consent, fine print |
-| `{typography.caption}` | 12px | 400 | 1.4 | 0.5px | Captions, credit lines |
-| `{typography.button}` | 14px | 700 | 1.0 | 1.5px | All button labels — uppercase, letterspaced |
-| `{typography.nav-link}` | 14px | 400 | 1.4 | 0.5px | Top-nav menu items |
-
-### Principles
-The system contrasts heavy headlines (700) against very light body (300) at all times — the gap is the editorial signature. Letter-spacing is non-trivial: button labels and category labels carry 1.5px tracking that makes them feel "machined" rather than "typed." Display headlines stay at 0 letter-spacing — natural cap-height handles spacing on large sizes.
-
-UPPERCASE display is the default voice for h1/h2 — sentence case appears on body and intro paragraphs but rarely on headlines. The all-caps treatment is a brand-voice signal, not a stylistic choice.
-
-### Note on Font Substitutes
-If NeuroCross Type Next Latin is unavailable, **Inter** (variable) at 700/300 is the primary open-source substitute. Adjust display headline tracking to -0.5px to match tighter spacing at large sizes. **Saira Condensed** is an alternative for headlines if a slightly more compressed feel is desired.
-
-## Layout
-
-### Spacing System
-- **Base unit:** 4px.
-- **Tokens:** `{spacing.xxs}` 4px · `{spacing.xs}` 8px · `{spacing.sm}` 12px · `{spacing.md}` 16px · `{spacing.lg}` 24px · `{spacing.xl}` 40px · `{spacing.xxl}` 64px · `{spacing.section}` 96px.
-- **Section padding (vertical):** `{spacing.section}` (96px) between major editorial bands.
-- **Hero visual bands:** `{spacing.xxl}` (64px) internal vertical padding around the hero h1 + sub-headline pair.
-- **Card internal padding:** `{spacing.lg}` (24px) for content and model cards; `{spacing.xl}` (40px) for spec-cell tables.
-- **Gutters:** `{spacing.lg}` (24px) between cards in 3-up grids; `{spacing.md}` (16px) inside footer columns.
-
-### Grid & Container
-- **Max content width:** ~1440px centered on marketing and app pages — wider than typical SaaS to give visuals breathing room.
-- **Editorial body:** Single 12-column grid; visual bands bleed full-bleed (no max-width).
-- **Card grids:** 3-up at desktop, 2-up at tablet, 1-up at mobile.
-- **Footer:** 4-column link list at desktop, 2-up at tablet, 1-up at mobile.
-
-### Whitespace Philosophy
-NeuroCross trusts high-fidelity visualization and photography to do the visual work. Whitespace around visual elements is restrained — the subjects fill the frame, and copy sits below or beside them in tightly-aligned columns. Where whitespace appears (between body sections, around CTAs), it's always uniform `{spacing.section}` (96px). The system never adds atmospheric backdrops, gradients, or decoration — empty space stays as empty black canvas.
-
-## Elevation & Depth
-
-| Level | Treatment | Use |
-|---|---|---|
-| Flat | No shadow, no border | Body sections, top nav, footer, visual bands |
-| Soft hairline | 1px `{colors.hairline}` border | Section dividers, card outlines, table rows |
-| Card surface | `{colors.surface-card}` background over canvas — no shadow | Feature cards, telemetry cards, assistant launcher |
-| Photographic & Visual depth | Full-bleed visuals with edge-to-edge crop | Hero bands, telemetry corridors — depth via subject matter, not chrome |
-
-The system uses no drop shadows and no layered chrome. Depth comes entirely from visuals (subject + lighting + contrast) and the contrast between black canvas and slightly-elevated `{colors.surface-card}`.
-
-### Decorative Depth
-- **NeuroCross Stripe Divider** (`{component.m-stripe-divider}`): A 4px-tall horizontal divider carrying the tricolor (`{colors.m-blue-light}` → `{colors.m-blue-dark}` → `{colors.m-red}`). Used on telemetry chrome, model/corridor headers, and brand-identity moments. The stripe is the system's only true "decorative" element — used sparingly to mark significance.
-- **Carbon-fiber surfaces**: The technical-spec surface uses `{colors.carbon-gray}` (#2b2b2b) cells with subtle texture overlay.
-- **Visual depth**: Full-bleed vehicles and simulation flows are the depth. Lighting in the simulation/imagery does the elevation work that drop shadows would do in a SaaS system.
-
-## Shapes
-
-### Border Radius Scale
-
-| Token | Value | Use |
-|---|---|---|
-| `{rounded.none}` | 0px | All buttons, cards, photo/canvas containers, spec cells, inputs — the dominant radius |
-| `{rounded.xs}` | 2px | Almost no use — reserved for legal CTAs |
-| `{rounded.sm}` | 4px | Small toggle pills on configurator/controller surfaces |
-| `{rounded.md}` | 6px | Rare — small dropdown menu items |
-| `{rounded.full}` | 9999px / 50% | Circular icon buttons, carousel arrows, assistant launcher |
-
-The radius hierarchy is "almost always 0, sometimes circular." This binary radius decision is a deliberate brand-language choice — sharp rectangles read as engineered precision; circles read as functional controls. Nothing in between.
-
-### Imagery Geometry
-Hero visuals fill full-width with no rounding. Visual cards inside grids retain `{rounded.none}` corners, edge-to-edge images. Detail shots and corridor simulation views use 16:9 or 21:9 cinema-aspect ratios. Operator and driver portraits use 4:5 portrait crops, also with sharp corners.
+---
 
 ## Components
 
-### Top Navigation
+### Status Header (`status-header`)
+- Background: Luminous white (`#ffffff`/95) with subtle backdrop blur and hairline border (`#d1ded5`).
+- Brand Mark: **NEUROCROSS** in deep pine (`#0f3d28`) accompanied by the 3-color botanical stripe.
+- Status Badge: Emerald green pulse indicator (`#16a34a`) signaling continuous 60Hz physics telemetry.
 
-**`top-nav`** — Black nav bar pinned to the top of every page. 64px tall, `{colors.canvas}` background. Carries the NeuroCross logo at left (tricolor stripe + roundel / wordmark), primary horizontal menu (Models, Layouts, Telemetry, Configurator, Fastlane), right-side cluster with language selector, search icon, account icon. Menu items render in `{typography.nav-link}` with sentence-case labels.
+### Telemetry Spec Cells (`spec-cell`)
+- Background: Pure white (`#ffffff`) with 1px border (`#d1ded5`) and subtle shadow.
+- Metrics: 28px bold numerals in deep forest green with 10px uppercase 1.5px-tracked labels.
+- Accents: Dynamic botanical accents (`#16a34a`, `#0f3d28`, `#84cc16`).
 
-### Buttons
+### Controls Panel (`controls-panel`)
+- Background: Crisp laboratory white (`#ffffff`) with clean section dividers (`#ebf1ec`).
+- Sliders & Toggles: Botanical green active tracks (`#16a34a`) with sharp rectangular thumbs.
+- Preset Selectors: Flat outline buttons with deep pine hover states.
 
-**`button-primary`** — The signature primary CTA. Background `{colors.canvas}` (or transparent over imagery), text `{colors.on-dark}` (white), 1px white border outline, rounded `{rounded.none}` (0px), padding 16px × 32px, height 48px. Type `{typography.button}` — uppercase 14px / 700 / 1.5px tracking. The rectangular silhouette and uppercase letterspaced label IS the brand button.
+### 3D Environmental Proving Ground (`three-road-layer`)
+- Turf Floor: Rich green meadow plane with manicured gridlines.
+- Architecture: Scandinavian eco-pavilions with light wood facades and solar glass ribbons.
+- Foliage: Multi-tiered pine and deciduous trees framing the test corridors.
+- Roads: Precision mineral asphalt with double white lane dividers and emerald curb markers.
+- Lighting: Clear daylight sun with soft directional shadows and sky-fill bounce.
 
-**`button-primary-outline`** — Same shape as primary but with transparent background and white outline only. Used over imagery where a filled button would clash with the background.
-
-**`button-on-light`** — Used on rare light-surface contexts (configurator, dialogs). Background `{colors.canvas}`, text `{colors.on-dark}` — black button with white text, inverted from the dark-canvas default.
-
-**`button-icon`** — Circular icon buttons (carousel controls, share, favorite). 48 × 48px, background `{colors.surface-card}`, white icon centered, rounded `{rounded.full}`. The only non-rectangular button shape in the system.
-
-**`carousel-arrow`** — Specific 48 × 48 circular arrow used in carousels. Same shape as `{component.button-icon}` with chevron glyph.
-
-**`text-link`** — Inline uppercase letterspaced links ("VIEW ALL MODELS", "EXPLORE ENGINE", "READ MORE"). `{typography.label-uppercase}`, white on dark, no underline. The chevron arrow → glyph appears next to most link labels.
-
-### Cards & Containers
-
-**`hero-photo-band`** — Full-width black band with full-bleed simulation or automotive imagery filling most of the frame. The h1 uses `{typography.display-xl}` (80px / 700) and sits left-aligned over the image, often with a small subtitle in `{typography.body-md}` below. Vertical padding `{spacing.xxl}` (64px). No card frame — the imagery IS the band.
-
-**`feature-photo-card`** — Used in 3-up grids for "MORE FROM NEUROCROSS MAGAZINE" and editorial sections. Background `{colors.surface-card}`, rounded `{rounded.none}`, internal padding `{spacing.lg}` (24px). Top half of the card is a 16:9 image (full-bleed within the card); below the image, a category tag in `{typography.label-uppercase}`, a `{typography.title-lg}` title, and a short body description.
-
-**`model-card`** — Used in the "MORE NEUROCROSS MODELS & ENGINES" 3-up grid. Background `{colors.canvas}` (no card surface — just imagery on black), rounded `{rounded.none}`. Top: 16:10 hero shot of the model/layout. Below: model name in `{typography.display-md}` (40px / 700), short specs line in `{typography.body-sm}`, a `{component.text-link}` ("EXPLORE THIS MODEL").
-
-**`magazine-article-card`** — A more text-forward card variant used on the overview page. Background `{colors.canvas}` with hairline border, rounded `{rounded.none}`. Carries a small thumbnail at top, a category label in `{typography.label-uppercase}`, headline in `{typography.title-lg}`, and a technical excerpt.
-
-**`spec-cell`** — Technical specification cells used on model and simulation detail pages (throughput, latency, speed, vehicle dynamics). Background `{colors.surface-soft}` (#0d0d0d), rounded `{rounded.none}`, padding `{spacing.lg}` (24px). Each cell holds a value in `{typography.display-sm}` (32px / 700) at top and a label in `{typography.label-uppercase}` below.
-
-**`motorsport-photo-card`** — Edge-to-edge photo cards used in telemetry and performance sections. No card surface — just a full-bleed visual with a small overlay caption in white text at the bottom-left.
-
-**`chatbot-launcher`** — A right-side card-style entry point ("NEUROCROSS ASSISTANT") on the dashboard/homepage. Background `{colors.surface-card}`, rounded `{rounded.none}`, padding `{spacing.lg}` (24px). Carries an h3 title, a short prompt, and a `{component.button-primary}` to launch.
-
-**`category-tab`** + **`category-tab-active`** — The category selector tabs used on layouts and control pages (e.g., "ALL · CORRIDOR · ROUNDABOUT · T-JUNCTION · TELEMETRY"). Tabs render as text-only labels in `{typography.label-uppercase}`. Active state changes text color from `{colors.body}` to `{colors.on-dark}` and adds a 2px white underline below the label. No background fill, no rounded corners.
-
-### Inputs & Forms
-
-**`text-input`** — Standard text input on dark surfaces. Background `{colors.surface-card}`, text `{colors.on-dark}`, type `{typography.body-md}`, rounded `{rounded.none}` (0px), padding 12px × 16px, height 48px. 1px hairline border. Focus state thickens the border to white.
-
-**`cookie-consent-card`** — A right-side consent banner card. Background `{colors.canvas}` with 1px hairline, rounded `{rounded.none}`, padding `{spacing.lg}` (24px). Body text in `{typography.body-sm}` (14px / 300) — Light weight even for legal text. Two buttons stacked at bottom: primary outline + text-link.
-
-### Signature Components
-
-**`m-stripe-divider`** — The 4px horizontal stripe carrying the NeuroCross tricolor (`{colors.m-blue-light}` → `{colors.m-blue-dark}` → `{colors.m-red}`). Used as a divider on telemetry chrome, between brand-identity sections, and as a hover-state indicator on category tabs. The most distinctive non-typographic element in the system.
-
-**`cta-band-photo`** — A pre-footer CTA band carrying full-bleed visual of a vehicle/corridor test, with a centered headline in `{typography.display-md}` and a `{component.button-primary-outline}` below. Vertical padding 80px.
-
-### Footer
-
-**`footer`** — Black footer that closes every page. Background `{colors.canvas}`, text `{colors.body}`. 4-column link list at desktop covering NeuroCross Models / Telemetry & Engine / Sandbox / Organization. Vertical padding 64px. Bottom row carries the NeuroCross corporate disclaimer in `{typography.caption}` and language selector. The footer never inverts — it stays black even when the body might transition.
+---
 
 ## Do's and Don'ts
 
-### Do
-- Anchor every page with full-bleed imagery and simulation visualization. Visual energy carries the brand voltage; chrome backs off.
-- Use UPPERCASE display headlines in `{typography.display-xl}` or `{typography.display-lg}`. Sentence-case display reads as off-brand.
-- Pair heavy display (700) with light body (300). The weight contrast is the editorial signature.
-- Reserve the NeuroCross tricolor stripe for brand-identity moments — wordmark accents, telemetry chrome, model badges. Never as a button fill or surface.
-- Use `{rounded.none}` (0px) by default. Reserve `{rounded.full}` for circular icon buttons only.
-- Letter-space all-caps labels at 1.5px. The "machined" feel is non-negotiable.
-- Use `{spacing.section}` (96px) between major editorial bands for grid-aligned vertical rhythm.
+### Do:
+- Embrace clean white and natural stone surfaces (`#f4f7f4` / `#ffffff`) with vibrant botanical greens.
+- Keep the signature 0px border radius (`rounded-none`) for engineered precision.
+- Use 1.5px letter-spacing on all-caps buttons, tags, and category labels.
+- Populate the 3D scene with abundant trees, sunlight, and organic textures.
 
-### Don't
-- Don't introduce a brand color outside the tricolor (`{colors.m-blue-light}` / `{colors.m-blue-dark}` / `{colors.m-red}`) and the heritage `{colors.neurocross-blue}`.
-- Don't bold body type. Body stays at 300 (Light) — bumping to 400 or 500 makes the page feel marketing-bombastic instead of high-precision engineered.
-- Don't use rounded buttons. The rectangular silhouette IS the brand. Rounded corners read as consumer-tech, not motorsport/precision engineering.
-- Don't put gradient backdrops behind hero type. The hero IS the visual — the page floor stays pure black, and the imagery provides the depth.
-- Don't repeat the same surface mode in two consecutive bands. Rhythm: visual band → spec table → visual band → content grid → visual band.
-- Don't use the tricolor stripe as a button fill. The stripe is a divider / accent — never an action surface.
-- Don't bold uppercase tracking under 1.5px on button labels — the spacing is what makes them feel "machined."
-
-## Responsive Behavior
-
-### Breakpoints
-
-| Name | Width | Key Changes |
-|---|---|---|
-| Mobile | < 768px | Hamburger nav; hero h1 scales 80→48px; demo grid 1-up; cards stack full-width; footer 4 cols → 1 |
-| Tablet | 768–1024px | Top nav stays horizontal but tightens; 2-up card grids; spec tables 2-up |
-| Desktop | 1024–1440px | Full top-nav; 3-up card grids; spec tables 4-up |
-| Wide | > 1440px | Same as desktop with more breathing room; max content 1440px |
-
-### Touch Targets
-- `{component.button-primary}` renders at 48 × 48px minimum — meets WCAG AAA.
-- `{component.button-icon}` and `{component.carousel-arrow}` are exactly 48 × 48 — comfortably above the 44 × 44 minimum.
-- `{component.text-input}` height is 48px.
-- Category tabs render as text-only labels with 12px vertical padding; effective tap area meets 44px with surrounding spacing.
-
-### Collapsing Strategy
-- Top nav collapses to a hamburger sheet at < 768px; the menu opens as a full-screen black overlay with the tricolor stripe at the top.
-- Imagery stays full-bleed at every breakpoint — never collapses to a margin'd container.
-- Card grids reduce columns rather than scaling cards down; visuals retain native aspect ratio.
-- Spec tables collapse from 4-up to 2-up to 1-up; spec values stay at `{typography.display-sm}` regardless of column count.
-- The tricolor stripe divider stays at 4px height across all breakpoints.
-
-### Image Behavior
-- Hero imagery crops responsively — wider crops at desktop, vertical crops on mobile.
-- Simulation and telemetry visuals retain native aspect ratios; the system never letterboxes or pillarboxes.
-- The NeuroCross wordmark + tricolor logo scales proportionally with viewport width.
-
-## Iteration Guide
-
-1. Focus on ONE component at a time. Reference its YAML key (`{component.hero-photo-band}`, `{component.spec-cell}`).
-2. New components default to `{rounded.none}` (0px). Only use `{rounded.full}` if it's a circular icon button.
-3. Variants (`-active`, `-disabled`) live as separate entries in `components:`.
-4. Use `{token.refs}` everywhere — never inline hex.
-5. Never document hover states. Default and Active/Pressed only.
-6. Display headlines stay UPPERCASE 700; body stays sentence-case 300. Never blur the contrast.
-7. The NeuroCross tricolor is brand-identity-only — never extend it to system tokens for "primary action."
-8. When in doubt about emphasis: bigger visuals before bigger type.
-
-## Known Gaps
-
-- The frequency analyzer captured white text as the highest-frequency token. The black canvas was confirmed — the page is unambiguously black-on-white-text.
-- The exact tricolor stops are canonical (#0066b1, #1c69d4, #e22718) based on the high-performance brand spec.
-- Type Next Latin weight axis values beyond Light (300) and regular (700) are not documented — only the static weights observed.
-- Form validation states beyond `{component.text-input}` defaults are not extracted — error / success input variants would need an expanded config flow.
+### Don't:
+- Don't use heavy pure-black backgrounds (`#000000`).
+- Don't round button corners or card edges.
+- Don't blur the contrast between 700 bold display and 300 light body copy.
+- Don't use heavy un-optimized dynamic lights in the 3D canvas that degrade performance.

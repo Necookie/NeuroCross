@@ -89,7 +89,7 @@ export const useSimulation = () => {
         console.error('Simulation error:', err);
       }
 
-      const tickMs = Math.max(16, 100 / simSpeedRef.current);
+      const tickMs = Math.max(16, 50 / simSpeedRef.current);
       timeoutRef.current = setTimeout(tick, tickMs);
     };
 

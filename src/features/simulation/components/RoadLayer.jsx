@@ -17,8 +17,8 @@ const CurbStripe = ({ style, horizontal = false }) => (
   <div
     className={`absolute z-[4] pointer-events-none ${
       horizontal
-        ? 'bg-[repeating-linear-gradient(90deg,#0066b1_0_8px,#ffffff_8px_16px,#e22718_16px_24px)]'
-        : 'bg-[repeating-linear-gradient(180deg,#0066b1_0_8px,#ffffff_8px_16px,#e22718_16px_24px)]'
+        ? 'bg-[repeating-linear-gradient(90deg,#0f3d28_0_8px,#ffffff_8px_16px,#16a34a_16px_24px)]'
+        : 'bg-[repeating-linear-gradient(180deg,#0f3d28_0_8px,#ffffff_8px_16px,#16a34a_16px_24px)]'
     } shadow-sm opacity-90`}
     style={style}
   />
@@ -150,20 +150,20 @@ const SingleRoundaboutBackdrop = memo(() => {
       <div className="absolute z-[1] rounded-full bg-[#11141a] border border-[#333333] shadow-inner" style={{ left: '50%', top: '50%', width: `${capSize}%`, aspectRatio: '1 / 1', transform: 'translate(-50%, -50%)' }} />
       <div className="absolute z-[3] rounded-full border border-dashed border-white/30" style={{ left: '50%', top: '50%', width: '26%', aspectRatio: '1 / 1', transform: 'translate(-50%, -50%)' }} />
 
-      {/* High-Tech Center Island with M-Tricolor Core Ring */}
-      <div className="absolute z-[2] rounded-full border border-[#3c3c3c] bg-[#07090c] shadow-2xl" style={{ left: '50%', top: '50%', width: '16%', aspectRatio: '1 / 1', transform: 'translate(-50%, -50%)' }}>
-        <div className="w-full h-full rounded-full border border-[#222222] flex items-center justify-center relative overflow-hidden">
+      {/* High-Tech Center Island with Botanical Eco-Tricolor Core Ring */}
+      <div className="absolute z-[2] rounded-full border border-[#d1ded5] bg-[#315736] shadow-md" style={{ left: '50%', top: '50%', width: '16%', aspectRatio: '1 / 1', transform: 'translate(-50%, -50%)' }}>
+        <div className="w-full h-full rounded-full border border-[#2a4a2f] flex items-center justify-center relative overflow-hidden">
           {/* Concentric telemetry rings */}
-          <div className="w-16 h-16 rounded-full border border-white/10 flex items-center justify-center">
-            <div className="w-10 h-10 rounded-full border border-[#1c69d4]/40 flex items-center justify-center">
-              <div className="w-4 h-4 rounded-full bg-[#0066b1] border border-white/80 animate-pulse shadow-[0_0_8px_#0066b1]" />
+          <div className="w-16 h-16 rounded-full border border-white/20 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-full border border-[#16a34a]/50 flex items-center justify-center">
+              <div className="w-4 h-4 rounded-full bg-[#22c55e] border border-white/80 animate-pulse shadow-[0_0_8px_#22c55e]" />
             </div>
           </div>
-          {/* M-Stripe Accents on Island */}
+          {/* Eco-Stripe Accents on Island */}
           <div className="absolute bottom-1 w-8 h-1 flex rounded-none overflow-hidden">
-            <div className="flex-1 bg-[#0066b1]" />
-            <div className="flex-1 bg-[#1c69d4]" />
-            <div className="flex-1 bg-[#e22718]" />
+            <div className="flex-1 bg-[#0f3d28]" />
+            <div className="flex-1 bg-[#16a34a]" />
+            <div className="flex-1 bg-[#84cc16]" />
           </div>
         </div>
       </div>
@@ -241,7 +241,7 @@ const RoadLayer = ({
   return (
     <div
       onClick={() => onSelectVehicle?.(null)}
-      className="relative w-full bg-[#08090c] rounded-none border border-[#3c3c3c] overflow-hidden shadow-2xl select-none"
+      className="relative w-full bg-[#3b6641] rounded-none border border-[#d1ded5] overflow-hidden shadow-sm select-none"
       style={{ aspectRatio: '2 / 1' }}
     >
       {/* Weather atmospheric overlays */}

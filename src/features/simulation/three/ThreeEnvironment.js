@@ -2,72 +2,79 @@ import * as THREE from 'three';
 
 // Shared Materials for Environment & Props
 const asphaltMaterial = new THREE.MeshStandardMaterial({
-  color: 0x12151b,
+  color: 0x252d27, // Dark mineral eco-asphalt
   roughness: 0.85,
   metalness: 0.1,
 });
 
 const groundMaterial = new THREE.MeshStandardMaterial({
-  color: 0x06070a,
+  color: 0x4a784e, // Lush Meadow Grass
   roughness: 0.95,
   metalness: 0.05,
 });
 
 const curbMaterial = new THREE.MeshStandardMaterial({
-  color: 0x22262e,
-  roughness: 0.7,
-  metalness: 0.2,
+  color: 0xcfdcd3, // Clean stone kerb
+  roughness: 0.6,
+  metalness: 0.15,
 });
 
-const whitePaintMaterial = new THREE.MeshStandardMaterial({
+const whitePaintMaterial = new THREE.MeshBasicMaterial({
   color: 0xffffff,
-  roughness: 0.4,
-  emissive: 0xffffff,
-  emissiveIntensity: 0.15,
 });
 
-const dashedLineMaterial = new THREE.MeshStandardMaterial({
-  color: 0xdddddd,
-  roughness: 0.4,
-  emissive: 0xdddddd,
-  emissiveIntensity: 0.15,
+const dashedLineMaterial = new THREE.MeshBasicMaterial({
+  color: 0xe2ece5,
 });
 
 const metalPoleMaterial = new THREE.MeshStandardMaterial({
-  color: 0x1f232b,
+  color: 0x37473e,
   roughness: 0.4,
-  metalness: 0.85,
-});
-
-const barrierMaterial = new THREE.MeshStandardMaterial({
-  color: 0x2b303c,
-  roughness: 0.5,
-  metalness: 0.7,
-});
-
-const buildingMaterial = new THREE.MeshStandardMaterial({
-  color: 0x0d1017,
-  roughness: 0.3,
   metalness: 0.8,
 });
 
+const barrierMaterial = new THREE.MeshStandardMaterial({
+  color: 0x5a7063,
+  roughness: 0.5,
+  metalness: 0.6,
+});
+
+const buildingWoodMaterial = new THREE.MeshStandardMaterial({
+  color: 0xc2a67e, // Light natural timber facade
+  roughness: 0.7,
+  metalness: 0.1,
+});
+
+const buildingWhiteMaterial = new THREE.MeshStandardMaterial({
+  color: 0xf0f5f1, // Eco white composite
+  roughness: 0.3,
+  metalness: 0.2,
+});
+
 const buildingGlassMaterial = new THREE.MeshStandardMaterial({
-  color: 0x082038,
+  color: 0x164e35, // Solar green photovoltaic glass
   roughness: 0.1,
-  metalness: 0.95,
-  emissive: 0x041020,
-  emissiveIntensity: 0.3,
+  metalness: 0.9,
 });
 
 const treeTrunkMaterial = new THREE.MeshStandardMaterial({
-  color: 0x1a1510,
+  color: 0x3e2c1e, // Natural bark
   roughness: 0.9,
 });
 
-const foliageMaterial = new THREE.MeshStandardMaterial({
-  color: 0x153020,
+const foliageDarkMaterial = new THREE.MeshStandardMaterial({
+  color: 0x1b4d2e, // Deep pine green
   roughness: 0.8,
-  metalness: 0.1,
+});
+
+const foliageLightMaterial = new THREE.MeshStandardMaterial({
+  color: 0x2e7d32, // Vibrant leaf green
+  roughness: 0.8,
+});
+
+const foliageSproutMaterial = new THREE.MeshStandardMaterial({
+  color: 0x43a047, // Fresh meadow green
+  roughness: 0.75,
 });
 
 export class ThreeEnvironment {
@@ -87,7 +94,7 @@ export class ThreeEnvironment {
   }
 
   _buildInfiniteFloor() {
-    // Horizon Ground Plane
+    // Proving Ground Meadow Floor
     const floorGeo = new THREE.PlaneGeometry(800, 800);
     floorGeo.rotateX(-Math.PI / 2);
     const floor = new THREE.Mesh(floorGeo, groundMaterial);
@@ -95,87 +102,90 @@ export class ThreeEnvironment {
     floor.receiveShadow = true;
     this.scene.add(floor);
 
-    // Subtle Grid overlay around perimeter
-    const grid = new THREE.GridHelper(600, 60, 0x1a202c, 0x0f141d);
+    // Subtle Eco Meadow Grid
+    const grid = new THREE.GridHelper(600, 60, 0x5a8c5f, 0x416d45);
     grid.position.y = 0.01;
     this.scene.add(grid);
   }
 
   /**
    * Sets up lighting according to atmospheric weather
+   * High performance: 1 Directional Sun + 1 Soft Hemisphere bounce
    */
   setupAtmosphere(weather = 'sunny') {
-    // Clear previous lights
     while (this.lightsGroup.children.length > 0) {
       const obj = this.lightsGroup.children[0];
       this.lightsGroup.remove(obj);
       if (obj.geometry) obj.geometry.dispose();
     }
 
-    let ambientColor = 0xffffff;
-    let ambientIntensity = 0.85;
-    let dirColor = 0xffffff;
-    let dirIntensity = 1.4;
+    let sunColor = 0xfffdf2;
+    let sunIntensity = 1.35;
+    let skyColor = 0xdcf0e4;
+    let groundColor = 0x3d6642;
+    let hemiIntensity = 0.85;
 
     if (weather === 'rain') {
-      ambientColor = 0x8898b8;
-      ambientIntensity = 0.5;
-      dirColor = 0xa0b0d0;
-      dirIntensity = 0.7;
+      sunColor = 0xb4c8bd;
+      sunIntensity = 0.65;
+      skyColor = 0xa4beaf;
+      groundColor = 0x2a4731;
+      hemiIntensity = 0.6;
       this._createRain();
     } else if (weather === 'night') {
-      ambientColor = 0x141a28;
-      ambientIntensity = 0.25;
-      dirColor = 0x203555;
-      dirIntensity = 0.3;
+      sunColor = 0x1b3528;
+      sunIntensity = 0.3;
+      skyColor = 0x0f241a;
+      groundColor = 0x081710;
+      hemiIntensity = 0.4;
       this._removeRain();
     } else {
       this._removeRain();
     }
 
-    const ambient = new THREE.AmbientLight(ambientColor, ambientIntensity);
-    const dirLight = new THREE.DirectionalLight(dirColor, dirIntensity);
-    dirLight.position.set(80, 140, 60);
+    // Natural Sky & Ground Light Bounce
+    const hemiLight = new THREE.HemisphereLight(skyColor, groundColor, hemiIntensity);
+    hemiLight.position.set(0, 150, 0);
+
+    // Optimized Directional Sunlight with 1024x1024 shadow map
+    const dirLight = new THREE.DirectionalLight(sunColor, sunIntensity);
+    dirLight.position.set(70, 130, 50);
     dirLight.castShadow = true;
-    dirLight.shadow.mapSize.width = 2048;
-    dirLight.shadow.mapSize.height = 2048;
+    dirLight.shadow.mapSize.width = 1024;
+    dirLight.shadow.mapSize.height = 1024;
     dirLight.shadow.camera.near = 10;
-    dirLight.shadow.camera.far = 400;
-    dirLight.shadow.camera.left = -160;
-    dirLight.shadow.camera.right = 160;
-    dirLight.shadow.camera.top = 160;
-    dirLight.shadow.camera.bottom = -160;
-    dirLight.shadow.bias = -0.0005;
+    dirLight.shadow.camera.far = 350;
+    dirLight.shadow.camera.left = -150;
+    dirLight.shadow.camera.right = 150;
+    dirLight.shadow.camera.top = 150;
+    dirLight.shadow.camera.bottom = -150;
+    dirLight.shadow.bias = -0.0006;
 
-    this.lightsGroup.add(ambient, dirLight);
+    this.lightsGroup.add(hemiLight, dirLight);
 
-    // Add night street lighting if night or rain
-    if (weather === 'night' || weather === 'rain') {
-      this._addStreetlightPoles(true);
-    } else {
-      this._addStreetlightPoles(false);
-    }
+    // Add streetlight fixtures
+    this._addStreetlightPoles(weather === 'night' || weather === 'rain');
   }
 
   _createRain() {
     if (this.rainParticles) return;
-    const count = 2800;
+    const count = 1500; // Optimized count for 60fps
     const geometry = new THREE.BufferGeometry();
     const positions = new Float32Array(count * 3);
 
     for (let i = 0; i < count; i++) {
-      positions[i * 3] = (Math.random() - 0.5) * 400;
-      positions[i * 3 + 1] = Math.random() * 120;
-      positions[i * 3 + 2] = (Math.random() - 0.5) * 400;
+      positions[i * 3] = (Math.random() - 0.5) * 350;
+      positions[i * 3 + 1] = Math.random() * 100;
+      positions[i * 3 + 2] = (Math.random() - 0.5) * 350;
     }
 
     geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
 
     const material = new THREE.PointsMaterial({
-      color: 0x99bbdd,
-      size: 0.7,
+      color: 0x94bca4,
+      size: 0.6,
       transparent: true,
-      opacity: 0.65,
+      opacity: 0.5,
     });
 
     this.rainParticles = new THREE.Points(geometry, material);
@@ -195,9 +205,9 @@ export class ThreeEnvironment {
     if (!this.rainParticles) return;
     const pos = this.rainParticles.geometry.attributes.position.array;
     for (let i = 1; i < pos.length; i += 3) {
-      pos[i] -= dt * 90;
+      pos[i] -= dt * 75;
       if (pos[i] < 0) {
-        pos[i] = 120;
+        pos[i] = 100;
       }
     }
     this.rainParticles.geometry.attributes.position.needsUpdate = true;
@@ -207,7 +217,6 @@ export class ThreeEnvironment {
    * Rebuilds roads and props for intersection type
    */
   buildLayout(type = 'cross') {
-    // Clear road and props groups
     while (this.roadGroup.children.length > 0) {
       const o = this.roadGroup.children[0];
       this.roadGroup.remove(o);
@@ -233,28 +242,28 @@ export class ThreeEnvironment {
 
   // 1. 4-Way Cross Corridor Layout
   _buildCrossroads() {
-    const roadWidth = 96; // 384 * 0.25
+    const roadWidth = 96;
     const roadLen = 400;
 
-    // Horizontal Road (East-West)
+    // Horizontal Road
     const hRoadGeo = new THREE.PlaneGeometry(roadLen, roadWidth);
     hRoadGeo.rotateX(-Math.PI / 2);
     const hRoad = new THREE.Mesh(hRoadGeo, asphaltMaterial);
     hRoad.receiveShadow = true;
     this.roadGroup.add(hRoad);
 
-    // Vertical Road (North-South)
+    // Vertical Road
     const vRoadGeo = new THREE.PlaneGeometry(roadWidth, roadLen);
     vRoadGeo.rotateX(-Math.PI / 2);
     const vRoad = new THREE.Mesh(vRoadGeo, asphaltMaterial);
     vRoad.receiveShadow = true;
     this.roadGroup.add(vRoad);
 
-    // Lane Markings: Double Center White Lines
-    this._addRoadLine(0, 0, 400, 0.6, 0, '#ffffff'); // Horizontal center
-    this._addRoadLine(0, 0, 0.6, 400, 0, '#ffffff'); // Vertical center
+    // Double Center White Lines
+    this._addRoadLine(0, 0, 400, 0.6, 0, '#ffffff');
+    this._addRoadLine(0, 0, 0.6, 400, 0, '#ffffff');
 
-    // Dashed lines for 2 lanes each direction
+    // Dashed lines
     this._addDashedLine(0, -24, 400, 0.4, 0);
     this._addDashedLine(0, 24, 400, 0.4, 0);
     this._addDashedLine(-24, 0, 0.4, 400, 0);
@@ -262,43 +271,41 @@ export class ThreeEnvironment {
 
     // Stop Bars
     const stopOffset = 48;
-    this._addStopBar(-stopOffset, 24, 0.8, 48); // West approach stop bar
-    this._addStopBar(stopOffset, -24, 0.8, 48);  // East approach stop bar
-    this._addStopBar(-24, -stopOffset, 48, 0.8); // North approach stop bar
-    this._addStopBar(24, stopOffset, 48, 0.8);  // South approach stop bar
+    this._addStopBar(-stopOffset, 24, 0.8, 48);
+    this._addStopBar(stopOffset, -24, 0.8, 48);
+    this._addStopBar(-24, -stopOffset, 48, 0.8);
+    this._addStopBar(24, stopOffset, 48, 0.8);
 
-    // Zebra Crosswalks
+    // Crosswalks
     this._addZebraCrosswalk(-stopOffset - 6, 0, 6, 96, true);
     this._addZebraCrosswalk(stopOffset + 6, 0, 6, 96, true);
     this._addZebraCrosswalk(0, -stopOffset - 6, 96, 6, false);
     this._addZebraCrosswalk(0, stopOffset + 6, 96, 6, false);
 
-    // Curbs & Motorsport Rumble Strips at the 4 corner corners
-    this._addMotorsportCurbs(-stopOffset, -stopOffset, 1, 1);
-    this._addMotorsportCurbs(stopOffset, -stopOffset, -1, 1);
-    this._addMotorsportCurbs(-stopOffset, stopOffset, 1, -1);
-    this._addMotorsportCurbs(stopOffset, stopOffset, -1, -1);
+    // Eco Nature Rumble Curbs (Emerald Green & White)
+    this._addNatureCurbs(-stopOffset, -stopOffset, 1, 1);
+    this._addNatureCurbs(stopOffset, -stopOffset, -1, 1);
+    this._addNatureCurbs(-stopOffset, stopOffset, 1, -1);
+    this._addNatureCurbs(stopOffset, stopOffset, -1, -1);
 
-    // 3D Traffic Signal Gantries
-    this._addSignalGantry(-stopOffset - 4, -48, 'south'); // controls southbound traffic
-    this._addSignalGantry(stopOffset + 4, 48, 'north');   // controls northbound traffic
-    this._addSignalGantry(-48, stopOffset + 4, 'east');   // controls eastbound traffic
-    this._addSignalGantry(48, -stopOffset - 4, 'west');   // controls westbound traffic
+    // Signal Gantries
+    this._addSignalGantry(-stopOffset - 4, -48, 'south');
+    this._addSignalGantry(stopOffset + 4, 48, 'north');
+    this._addSignalGantry(-48, stopOffset + 4, 'east');
+    this._addSignalGantry(48, -stopOffset - 4, 'west');
   }
 
-  // 2. Roundabout Ring Layout
+  // 2. Roundabout Ring Layout with Botanical Island
   _buildRoundabout() {
     const ringInner = 26;
     const ringOuter = 58;
 
-    // Outer circular ring asphalt
-    const ringGeo = new THREE.RingGeometry(ringInner, ringOuter, 64);
+    const ringGeo = new THREE.RingGeometry(ringInner, ringOuter, 48);
     ringGeo.rotateX(-Math.PI / 2);
     const ring = new THREE.Mesh(ringGeo, asphaltMaterial);
     ring.receiveShadow = true;
     this.roadGroup.add(ring);
 
-    // 4 Road Spokes
     const armLen = 140;
     const armWidth = 32;
 
@@ -318,58 +325,58 @@ export class ThreeEnvironment {
 
     this.roadGroup.add(northArm, southArm, eastArm, westArm);
 
-    // Central Island Bevel & Beacon
+    // Central Botanical Island
     const islandCylinder = new THREE.Mesh(
-      new THREE.CylinderGeometry(ringInner, ringInner + 0.5, 1.2, 48),
+      new THREE.CylinderGeometry(ringInner, ringInner + 0.5, 1.2, 36),
       curbMaterial
     );
     islandCylinder.position.y = 0.6;
     islandCylinder.receiveShadow = true;
     this.roadGroup.add(islandCylinder);
 
-    // Center Core with M-Tricolor Bands
-    const coreCylinder = new THREE.Mesh(
-      new THREE.CylinderGeometry(ringInner * 0.7, ringInner * 0.7, 1.6, 32),
-      buildingMaterial
+    // Botanical Lawn Core
+    const turfCore = new THREE.Mesh(
+      new THREE.CylinderGeometry(ringInner * 0.95, ringInner * 0.95, 0.4, 32),
+      groundMaterial
     );
-    coreCylinder.position.y = 0.8;
-    this.roadGroup.add(coreCylinder);
+    turfCore.position.y = 1.1;
+    this.roadGroup.add(turfCore);
 
-    // Tricolor Rings
-    const stripeBlue = new THREE.Mesh(
-      new THREE.TorusGeometry(ringInner * 0.72, 0.25, 12, 48),
-      new THREE.MeshStandardMaterial({ color: 0x0066b1, emissive: 0x0066b1, emissiveIntensity: 1.5 })
+    // Eco Tricolor Rings (Pine -> Emerald -> Sprout)
+    const stripePine = new THREE.Mesh(
+      new THREE.TorusGeometry(ringInner * 0.72, 0.25, 8, 36),
+      new THREE.MeshBasicMaterial({ color: 0x0f3d28 })
     );
-    stripeBlue.rotation.x = Math.PI / 2;
-    stripeBlue.position.y = 1.6;
+    stripePine.rotation.x = Math.PI / 2;
+    stripePine.position.y = 1.4;
 
-    const stripeDarkBlue = new THREE.Mesh(
-      new THREE.TorusGeometry(ringInner * 0.72, 0.25, 12, 48),
-      new THREE.MeshStandardMaterial({ color: 0x1c69d4, emissive: 0x1c69d4, emissiveIntensity: 1.5 })
+    const stripeEmerald = new THREE.Mesh(
+      new THREE.TorusGeometry(ringInner * 0.72, 0.25, 8, 36),
+      new THREE.MeshBasicMaterial({ color: 0x16a34a })
     );
-    stripeDarkBlue.rotation.x = Math.PI / 2;
-    stripeDarkBlue.position.y = 1.2;
+    stripeEmerald.rotation.x = Math.PI / 2;
+    stripeEmerald.position.y = 1.1;
 
-    const stripeRed = new THREE.Mesh(
-      new THREE.TorusGeometry(ringInner * 0.72, 0.25, 12, 48),
-      new THREE.MeshStandardMaterial({ color: 0xe22718, emissive: 0xe22718, emissiveIntensity: 1.5 })
+    const stripeSprout = new THREE.Mesh(
+      new THREE.TorusGeometry(ringInner * 0.72, 0.25, 8, 36),
+      new THREE.MeshBasicMaterial({ color: 0x84cc16 })
     );
-    stripeRed.rotation.x = Math.PI / 2;
-    stripeRed.position.y = 0.8;
+    stripeSprout.rotation.x = Math.PI / 2;
+    stripeSprout.position.y = 0.8;
 
-    this.roadGroup.add(stripeBlue, stripeDarkBlue, stripeRed);
+    this.roadGroup.add(stripePine, stripeEmerald, stripeSprout);
 
-    // Center Autonomous Tower
-    const towerMesh = new THREE.Mesh(new THREE.CylinderGeometry(1.5, 2.5, 14, 16), metalPoleMaterial);
+    // Solar Telemetry Beacon Tower
+    const towerMesh = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 2.0, 14, 12), metalPoleMaterial);
     towerMesh.position.set(0, 7.5, 0);
     const towerHead = new THREE.Mesh(
-      new THREE.SphereGeometry(2.0, 16, 16),
-      new THREE.MeshStandardMaterial({ color: 0x1c69d4, emissive: 0x1c69d4, emissiveIntensity: 2.0 })
+      new THREE.SphereGeometry(1.8, 12, 12),
+      new THREE.MeshBasicMaterial({ color: 0x22c55e })
     );
     towerHead.position.set(0, 14.5, 0);
     this.roadGroup.add(towerMesh, towerHead);
 
-    // Yield Signal Gantries on 4 legs
+    // Yield Signal Gantries
     this._addSignalGantry(20, -ringOuter - 5, 'south');
     this._addSignalGantry(-20, ringOuter + 5, 'north');
     this._addSignalGantry(ringOuter + 5, 20, 'west');
@@ -381,7 +388,6 @@ export class ThreeEnvironment {
     const roadWidth = 80;
     const roadLen = 400;
 
-    // Main Highway Corridor (East-West)
     const mainRoadGeo = new THREE.PlaneGeometry(roadLen, roadWidth);
     mainRoadGeo.rotateX(-Math.PI / 2);
     const mainRoad = new THREE.Mesh(mainRoadGeo, asphaltMaterial);
@@ -389,7 +395,6 @@ export class ThreeEnvironment {
     mainRoad.receiveShadow = true;
     this.roadGroup.add(mainRoad);
 
-    // Stem Road (South)
     const stemGeo = new THREE.PlaneGeometry(roadWidth, 140);
     stemGeo.rotateX(-Math.PI / 2);
     const stemRoad = new THREE.Mesh(stemGeo, asphaltMaterial);
@@ -397,16 +402,13 @@ export class ThreeEnvironment {
     stemRoad.receiveShadow = true;
     this.roadGroup.add(stemRoad);
 
-    // Markings
     this._addRoadLine(0, -20, 400, 0.6, 0, '#ffffff');
     this._addRoadLine(0, 70, 0.6, 140, 0, '#ffffff');
 
-    // Stop Bars
     this._addStopBar(-42, -20, 0.8, roadWidth);
     this._addStopBar(42, -20, 0.8, roadWidth);
     this._addStopBar(0, 20, roadWidth, 0.8);
 
-    // Signals
     this._addSignalGantry(-46, -60, 'east');
     this._addSignalGantry(46, 20, 'west');
     this._addSignalGantry(40, 24, 'north');
@@ -420,7 +422,7 @@ export class ThreeEnvironment {
       colorHex === '#ffffff' ? whitePaintMaterial : new THREE.MeshBasicMaterial({ color: colorHex })
     );
     mesh.position.set(x, 0.02, z);
-    mesh.rotation.y = angle;
+    if (angle) mesh.rotation.y = angle;
     this.roadGroup.add(mesh);
   }
 
@@ -429,7 +431,7 @@ export class ThreeEnvironment {
     geo.rotateX(-Math.PI / 2);
     const mesh = new THREE.Mesh(geo, dashedLineMaterial);
     mesh.position.set(x, 0.02, z);
-    mesh.rotation.y = angle;
+    if (angle) mesh.rotation.y = angle;
     this.roadGroup.add(mesh);
   }
 
@@ -441,11 +443,11 @@ export class ThreeEnvironment {
     this.roadGroup.add(mesh);
   }
 
-  _addZebraCrosswalk(x, z, w, d, isVertical = false) {
-    const stripes = 8;
+  _addZebraCrosswalk(x, z, w, d, isVertical) {
     const group = new THREE.Group();
-    group.position.set(x, 0.025, z);
+    group.position.set(x, 0.03, z);
 
+    const stripes = 8;
     for (let i = 0; i < stripes; i++) {
       const sw = isVertical ? w : (w / stripes) * 0.55;
       const sd = isVertical ? (d / stripes) * 0.55 : d;
@@ -464,11 +466,11 @@ export class ThreeEnvironment {
     this.roadGroup.add(group);
   }
 
-  _addMotorsportCurbs(x, z, dirX, dirZ) {
+  _addNatureCurbs(x, z, dirX, dirZ) {
     const curbBox = new THREE.Mesh(
       new THREE.BoxGeometry(18, 0.5, 4),
       new THREE.MeshStandardMaterial({
-        color: 0x0066b1,
+        color: 0x16a34a, // Vibrant Eco Green
         roughness: 0.6,
       })
     );
@@ -476,45 +478,41 @@ export class ThreeEnvironment {
     this.roadGroup.add(curbBox);
   }
 
-  // 3D Traffic Signal Gantries
+  // High-Efficiency Traffic Signal Gantries
   _addSignalGantry(x, z, directionCode) {
     const gantry = new THREE.Group();
     gantry.position.set(x, 0, z);
 
-    // Mast Pole
-    const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.6, 12, 12), metalPoleMaterial);
+    const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.55, 12, 8), metalPoleMaterial);
     mast.position.y = 6;
     mast.castShadow = true;
 
-    // Cantilever arm
-    const arm = new THREE.Mesh(new THREE.BoxGeometry(14, 0.6, 0.6), metalPoleMaterial);
+    const arm = new THREE.Mesh(new THREE.BoxGeometry(14, 0.5, 0.5), metalPoleMaterial);
     arm.position.set(5, 11.5, 0);
 
-    // Signal Housing (Rectangular black enclosure)
-    const housing = new THREE.Mesh(new THREE.BoxGeometry(2.0, 5.2, 1.6), metalPoleMaterial);
+    const housing = new THREE.Mesh(new THREE.BoxGeometry(1.8, 5.0, 1.4), metalPoleMaterial);
     housing.position.set(10, 9.5, 0);
 
-    // 3 Lenses: Red, Amber, Green
-    const lensGeo = new THREE.CylinderGeometry(0.65, 0.65, 0.25, 16);
+    const lensGeo = new THREE.CylinderGeometry(0.6, 0.6, 0.2, 12);
     lensGeo.rotateX(Math.PI / 2);
 
     const redLens = new THREE.Mesh(
       lensGeo,
-      new THREE.MeshStandardMaterial({ color: 0x220505, emissive: 0xe22718, emissiveIntensity: 2.5 })
+      new THREE.MeshBasicMaterial({ color: 0xdc2626 })
     );
-    redLens.position.set(10, 11.0, 0.8);
+    redLens.position.set(10, 11.0, 0.75);
 
     const amberLens = new THREE.Mesh(
       lensGeo,
-      new THREE.MeshStandardMaterial({ color: 0x221505, emissive: 0xf4b400, emissiveIntensity: 0.1 })
+      new THREE.MeshBasicMaterial({ color: 0x451a03 })
     );
-    amberLens.position.set(10, 9.5, 0.8);
+    amberLens.position.set(10, 9.5, 0.75);
 
     const greenLens = new THREE.Mesh(
       lensGeo,
-      new THREE.MeshStandardMaterial({ color: 0x052205, emissive: 0x0fa336, emissiveIntensity: 0.1 })
+      new THREE.MeshBasicMaterial({ color: 0x052e16 })
     );
-    greenLens.position.set(10, 8.0, 0.8);
+    greenLens.position.set(10, 8.0, 0.75);
 
     gantry.add(mast, arm, housing, redLens, amberLens, greenLens);
     this.roadGroup.add(gantry);
@@ -548,10 +546,9 @@ export class ThreeEnvironment {
         }
       }
 
-      // Update emissive intensity
-      light.redLens.material.emissiveIntensity = state === 'RED' ? 2.5 : 0.1;
-      light.amberLens.material.emissiveIntensity = state === 'YELLOW' ? 2.8 : 0.1;
-      light.greenLens.material.emissiveIntensity = state === 'GREEN' ? 2.5 : 0.1;
+      light.redLens.material.color.setHex(state === 'RED' ? 0xdc2626 : 0x450a0a);
+      light.amberLens.material.color.setHex(state === 'YELLOW' ? 0xf59e0b : 0x451a03);
+      light.greenLens.material.color.setHex(state === 'GREEN' ? 0x22c55e : 0x052e16);
     });
   }
 
@@ -567,126 +564,123 @@ export class ThreeEnvironment {
       const pole = new THREE.Group();
       pole.position.set(x, 0, z);
 
-      const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.45, 14, 8), metalPoleMaterial);
+      const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.4, 14, 8), metalPoleMaterial);
       shaft.position.y = 7;
 
-      const arm = new THREE.Mesh(new THREE.BoxGeometry(4.5, 0.3, 0.3), metalPoleMaterial);
+      const arm = new THREE.Mesh(new THREE.BoxGeometry(4.2, 0.25, 0.25), metalPoleMaterial);
       arm.position.set(x > 0 ? -2.0 : 2.0, 13.8, 0);
 
       const head = new THREE.Mesh(
-        new THREE.BoxGeometry(1.8, 0.3, 1.0),
-        new THREE.MeshStandardMaterial({
-          color: 0xffffff,
-          emissive: turnOnLights ? 0xfff0dd : 0x222222,
-          emissiveIntensity: turnOnLights ? 2.0 : 0.1,
+        new THREE.BoxGeometry(1.6, 0.25, 0.8),
+        new THREE.MeshBasicMaterial({
+          color: turnOnLights ? 0xfef08a : 0xcfdcd3,
         })
       );
       head.position.set(x > 0 ? -3.8 : 3.8, 13.6, 0);
 
       pole.add(shaft, arm, head);
-
-      if (turnOnLights) {
-        const spot = new THREE.SpotLight(0xffeedd, 1.2, 45, Math.PI / 4, 0.5, 2);
-        spot.position.set(x > 0 ? -3.8 : 3.8, 13.5, 0);
-        spot.target.position.set(x > 0 ? -3.8 : 3.8, 0, 0);
-        pole.add(spot);
-        pole.add(spot.target);
-      }
-
       this.propsGroup.add(pole);
     });
   }
 
-  // Peripheral Environmental Tech Architecture & Props
+  // Peripheral Environmental Eco-Pavilions, Canopies & Trees
   _buildEnvironmentalProps() {
-    // 1. Futuristic Tech Proving Ground Buildings in Periphery
+    // 1. Scandinavian Eco-Pavilions with Timber & Solar Glass
     const buildings = [
-      { x: -140, z: -110, w: 45, h: 28, d: 35 },
-      { x: 140, z: -110, w: 55, h: 36, d: 40 },
-      { x: -140, z: 110, w: 50, h: 32, d: 38 },
-      { x: 140, z: 110, w: 42, h: 25, d: 32 },
+      { x: -140, z: -110, w: 45, h: 26, d: 34 },
+      { x: 140, z: -110, w: 55, h: 32, d: 38 },
+      { x: -140, z: 110, w: 50, h: 28, d: 36 },
+      { x: 140, z: 110, w: 42, h: 24, d: 30 },
     ];
 
     buildings.forEach((b) => {
       const bGroup = new THREE.Group();
       bGroup.position.set(b.x, 0, b.z);
 
-      const bMesh = new THREE.Mesh(new THREE.BoxGeometry(b.w, b.h, b.d), buildingMaterial);
+      // Base Structure
+      const bMesh = new THREE.Mesh(new THREE.BoxGeometry(b.w, b.h, b.d), buildingWhiteMaterial);
       bMesh.position.y = b.h / 2;
       bMesh.castShadow = true;
       bMesh.receiveShadow = true;
 
-      // Illuminated Ribbon Windows
-      const glass = new THREE.Mesh(new THREE.BoxGeometry(b.w + 0.4, b.h * 0.4, b.d + 0.4), buildingGlassMaterial);
-      glass.position.y = b.h * 0.6;
+      // Timber Facade Ribbons
+      const timber = new THREE.Mesh(new THREE.BoxGeometry(b.w + 0.3, b.h * 0.3, b.d + 0.3), buildingWoodMaterial);
+      timber.position.y = b.h * 0.35;
 
-      bGroup.add(bMesh, glass);
+      // Solar Photovoltaic Roof
+      const solarRoof = new THREE.Mesh(new THREE.BoxGeometry(b.w + 1.0, 0.8, b.d + 1.0), buildingGlassMaterial);
+      solarRoof.position.y = b.h + 0.4;
+
+      bGroup.add(bMesh, timber, solarRoof);
       this.propsGroup.add(bGroup);
     });
 
-    // 2. High-Tech Overhead Telemetry Gantry Sign
+    // 2. High-Tech Green Energy Telemetry Gantry
     const gantryBridge = new THREE.Group();
     gantryBridge.position.set(0, 0, -85);
 
-    const pLeft = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 0.8, 18, 12), metalPoleMaterial);
+    const pLeft = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.6, 18, 8), metalPoleMaterial);
     pLeft.position.set(-54, 9, 0);
-    const pRight = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 0.8, 18, 12), metalPoleMaterial);
+    const pRight = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.6, 18, 8), metalPoleMaterial);
     pRight.position.set(54, 9, 0);
 
-    const span = new THREE.Mesh(new THREE.BoxGeometry(110, 1.4, 1.4), metalPoleMaterial);
+    const span = new THREE.Mesh(new THREE.BoxGeometry(110, 1.2, 1.2), metalPoleMaterial);
     span.position.set(0, 17.5, 0);
 
     const ledSign = new THREE.Mesh(
-      new THREE.BoxGeometry(45, 4.5, 0.6),
-      new THREE.MeshStandardMaterial({
-        color: 0x050a12,
-        emissive: 0x0066b1,
-        emissiveIntensity: 0.8,
-      })
+      new THREE.BoxGeometry(45, 4.0, 0.5),
+      new THREE.MeshBasicMaterial({ color: 0x0f3d28 })
     );
     ledSign.position.set(0, 17.5, 0.8);
 
     gantryBridge.add(pLeft, pRight, span, ledSign);
     this.propsGroup.add(gantryBridge);
 
-    // 3. Stylized Carbon/Greenery Foliage Trees
+    // 3. Lush Proving Ground Tree Groves (Multi-Species & Tones)
     const treeCoords = [
-      [-95, -85], [-115, -75], [-75, -115],
-      [95, -85], [115, -75], [75, -115],
-      [-95, 85], [-115, 75], [-75, 115],
-      [95, 85], [115, 75], [75, 115],
+      // Northwest Grove
+      [-95, -85, 0], [-115, -75, 1], [-75, -115, 2], [-130, -95, 0], [-85, -130, 1],
+      // Northeast Grove
+      [95, -85, 1], [115, -75, 0], [75, -115, 2], [130, -95, 1], [85, -130, 0],
+      // Southwest Grove
+      [-95, 85, 2], [-115, 75, 0], [-75, 115, 1], [-130, 95, 2], [-85, 130, 0],
+      // Southeast Grove
+      [95, 85, 0], [115, 75, 2], [75, 115, 1], [130, 95, 0], [85, 130, 1],
     ];
 
-    treeCoords.forEach(([tx, tz]) => {
+    const foliageMats = [foliageDarkMaterial, foliageLightMaterial, foliageSproutMaterial];
+
+    treeCoords.forEach(([tx, tz, matIdx]) => {
       const tree = new THREE.Group();
       tree.position.set(tx, 0, tz);
 
-      const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.6, 3.5, 6), treeTrunkMaterial);
+      const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.5, 3.5, 6), treeTrunkMaterial);
       trunk.position.y = 1.75;
 
-      const foliage = new THREE.Mesh(new THREE.ConeGeometry(3.0, 7.0, 7), foliageMaterial);
-      foliage.position.y = 6.0;
+      const fMat = foliageMats[matIdx % 3];
+      const foliage = new THREE.Mesh(new THREE.ConeGeometry(3.2, 7.5, 7), fMat);
+      foliage.position.y = 6.2;
       foliage.castShadow = true;
 
       tree.add(trunk, foliage);
       this.propsGroup.add(tree);
     });
 
-    // 4. Guardrails Along Highway Shoulders
+    // 4. Highway Eco Safety Barriers Along Roads
     const guardrailZ = 52;
     [-1, 1].forEach((side) => {
       const guardrail = new THREE.Mesh(
-        new THREE.BoxGeometry(180, 1.2, 0.4),
+        new THREE.BoxGeometry(180, 1.0, 0.4),
         barrierMaterial
       );
-      guardrail.position.set(side * 100, 0.6, -guardrailZ);
+      guardrail.position.set(side * 100, 0.5, -guardrailZ);
       this.propsGroup.add(guardrail);
 
       const guardrailBottom = new THREE.Mesh(
-        new THREE.BoxGeometry(180, 1.2, 0.4),
+        new THREE.BoxGeometry(180, 1.0, 0.4),
         barrierMaterial
       );
-      guardrailBottom.position.set(side * 100, 0.6, guardrailZ);
+      guardrailBottom.position.set(side * 100, 0.5, guardrailZ);
       this.propsGroup.add(guardrailBottom);
     });
   }

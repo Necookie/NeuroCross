@@ -57,7 +57,7 @@ export default function App() {
         {phase === 'loading' && <LoadingScreen key="loading" />}
       </AnimatePresence>
 
-      <div className="min-h-screen bg-[#000000] text-white font-sans selection:bg-white selection:text-black flex flex-col">
+      <div className="min-h-screen bg-[#f4f7f4] text-[#283e32] font-sans selection:bg-[#16a34a] selection:text-white flex flex-col">
         {/* Pinned Top Navigation Bar */}
         <StatusHeader
           mode={params.mode}
@@ -69,7 +69,7 @@ export default function App() {
         />
 
         <div className="max-w-[1600px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6 flex-1">
-          {/* Telemetry Spec-Cells Band (design.md 6-up / 3-up grid) */}
+          {/* Telemetry Spec-Cells Band */}
           <section aria-label="Network Telemetry Summary">
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
               <MetricCard
@@ -77,42 +77,42 @@ export default function App() {
                 value={metrics.throughput}
                 unit="VEH"
                 subtitle="CLEARED"
-                accent="#0066b1"
+                accent="#0f3d28"
               />
               <MetricCard
                 label="MEAN VELOCITY"
                 value={metrics.avg_speed}
                 unit="KM/H"
                 subtitle="NETWORK SPEED"
-                accent="#1c69d4"
+                accent="#16a34a"
               />
               <MetricCard
                 label="FLOW STABILITY"
                 value={metrics.efficiency}
                 unit="%"
                 subtitle="OPTIMAL CRUISE"
-                accent="#0fa336"
+                accent="#22c55e"
               />
               <MetricCard
                 label="ACTIVE FLEET"
                 value={metrics.active_count}
                 unit="CARS"
                 subtitle="ON TRACK"
-                accent="#1c69d4"
+                accent="#0f3d28"
               />
               <MetricCard
                 label="WAIT LATENCY"
                 value={metrics.wait_time}
                 unit="SEC"
                 subtitle="AVG QUEUE"
-                accent="#f4b400"
+                accent="#d97706"
               />
               <MetricCard
                 label="SAFETY INTERV."
                 value={metrics.accidents}
                 unit="EVENTS"
                 subtitle="NEAR-MISSES"
-                accent={metrics.accidents > 0 ? '#e22718' : '#3c3c3c'}
+                accent={metrics.accidents > 0 ? '#dc2626' : '#d1ded5'}
               />
             </div>
           </section>
@@ -140,22 +140,22 @@ export default function App() {
             {/* Right Simulation Viewport */}
             <section className="flex flex-col gap-3">
               {/* Viewport Engine Switcher Header */}
-              <div className="flex items-center justify-between pb-1 border-b border-[#262626]">
+              <div className="flex items-center justify-between pb-1 border-b border-[#d1ded5]">
                 <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 bg-[#0066b1]" />
-                  <span className="text-[11px] font-bold uppercase tracking-[1.5px] text-white">
+                  <span className="w-2 h-2 bg-[#16a34a]" />
+                  <span className="text-[11px] font-bold uppercase tracking-[1.5px] text-[#0f3d28]">
                     {viewEngine === '3d' ? '3D ACCELERATED WEBGL ENVIRONMENT' : '2D TOPOGRAPHIC SCHEMATIC'}
                   </span>
                 </div>
 
-                <div className="flex items-center border border-[#262626] bg-[#0c0d12] p-0.5">
+                <div className="flex items-center border border-[#d1ded5] bg-[#ffffff] p-0.5 shadow-sm">
                   <button
                     type="button"
                     onClick={() => setViewEngine('3d')}
                     className={`px-3 py-1 text-[10px] font-bold uppercase tracking-[1.5px] transition-all ${
                       viewEngine === '3d'
-                        ? 'bg-white text-black shadow-sm'
-                        : 'text-[#888888] hover:text-white'
+                        ? 'bg-[#0f3d28] text-white shadow-sm'
+                        : 'text-[#5d7567] hover:text-[#0f3d28]'
                     }`}
                   >
                     3D WEBGL
@@ -165,8 +165,8 @@ export default function App() {
                     onClick={() => setViewEngine('2d')}
                     className={`px-3 py-1 text-[10px] font-bold uppercase tracking-[1.5px] transition-all ${
                       viewEngine === '2d'
-                        ? 'bg-white text-black shadow-sm'
-                        : 'text-[#888888] hover:text-white'
+                        ? 'bg-[#0f3d28] text-white shadow-sm'
+                        : 'text-[#5d7567] hover:text-[#0f3d28]'
                     }`}
                   >
                     2D SCHEMATIC
@@ -195,14 +195,14 @@ export default function App() {
               )}
 
               {/* Viewport Meta Ticker Bar */}
-              <div className="flex flex-wrap items-center justify-between text-[10px] font-bold uppercase tracking-[1.5px] text-[#7e7e7e] px-1 py-1 border-t border-[#1a1a1a]">
+              <div className="flex flex-wrap items-center justify-between text-[10px] font-bold uppercase tracking-[1.5px] text-[#5d7567] px-1 py-1 border-t border-[#d1ded5]">
                 <div className="flex items-center gap-3">
-                  <span>HIGH-PERFORMANCE CORRIDOR TELEMETRY</span>
-                  <span className="hidden sm:inline text-[#3c3c3c]">|</span>
+                  <span>ECO-MOBILITY PROVING GROUND TELEMETRY</span>
+                  <span className="hidden sm:inline text-[#d1ded5]">|</span>
                   <span className="hidden sm:inline">COEFFICIENT: {params.weather === 'rain' ? '0.58μ (WET)' : '1.00μ (DRY)'}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#0066b1]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#16a34a]" />
                   <span>TICK: 60 HZ INTEGRATION</span>
                 </div>
               </div>
@@ -210,16 +210,16 @@ export default function App() {
           </main>
         </div>
 
-        {/* Editorial Footer conforming to design.md */}
-        <footer className="bg-[#000000] border-t border-[#262626] mt-12">
+        {/* Editorial Footer */}
+        <footer className="bg-[#ffffff] border-t border-[#d1ded5] mt-12">
           <MStripeDivider />
-          <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-[#7e7e7e] text-xs font-light">
+          <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-[#5d7567] text-xs font-light">
             <div className="flex items-center gap-2">
-              <span className="font-bold text-white uppercase tracking-wider text-[11px]">NEUROCROSS</span>
-              <span>· High-Performance Autonomous Simulation Environment</span>
+              <span className="font-bold text-[#0f3d28] uppercase tracking-wider text-[11px]">NEUROCROSS</span>
+              <span>· Nature-Forward Autonomous Eco-Mobility Proving Ground</span>
             </div>
-            <div className="text-[11px] uppercase tracking-[1.2px] text-[#555555]">
-              ENGINEERING SPECIFICATION M-SERIES DYNAMICS
+            <div className="text-[11px] uppercase tracking-[1.2px] text-[#82998b]">
+              SUSTAINABLE AUTONOMOUS SYSTEMS ENGINEERING
             </div>
           </div>
         </footer>
@@ -227,4 +227,3 @@ export default function App() {
     </>
   );
 }
-
