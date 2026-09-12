@@ -366,10 +366,90 @@ export const Bike = ({ color = '#e22718', className = '', brakeIntensity = 0 }) 
   </svg>
 );
 
+// 10. Traditional Philippine Jeepney ("King of the Road")
+export const Jeepney = ({ color = '#f59e0b', className = '', brakeIntensity = 0 }) => (
+  <svg viewBox="0 0 64 26" className={className}>
+    {/* Body Shadow */}
+    <rect x="2" y="1" width="60" height="24" rx="2" fill="#000000" opacity="0.4" />
+    {/* Stainless Steel / Galvanized Body */}
+    <rect x="4" y="3" width="56" height="20" rx="1.5" fill="#cfd8dc" stroke="#37474f" strokeWidth="0.8" />
+    {/* Painted Front Engine Hood */}
+    <path d="M 40 4 L 58 5 Q 60 8 60 13 Q 60 18 58 21 L 40 22 Z" fill={color} />
+    {/* Chrome Hood Ornament (Horses) */}
+    <polygon points="56,12 59,10 58,13 59,16 56,14" fill="#ffffff" />
+    {/* Sun Visor with Route Header */}
+    <rect x="36" y="2.5" width="4" height="21" rx="0.5" fill="#b0bec5" stroke="#263238" strokeWidth="0.5" />
+    <rect x="37" y="6" width="2" height="14" fill="#0f172a" />
+    <text x="38" y="14" fill="#fbbf24" fontSize="4" fontWeight="bold" textAnchor="middle" transform="rotate(90 38 13)">QUIAPO</text>
+    {/* Open Passenger Cabin with Bench Seats */}
+    <rect x="8" y="5" width="28" height="16" fill="#1e293b" />
+    {/* Left & Right Passenger Benches */}
+    <rect x="8" y="5.5" width="26" height="3" fill="#94a3b8" />
+    <rect x="8" y="17.5" width="26" height="3" fill="#94a3b8" />
+    {/* Center Aisle */}
+    <line x1="8" y1="13" x2="34" y2="13" stroke="#475569" strokeWidth="0.5" strokeDasharray="1,1" />
+    {/* Rear Open Passenger Entrance & Grab Rails */}
+    <rect x="4" y="9" width="4" height="8" fill="#0f172a" />
+    <rect x="3" y="8" width="1.5" height="10" fill="#e2e8f0" />
+    {/* Luggage Roof Rack */}
+    <rect x="12" y="4" width="20" height="18" fill="none" stroke="#78909c" strokeWidth="0.8" strokeDasharray="2,2" />
+    <circle cx="22" cy="13" r="3.5" fill="#334155" stroke="#64748b" strokeWidth="0.8" />
+    {/* Halogen Round Headlights */}
+    <circle cx="58" cy="6" r="2" fill="#fef08a" stroke="#d97706" strokeWidth="0.5" />
+    <circle cx="58" cy="20" r="2" fill="#fef08a" stroke="#d97706" strokeWidth="0.5" />
+    {/* Roof Marker Clearance Lights */}
+    <circle cx="39" cy="4" r="1" fill="#22c55e" />
+    <circle cx="39" cy="22" r="1" fill="#f59e0b" />
+    {/* Taillights */}
+    <rect
+      x="3.5"
+      y="4.5"
+      width="2"
+      height="3.5"
+      fill="#dc2626"
+      style={{ filter: brakeIntensity > 0.4 ? 'drop-shadow(0 0 4px #dc2626)' : 'none' }}
+    />
+    <rect
+      x="3.5"
+      y="18"
+      width="2"
+      height="3.5"
+      fill="#dc2626"
+      style={{ filter: brakeIntensity > 0.4 ? 'drop-shadow(0 0 4px #dc2626)' : 'none' }}
+    />
+  </svg>
+);
+
+// 11. Motorized Philippine Tricycle
+export const Tricycle = ({ color = '#0284c7', className = '', brakeIntensity = 0 }) => (
+  <svg viewBox="0 0 36 26" className={className}>
+    {/* Motorbike (Left side, y: 3..11) */}
+    <rect x="2" y="6" width="30" height="6" rx="2" fill="#1e293b" />
+    <rect x="26" y="7" width="5" height="4" fill="#0f172a" />
+    <circle cx="20" cy="9" r="2.5" fill="#334155" />
+    {/* Sidecar Passenger Cabin (Right side, y: 12..24) */}
+    <rect x="6" y="13" width="22" height="11" rx="2" fill={color} stroke="#0f172a" strokeWidth="0.8" />
+    <rect x="10" y="14.5" width="14" height="8" rx="1" fill="#cbd5e1" />
+    {/* Sidecar Wheel */}
+    <rect x="14" y="24" width="7" height="2" rx="0.5" fill="#0f172a" />
+    {/* Headlight */}
+    <circle cx="31" cy="9" r="1.8" fill="#fef08a" />
+    {/* Taillight */}
+    <rect
+      x="2"
+      y="8"
+      width="1.5"
+      height="2.5"
+      fill="#dc2626"
+      style={{ filter: brakeIntensity > 0.4 ? 'drop-shadow(0 0 3px #dc2626)' : 'none' }}
+    />
+  </svg>
+);
+
 // Backwards-compatible aliases
 export const Car = Coupe;
-export const Jeepney = Van;
 export const Taxi = Sedan;
 export const Pickup = Suv;
 export const Scooter = Bike;
+
 

@@ -182,6 +182,23 @@ const bikeRiderGeo = new THREE.BoxGeometry(1.0, 1.5, 0.8);
 const quadExhaustGeo = new THREE.CylinderGeometry(0.18, 0.18, 0.4, 8);
 quadExhaustGeo.rotateZ(Math.PI / 2);
 
+// Philippine Jeepney Geometries
+const jeepneyHoodGeo = new THREE.BoxGeometry(4.2, 1.25, 3.2);
+const jeepneyRoofGeo = new THREE.BoxGeometry(8.8, 0.22, 3.6);
+const jeepneyVisorGeo = new THREE.BoxGeometry(1.6, 0.25, 3.4);
+const jeepneyCabinGeo = new THREE.BoxGeometry(6.6, 0.85, 3.2);
+const jeepneyRackGeo = new THREE.BoxGeometry(5.5, 0.35, 3.1);
+const jeepneyHorseGeo = new THREE.ConeGeometry(0.16, 0.45, 4);
+const jeepneyPillarGeo = new THREE.CylinderGeometry(0.08, 0.08, 1.4, 6);
+const jeepneyStepGeo = new THREE.BoxGeometry(0.8, 0.15, 1.6);
+const jeepneyBenchGeo = new THREE.BoxGeometry(6.2, 0.2, 0.7);
+
+// Philippine Tricycle Geometries
+const trikeCabinGeo = new THREE.BoxGeometry(3.6, 1.7, 1.8);
+const trikeRoofGeo = new THREE.BoxGeometry(3.8, 0.15, 2.0);
+const trikeFrameGeo = new THREE.BoxGeometry(3.2, 0.9, 0.6);
+const trikeRiderGeo = new THREE.BoxGeometry(0.9, 1.4, 0.7);
+
 // Lens and Light Cluster Geometries
 const projectorSphereGeo = new THREE.SphereGeometry(0.18, 8, 8);
 const drlBrowGeo = new THREE.BoxGeometry(0.15, 0.08, 0.65);
@@ -206,6 +223,18 @@ const rimMat = new THREE.MeshStandardMaterial({
   metalness: 0.85,
 });
 
+const chromeMat = new THREE.MeshStandardMaterial({
+  color: 0xe2e8f0,
+  roughness: 0.15,
+  metalness: 0.95,
+});
+
+const stainlessMat = new THREE.MeshStandardMaterial({
+  color: 0xcfd8dc,
+  roughness: 0.35,
+  metalness: 0.85,
+});
+
 const glassMat = new THREE.MeshStandardMaterial({
   color: 0x0f2419,
   roughness: 0.1,
@@ -226,6 +255,13 @@ const projectorMat = new THREE.MeshBasicMaterial({
 // LED DRL Accent Brow Material
 const drlMat = new THREE.MeshBasicMaterial({
   color: 0xf0f9ff,
+});
+
+const goldMarkerMat = new THREE.MeshBasicMaterial({
+  color: 0xf59e0b,
+});
+const greenMarkerMat = new THREE.MeshBasicMaterial({
+  color: 0x10b981,
 });
 
 // Cache for vehicle body materials by hex color to prevent recreating
@@ -319,6 +355,133 @@ export class ThreeVehicleFactory {
 
     // Construct vehicle-specific 3D geometry
     switch (type) {
+      case 'jeepney': {
+        // 1. Stainless steel lower body & open passenger cabin
+        const chassis = new THREE.Mesh(jeepneyCabinGeo, stainlessMat);
+        chassis.position.set(-1.0, 0.8, 0);
+        chassis.castShadow = true;
+
+        // 2. Vibrant painted front hood
+        const hood = new THREE.Mesh(jeepneyHoodGeo, bodyMaterial);
+        hood.position.set(3.4, 1.0, 0);
+        hood.castShadow = true;
+
+        // 3. Classic chrome grille on front
+        const grille = new THREE.Mesh(new THREE.BoxGeometry(0.2, 1.1, 2.8), chromeMat);
+        grille.position.set(5.5, 0.95, 0);
+
+        // 4. Chrome hood ornaments (iconic silver horses)
+        const horse1 = new THREE.Mesh(jeepneyHorseGeo, chromeMat);
+        horse1.position.set(4.8, 1.85, -0.6);
+        horse1.rotation.z = -Math.PI / 4;
+        const horse2 = new THREE.Mesh(jeepneyHorseGeo, chromeMat);
+        horse2.position.set(4.8, 1.85, 0.6);
+        horse2.rotation.z = -Math.PI / 4;
+
+        // 5. Sun Visor with Route Destination Header
+        const visor = new THREE.Mesh(jeepneyVisorGeo, bodyMaterial);
+        visor.position.set(1.4, 2.15, 0);
+        visor.rotation.z = -0.15;
+
+        // 6. Long flat stainless steel roof canopy
+        const roof = new THREE.Mesh(jeepneyRoofGeo, stainlessMat);
+        roof.position.set(-1.0, 2.3, 0);
+        roof.castShadow = true;
+
+        // 7. Roof luggage rack + spare tire
+        const rack = new THREE.Mesh(jeepneyRackGeo, chromeMat);
+        rack.position.set(-1.0, 2.5, 0);
+        const spareTire = new THREE.Mesh(wheelGeo, tireMat);
+        spareTire.rotation.x = Math.PI / 2;
+        spareTire.position.set(-0.5, 2.65, 0);
+
+        // 8. Chrome roof support pillars (open air cabin)
+        const pillars = [];
+        [-4.0, -1.8, 0.4].forEach(px => {
+          [-1.65, 1.65].forEach(pz => {
+            const p = new THREE.Mesh(jeepneyPillarGeo, chromeMat);
+            p.position.set(px, 1.6, pz);
+            pillars.push(p);
+          });
+        });
+
+        // 9. Rear passenger entrance step
+        const rearStep = new THREE.Mesh(jeepneyStepGeo, chromeMat);
+        rearStep.position.set(-4.6, 0.35, 0);
+
+        // 10. Passenger benches inside
+        const benchL = new THREE.Mesh(jeepneyBenchGeo, carbonMat);
+        benchL.position.set(-1.0, 0.9, -1.1);
+        const benchR = new THREE.Mesh(jeepneyBenchGeo, carbonMat);
+        benchR.position.set(-1.0, 0.9, 1.1);
+
+        // 11. Roof clearance marker lights (green & amber)
+        const marker1 = new THREE.Mesh(strobeGeo, greenMarkerMat);
+        marker1.scale.set(0.5, 0.5, 0.5);
+        marker1.position.set(1.8, 2.35, -1.4);
+        const marker2 = new THREE.Mesh(strobeGeo, goldMarkerMat);
+        marker2.scale.set(0.5, 0.5, 0.5);
+        marker2.position.set(1.8, 2.35, 1.4);
+
+        group.add(
+          chassis, hood, grille, horse1, horse2, visor, roof, rack, spareTire,
+          ...pillars, rearStep, benchL, benchR, marker1, marker2
+        );
+
+        wheels = this._createWheelSet(3.4, -2.8, 1.8, 0.75);
+        break;
+      }
+
+      case 'tricycle': {
+        // Motorbike side (Left, z = -0.7)
+        const frame = new THREE.Mesh(trikeFrameGeo, bodyMaterial);
+        frame.position.set(0, 0.9, -0.7);
+
+        const rider = new THREE.Mesh(trikeRiderGeo, carbonMat);
+        rider.position.set(-0.2, 1.8, -0.7);
+
+        // Covered Sidecar Cabin (Right, z = 0.9)
+        const cabin = new THREE.Mesh(trikeCabinGeo, bodyMaterial);
+        cabin.position.set(0, 1.1, 0.9);
+        cabin.castShadow = true;
+
+        const sidecarRoof = new THREE.Mesh(trikeRoofGeo, stainlessMat);
+        sidecarRoof.position.set(0, 2.0, 0.9);
+
+        const passengerWindow = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.7, 0.1), glassMat);
+        passengerWindow.position.set(0, 1.4, 1.85);
+
+        group.add(frame, rider, cabin, sidecarRoof, passengerWindow);
+
+        // 3 Wheels (2 on bike, 1 on sidecar)
+        const wheelFront = new THREE.Group();
+        wheelFront.position.set(1.4, 0.65, -0.7);
+        const tireF = new THREE.Mesh(wheelGeo, tireMat);
+        tireF.scale.set(0.6, 0.6, 0.6);
+        const rimF = new THREE.Mesh(rimGeo, rimMat);
+        rimF.scale.set(0.6, 0.6, 0.6);
+        wheelFront.add(tireF, rimF);
+
+        const wheelRear = new THREE.Group();
+        wheelRear.position.set(-1.4, 0.65, -0.7);
+        const tireR = new THREE.Mesh(wheelGeo, tireMat);
+        tireR.scale.set(0.6, 0.6, 0.6);
+        const rimR = new THREE.Mesh(rimGeo, rimMat);
+        rimR.scale.set(0.6, 0.6, 0.6);
+        wheelRear.add(tireR, rimR);
+
+        const wheelSidecar = new THREE.Group();
+        wheelSidecar.position.set(0, 0.65, 1.85);
+        const tireS = new THREE.Mesh(wheelGeo, tireMat);
+        tireS.scale.set(0.6, 0.6, 0.6);
+        const rimS = new THREE.Mesh(rimGeo, rimMat);
+        rimS.scale.set(0.6, 0.6, 0.6);
+        wheelSidecar.add(tireS, rimS);
+
+        wheels = [wheelFront, wheelRear, wheelSidecar];
+        break;
+      }
+
       case 'prototype': {
         const chassis = new THREE.Mesh(protoBodyGeo, bodyMaterial);
         chassis.position.y = 0.6;

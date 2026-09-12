@@ -33,14 +33,12 @@ export const INT_CENTERS = [400, 1200];
 // mass_kg: vehicle curb weight for inertia calculations
 // prob: default spawn probability distribution
 export const VEHICLE_SPECS = {
-    coupe: { len: 17, v_max: 72, accel_rate: 1.25, mass_kg: 1650, prob: 0.22, name: 'M-Coupe' },
-    sedan: { len: 19, v_max: 64, accel_rate: 1.10, mass_kg: 1980, prob: 0.25, name: 'Gran Sedan' },
-    suv: { len: 20, v_max: 58, accel_rate: 0.95, mass_kg: 2450, prob: 0.20, name: 'M-SAV' },
-    prototype: { len: 18, v_max: 82, accel_rate: 1.45, mass_kg: 1350, prob: 0.08, name: 'GT Prototype' },
-    van: { len: 22, v_max: 48, accel_rate: 0.85, mass_kg: 2600, prob: 0.10, name: 'Transporter' },
-    truck: { len: 34, v_max: 38, accel_rate: 0.60, mass_kg: 14000, prob: 0.05, name: 'Heavy Hauler' },
-    bus: { len: 32, v_max: 36, accel_rate: 0.55, mass_kg: 12500, prob: 0.04, name: 'Transit Bus' },
-    interceptor: { len: 18, v_max: 88, accel_rate: 1.60, mass_kg: 1780, prob: 0.01, name: 'M-Interceptor' },
-    bike: { len: 11, v_max: 75, accel_rate: 1.30, mass_kg: 220, prob: 0.05, name: 'Sportbike' },
+    jeepney: { len: 26, v_max: 48, accel_rate: 0.95, mass_kg: 2900, prob: 0.32, name: 'Traditional Jeepney' },
+    tricycle: { len: 12, v_max: 42, accel_rate: 1.25, mass_kg: 360, prob: 0.18, name: 'Motorized Tricycle' },
+    sedan: { len: 19, v_max: 60, accel_rate: 1.05, mass_kg: 1850, prob: 0.18, name: 'City Taxi / Sedan' },
+    van: { len: 22, v_max: 52, accel_rate: 0.90, mass_kg: 2400, prob: 0.14, name: 'UV Express Van' },
+    bus: { len: 32, v_max: 40, accel_rate: 0.65, mass_kg: 12000, prob: 0.08, name: 'Transit Bus' },
+    suv: { len: 20, v_max: 58, accel_rate: 0.95, mass_kg: 2450, prob: 0.06, name: 'Private SUV' },
+    bike: { len: 11, v_max: 65, accel_rate: 1.35, mass_kg: 180, prob: 0.04, name: 'Delivery Motorcycle' },
 };
 

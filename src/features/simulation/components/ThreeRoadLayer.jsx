@@ -38,6 +38,7 @@ const ThreeRoadLayer = ({
   const selectedMarkerRef = useRef(null);
   const animFrameIdRef = useRef(null);
   const clockRef = useRef(new THREE.Clock());
+  const latestLightStateRef = useRef(null);
 
   const [cameraMode, setCameraMode] = useState('isometric');
   const cameraModeRef = useRef('isometric');
@@ -254,9 +255,10 @@ const ThreeRoadLayer = ({
       lastTime = now;
       const elapsedTime = clockRef.current.getElapsedTime();
 
-      // Update rain if raining
+      // Update rain & animated pedestrians
       if (environmentRef.current) {
         environmentRef.current.updateRain(dt);
+        environmentRef.current.updatePedestrians(dt, elapsedTime, latestLightStateRef.current);
       }
 
       // Continuous critically-damped spring interpolation (Zero Stutter)
@@ -383,6 +385,7 @@ const ThreeRoadLayer = ({
     const int0 = intersections[0] || { light_state: {} };
 
     // 1. Update Signals
+    latestLightStateRef.current = int0.light_state;
     if (environmentRef.current && int0.light_state) {
       environmentRef.current.updateSignalStates(int0.light_state);
     }

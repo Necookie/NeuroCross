@@ -10,7 +10,9 @@ import {
   Truck,
   Bus,
   Bike,
-  Car
+  Car,
+  Jeepney,
+  Tricycle
 } from './VehicleTemplates';
 
 const colorCache = new Map();
@@ -37,6 +39,8 @@ const hashId = (value) => {
 };
 
 const VEHICLE_DIMENSIONS = {
+  jeepney: 'w-12 h-4.5',
+  tricycle: 'w-6 h-4',
   coupe: 'w-8 h-3.5',
   sedan: 'w-9 h-3.5',
   suv: 'w-9 h-4',
@@ -48,13 +52,14 @@ const VEHICLE_DIMENSIONS = {
   bike: 'w-4.5 h-2.5',
   // Backwards-compatible
   car: 'w-8 h-3.5',
-  jeepney: 'w-10 h-4',
   taxi: 'w-9 h-3.5',
   pickup: 'w-9 h-4',
   scooter: 'w-4.5 h-2.5',
 };
 
 const VEHICLE_COMPONENTS = {
+  jeepney: Jeepney,
+  tricycle: Tricycle,
   coupe: Coupe,
   sedan: Sedan,
   suv: Suv,
@@ -66,7 +71,6 @@ const VEHICLE_COMPONENTS = {
   bike: Bike,
   // Backwards-compatible
   car: Car,
-  jeepney: Van,
   taxi: Sedan,
   pickup: Suv,
   scooter: Bike,
