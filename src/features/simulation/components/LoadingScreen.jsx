@@ -5,9 +5,11 @@ import MStripeDivider from '../../../components/ui/MStripeDivider';
 /**
  * LoadingScreen - Minimalist brand splash
  */
+const MotionDiv = motion.div;
+
 export default function LoadingScreen() {
   return (
-    <motion.div
+    <MotionDiv
       className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#000000] overflow-hidden text-white"
       initial={{ opacity: 1 }}
       exit={{ opacity: 0, transition: { duration: 0.35, ease: "easeInOut" } }}
@@ -22,9 +24,10 @@ export default function LoadingScreen() {
         </div>
 
         <p className="text-[#666666] text-xs uppercase tracking-[2px] font-bold pt-2">
-          Initializing Simulation...
+          Initializing Dynamics Engine...
         </p>
       </div>
-    </motion.div>
+    </MotionDiv>
   );
 }
+

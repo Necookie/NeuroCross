@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, useRef } from 'react';
+import { useCallback, useEffect, useState, useRef, useMemo } from 'react';
 
 import { DualIntersectionSim } from '../engine/DualIntersectionSim';
 import { RoundaboutSim } from '../engine/RoundaboutSim';
@@ -16,18 +16,18 @@ const createSimForType = (intersectionType) => {
 };
 
 export const useSimulation = () => {
-  const [data, setData] = useState(() => createDefaultData(DEFAULT_PARAMS.intersectionType));
+  const [data, setData] = useState(() => createDefaultData());
   const [params, setParams] = useState(DEFAULT_PARAMS);
   const [running, setRunning] = useState(false);
   const [simSpeed, setSimSpeed] = useState(1.0);
   const [hasConnected, setHasConnected] = useState(false);
+  const [selectedVehicleId, setSelectedVehicleId] = useState(null);
 
   const simRef = useRef(createSimForType(DEFAULT_PARAMS.intersectionType));
   const timeoutRef = useRef(null);
   const paramsRef = useRef(params);
   const simSpeedRef = useRef(simSpeed);
   const hasConnectedRef = useRef(false);
-  const lastIntersectionTypeRef = useRef(params.intersectionType);
 
   // Keep refs in sync with state so the tick loop always reads fresh values.
   useEffect(() => {
@@ -35,13 +35,38 @@ export const useSimulation = () => {
     simSpeedRef.current = simSpeed;
   }, [params, simSpeed]);
 
-  useEffect(() => {
-    if (lastIntersectionTypeRef.current === params.intersectionType) return;
+  // Handle intersection type change
+  const setIntersectionType = useCallback((newType) => {
+    setParams((prev) => ({ ...prev, intersectionType: newType }));
+    simRef.current = createSimForType(newType);
+    setData(createDefaultData());
+    setSelectedVehicleId(null);
+  }, []);
 
-    simRef.current = createSimForType(params.intersectionType);
-    setData(createDefaultData(params.intersectionType));
-    lastIntersectionTypeRef.current = params.intersectionType;
-  }, [params.intersectionType]);
+  const stepOnce = useCallback(() => {
+    try {
+      if (!hasConnectedRef.current) {
+        hasConnectedRef.current = true;
+        setHasConnected(true);
+      }
+      const result = simRef.current.step(paramsRef.current);
+      setData(result);
+    } catch (err) {
+      console.error('Simulation step error:', err);
+    }
+  }, []);
+
+  const dispatchInterceptor = useCallback(() => {
+    if (simRef.current && typeof simRef.current.dispatchInterceptor === 'function') {
+      const dispatched = simRef.current.dispatchInterceptor();
+      if (dispatched) {
+        const result = simRef.current.getState ? simRef.current.getState() : null;
+        if (result) setData(result);
+      }
+      return dispatched;
+    }
+    return false;
+  }, []);
 
   useEffect(() => {
     if (!running) {
@@ -50,28 +75,24 @@ export const useSimulation = () => {
     }
 
     let active = true;
-    // Function to schedule the next tick.
     const tick = () => {
       if (!active || !running) return;
 
       try {
         if (!hasConnectedRef.current) {
           hasConnectedRef.current = true;
-          setHasConnected(true); // Mark connected on first successful tick.
+          setHasConnected(true);
         }
-        // Run a local step
         const result = simRef.current.step(paramsRef.current);
         setData(result);
       } catch (err) {
         console.error('Simulation error:', err);
       }
 
-      // Schedule next tick based on speed
-      const tickMs = Math.max(16, 100 / simSpeedRef.current); // Cap at ~60FPS.
+      const tickMs = Math.max(16, 100 / simSpeedRef.current);
       timeoutRef.current = setTimeout(tick, tickMs);
     };
 
-    // Kick off loop
     tick();
 
     return () => {
@@ -84,18 +105,44 @@ export const useSimulation = () => {
     simRef.current = createSimForType(paramsRef.current.intersectionType);
     hasConnectedRef.current = false;
     setHasConnected(false);
-    setData(createDefaultData(paramsRef.current.intersectionType));
+    setSelectedVehicleId(null);
+    setData(createDefaultData());
   }, []);
+
+  // Find currently selected vehicle if any
+  const selectedVehicle = useMemo(() => {
+    if (!selectedVehicleId || !data?.intersections) return null;
+    for (const ix of data.intersections) {
+      if (!ix.roads) continue;
+      for (const lanes of Object.values(ix.roads)) {
+        for (const lane of lanes) {
+          for (const car of lane) {
+            if (car.id === selectedVehicleId) {
+              return car;
+            }
+          }
+        }
+      }
+    }
+    return null;
+  }, [selectedVehicleId, data]);
 
   return {
     data,
     params,
     setParams,
+    setIntersectionType,
     running,
     setRunning,
     simSpeed,
     setSimSpeed,
     hasConnected,
-    reset
+    reset,
+    stepOnce,
+    dispatchInterceptor,
+    selectedVehicleId,
+    setSelectedVehicleId,
+    selectedVehicle,
   };
 };
+

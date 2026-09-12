@@ -1,37 +1,42 @@
 import React, { memo } from 'react';
 
 /**
- * MetricCard - Spec-cell pattern with clean, authentic automotive telemetry aesthetic.
+ * MetricCard - Spec-cell pattern defined in NeuroCross design.md:
+ * Background #0d0d0d (surface-soft), rounded-none (0px), 1px hairline border #3c3c3c.
+ * Value in typography.display-sm (30px / 700) and label in typography.label-uppercase (1.5px tracking).
  */
-const MetricCard = ({ label, value, unit }) => {
-  const progress = Math.min(100, Math.max(10, (Number(value) || 0) % 100));
-
+const MetricCard = ({ label, value, unit, subtitle, accent = '#1c69d4' }) => {
   return (
-    <div className="bg-[#121212] border border-[#2a2a2a] rounded-none p-4 relative overflow-hidden transition-all duration-150 hover:border-[#444444]">
-      {/* Top Value */}
-      <div className="flex items-baseline gap-1">
-        <span className="text-2xl font-black tracking-tight text-white">
+    <div className="bg-[#0d0d0d] border border-[#3c3c3c] rounded-none p-4 relative overflow-hidden transition-all duration-150 hover:border-white/50">
+      {/* Top Spec Value */}
+      <div className="flex items-baseline gap-1.5">
+        <span className="text-[28px] sm:text-[32px] font-bold tracking-tight text-white leading-none">
           {value}
         </span>
         {unit && (
-          <span className="text-xs font-semibold uppercase tracking-wider text-[#666666]">
+          <span className="text-[11px] font-bold uppercase tracking-[1.5px] text-[#7e7e7e]">
             {unit}
           </span>
         )}
       </div>
 
       {/* Label */}
-      <div className="mt-1">
-        <span className="text-[10px] font-bold uppercase tracking-[1.2px] text-[#888888]">
+      <div className="mt-1.5 flex items-center justify-between">
+        <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-[1.5px] text-[#bbbbbb]">
           {label}
         </span>
+        {subtitle && (
+          <span className="text-[9px] text-[#7e7e7e] font-light">
+            {subtitle}
+          </span>
+        )}
       </div>
 
-      {/* Bottom accent track */}
-      <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#222222]">
-        <div 
-          className="h-full bg-[#1c69d4] transition-all duration-300"
-          style={{ width: `${progress}%` }}
+      {/* 2px Precision Accent Indicator Line */}
+      <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#1a1a1a]">
+        <div
+          className="h-full transition-all duration-300"
+          style={{ width: '100%', backgroundColor: accent }}
         />
       </div>
     </div>
@@ -39,3 +44,4 @@ const MetricCard = ({ label, value, unit }) => {
 };
 
 export default memo(MetricCard);
+

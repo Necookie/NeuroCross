@@ -1,6 +1,7 @@
 import {
     ACCEL_MAX,
     DECEL_COMF,
+    DECEL_MAX,
     MIN_GAP,
     RAIN_ACCEL_GRIP,
     RAIN_BRAKE_GRIP,
@@ -46,33 +47,39 @@ export class VehicleAgent {
         this.direction = direction;
         this.intersectionIdx = intersectionIdx;
 
-        // Derived properties (more human variability, faster overall)
-        this.length = VEHICLE_SPECS[typeName].len;
-        this.aggression = Math.random(); // 0.0 to 1.0
-        this.v_desired = VEHICLE_SPECS[typeName].v_max * (0.85 + (this.aggression * 0.45));
+        const spec = VEHICLE_SPECS[typeName] || VEHICLE_SPECS.coupe;
+        this.spec = spec;
+        this.length = spec.len;
+        this.massKg = spec.mass_kg;
+        this.accelRate = spec.accel_rate || 1.0;
+        this.isInterceptor = typeName === 'interceptor';
 
-        // Dynamic 1D State (distance traveled along its specific path curve)
+        // Human & performance variability
+        this.aggression = this.isInterceptor ? 0.95 : (0.2 + (Math.random() * 0.8));
+        this.v_desired = spec.v_max * (0.88 + (this.aggression * 0.35));
+
+        // Dynamic 1D & Kinematic State
         this.pos = 0.0;
-        this.speed = this.v_desired * 0.6;
+        this.speed = this.v_desired * 0.65;
+        this.acceleration = 0.0;
+        this.jerk = 0.0;
+        this.throttle = 0.0;
+        this.brakeIntensity = 0.0; // 0.0 to 1.0 for blooming brake LEDs
+        this.lateralG = 0.0;        // lateral G-force during cornering
+        this.pitch = 0.0;           // degrees of pitch (dive under braking / squat on launch)
         this.status = 'moving';
         this.pathMode = 'cross';
         this.singleRoundabout = false;
         this.singleCross = false;
 
-        // Dynamic 2D State (for collision and rendering)
+        // Dynamic 2D State (for collision, tracking and rendering)
         this.x = 0;
         this.y = 0;
         this.angle = 0; // rotation in degrees
         this._smoothedAngle = 0;
         this._hasAngle = false;
 
-        // Set when physics had to forcibly intervene to avoid overlapping the
-        // vehicle ahead (a near-miss the IDM model alone couldn't resolve in
-        // time) - sims use this to tally incidents.
         this.emergencyBrake = false;
-
-        // Roundabout-only: whether this vehicle is currently circulating on
-        // the ring, and at what angle, so the sim can run entry yield checks.
         this._onRing = false;
         this._ringTheta = 0;
     }
@@ -81,7 +88,7 @@ export class VehicleAgent {
         return new VehicleAgent(vId, typeName, laneIdx, route, direction, intersectionIdx);
     }
 
-    updatePhysics(dt, leader, stopTarget, friction) {
+    updatePhysics(dt, leader, stopTarget, friction = 1.0) {
         const isRoundabout = this.pathMode === 'roundabout';
         const isRain = friction < 1.0;
         this.emergencyBrake = false;
@@ -105,41 +112,70 @@ export class VehicleAgent {
             }
         }
 
-        // Wet roads: drivers hang back further (longer desired time headway).
+        // Cornering speed governor: vehicles slow down realistically before turns
+        let desiredSpeed = this.v_desired;
+        const isTurningRoute = this.route !== 'straight';
+        if (isTurningRoute && this.pos > 140 && this.pos < 300) {
+            // Physically realistic safe turning speed based on friction and corner radius
+            const corneringSpeedCap = (this.route === 'left' ? 34 : 26) * (isRain ? 0.78 : 1.0);
+            desiredSpeed = Math.min(desiredSpeed, corneringSpeedCap);
+        }
+
+        // Wet roads: drivers hang back further (longer desired time headway)
         const headway = SAFE_HEADWAY * (isRain ? RAIN_HEADWAY_FACTOR : 1.0);
-        const s0 = MIN_GAP + (1.0 - this.aggression) + (isRoundabout ? 8.0 : 0.0);
+        const s0 = MIN_GAP + ((1.0 - this.aggression) * 4.0) + (isRoundabout ? 6.0 : 0.0);
         const deltaV = this.speed - targetSpeed;
         const sStar = s0 + (this.speed * headway) + (
             (this.speed * deltaV) / (2.0 * Math.sqrt(ACCEL_MAX * DECEL_COMF))
         );
 
         const safeGap = Math.max(0.1, gap);
-        let acc = ACCEL_MAX * (1 - Math.pow((this.speed / this.v_desired), 4) - Math.pow((sStar / safeGap), 2));
+        let rawAcc = ACCEL_MAX * this.accelRate * (1 - Math.pow((this.speed / desiredSpeed), 4) - Math.pow((sStar / safeGap), 2));
 
-        // Lower tire grip cuts both braking and accelerating authority - braking
-        // more, since that's the dangerous direction to be caught short on.
-        if (acc < 0) {
-            acc *= isRain ? RAIN_BRAKE_GRIP : 1.0;
+        // Lower tire grip reduces both braking and accelerating authority
+        if (rawAcc < 0) {
+            rawAcc *= isRain ? RAIN_BRAKE_GRIP : 1.0;
+            // Cap maximum deceleration
+            rawAcc = Math.max(-DECEL_MAX, rawAcc);
         } else if (isRain) {
-            acc *= RAIN_ACCEL_GRIP;
+            rawAcc *= RAIN_ACCEL_GRIP;
         }
 
-        // Rain also caps how fast anyone is comfortable cruising.
-        const speedCap = this.v_desired * (isRoundabout ? 0.72 : 1.0) * (isRain ? RAIN_SPEED_FACTOR : 1.0);
-        this.speed = Math.max(0.0, Math.min(speedCap, this.speed + acc * dt));
+        // Rain also caps cruising comfort limit
+        const speedCap = desiredSpeed * (isRoundabout ? 0.72 : 1.0) * (isRain ? RAIN_SPEED_FACTOR : 1.0);
+
+        // Smooth acceleration with jerk limiting (prevents instantaneous snap)
+        const prevAcc = this.acceleration;
+        this.acceleration = prevAcc + Math.max(-12.0, Math.min(10.0, rawAcc - prevAcc)) * (dt * 6.0);
+        this.jerk = (this.acceleration - prevAcc) / dt;
+
+        this.speed = Math.max(0.0, Math.min(speedCap, this.speed + this.acceleration * dt));
         this.pos += this.speed * dt;
 
-        // Safety net for gaps the IDM model couldn't close in time (e.g. a
-        // leader that just braked hard, or a merge partner appearing close
-        // by). Settle to the leader's own speed rather than slamming to a
-        // dead stop, so following traffic stays smooth instead of freezing.
+        // Dynamic throttle & brake intensity for visualization and telemetry
+        if (this.acceleration > 0.2) {
+            this.throttle = Math.min(1.0, this.acceleration / ACCEL_MAX);
+            this.brakeIntensity = 0.0;
+            this.pitch = Math.max(-1.5, -this.throttle * 1.2); // slight squat under acceleration
+        } else if (this.acceleration < -0.4) {
+            this.throttle = 0.0;
+            this.brakeIntensity = Math.min(1.0, Math.abs(this.acceleration) / DECEL_COMF);
+            this.pitch = Math.min(2.5, this.brakeIntensity * 2.0); // nose dive under braking
+        } else {
+            this.throttle = 0.0;
+            this.brakeIntensity = 0.0;
+            this.pitch *= 0.8;
+        }
+
+        // Safety net for gaps the IDM model couldn't close in time
         if (leader !== null) {
-            const minGap = isRoundabout ? 7.0 : 4.0;
+            const minSafeGap = isRoundabout ? 6.0 : 4.0;
             const actualGap = (leader.pos - leader.length / 2) - (this.pos + this.length / 2);
-            if (actualGap < minGap) {
+            if (actualGap < minSafeGap) {
                 this.emergencyBrake = true;
-                this.pos = leader.pos - leader.length / 2 - this.length / 2 - minGap;
-                this.speed = Math.max(0.0, Math.min(this.speed, leader.speed));
+                this.pos = leader.pos - leader.length / 2 - this.length / 2 - minSafeGap;
+                this.speed = Math.max(0.0, Math.min(this.speed, leader.speed * 0.95));
+                this.brakeIntensity = 1.0;
                 this.status = this.speed < 1 ? 'stopped' : 'slowing';
                 this._update2DCoords();
                 return;
@@ -148,8 +184,10 @@ export class VehicleAgent {
 
         if (stopTarget !== null) {
             const distToLine = stopTarget - (this.pos + this.length / 2);
-            if (distToLine < 0 && distToLine > -2.0) {
+            if (distToLine <= 0 && distToLine > -3.0) {
                 this.speed = 0.0;
+                this.acceleration = 0.0;
+                this.brakeIntensity = 1.0;
                 this.pos = stopTarget - this.length / 2;
                 this.status = 'stopped';
                 this._update2DCoords();
@@ -157,17 +195,26 @@ export class VehicleAgent {
             }
         }
 
-        // Status assignment
-        if (this.speed < 1) {
+        // Status classification
+        if (this.speed < 1.0) {
             this.status = 'stopped';
-        } else if (acc < -1.5) {
+            this.brakeIntensity = 0.9;
+        } else if (this.acceleration < -1.0) {
             this.status = 'slowing';
         } else {
             this.status = 'moving';
         }
 
-        // After updating the 1D path distance (this.pos), 
-        // we project it into 2D space for rendering
+        // Calculate lateral G during curves
+        if (isTurningRoute && this.pos > 180 && this.pos < 320) {
+            const turnRadius = this.route === 'left' ? 70 : 40;
+            this.lateralG = Math.min(1.4, Number((Math.pow(this.speed * 0.28, 2) / (turnRadius * 9.81)).toFixed(2)));
+        } else if (isRoundabout && this._onRing) {
+            this.lateralG = Math.min(1.2, Number((Math.pow(this.speed * 0.28, 2) / (100 * 9.81)).toFixed(2)));
+        } else {
+            this.lateralG = 0.0;
+        }
+
         this._update2DCoords();
     }
 

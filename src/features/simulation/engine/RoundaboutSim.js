@@ -197,6 +197,26 @@ export class RoundaboutSim {
     laneCars.push(car);
   }
 
+  dispatchInterceptor() {
+    const ix = this.intersection;
+    for (const direction of this.roadKeys) {
+      const laneCars = ix.roads[direction][0];
+      let clear = true;
+      for (const car of laneCars) {
+        if (car.pos < 60) { clear = false; break; }
+      }
+      if (clear) {
+        this.globalId++;
+        const car = VehicleAgent.spawn(this.globalId, 'interceptor', 0, 'straight', direction, 0);
+        car.pathMode = 'roundabout';
+        car.singleRoundabout = true;
+        laneCars.push(car);
+        return true;
+      }
+    }
+    return false;
+  }
+
   _normalizeRoundaboutLanes(ix) {
     for (const direction of this.roadKeys) {
       const lanes = ix.roads[direction];
@@ -215,25 +235,49 @@ export class RoundaboutSim {
   getState(canEnter = {}) {
     const jsonRoads = { north: [[], []], south: [[], []], east: [[], []], west: [[], []] };
 
+    let totalVehicles = 0;
+    let stoppedCount = 0;
+
     for (const dir of this.roadKeys) {
       const lanes = this.intersection.roads[dir];
       for (let i = 0; i < lanes.length; i++) {
-        jsonRoads[dir][i] = lanes[i].map((c) => ({
-          id: c.id,
-          pos: c.pos,
-          type: c.type,
-          status: c.status,
-          lane: c.lane,
-          x: c.x,
-          y: c.y,
-          angle: c.angle,
-          route: c.route,
-        }));
+        jsonRoads[dir][i] = lanes[i].map((c) => {
+          totalVehicles++;
+          if (c.speed < 1.5) stoppedCount++;
+          return {
+            id: c.id,
+            pos: c.pos,
+            type: c.type,
+            status: c.status,
+            lane: c.lane,
+            x: c.x,
+            y: c.y,
+            angle: c.angle,
+            route: c.route,
+            pathMode: c.pathMode,
+            speed: Math.round(c.speed),
+            acceleration: Number(c.acceleration.toFixed(2)),
+            brakeIntensity: Number(c.brakeIntensity.toFixed(2)),
+            throttle: Number(c.throttle.toFixed(2)),
+            lateralG: c.lateralG,
+            pitch: Number(c.pitch.toFixed(1)),
+            isInterceptor: c.isInterceptor,
+            direction: c.direction,
+          };
+        });
       }
     }
 
+    this.metrics.active_count = totalVehicles;
+    if (totalVehicles > 0) {
+      this.metrics.efficiency = Math.min(100, Math.max(50, Math.round(((totalVehicles - stoppedCount) / totalVehicles) * 100)));
+      this.metrics.wait_time = Number(((stoppedCount / totalVehicles) * 8.5).toFixed(1));
+    } else {
+      this.metrics.efficiency = 100;
+      this.metrics.wait_time = 0.0;
+    }
+
     // Per-leg yield indicator: GREEN = clear to merge now, RED = give way.
-    // Real roundabouts have no signal cycle, so there is no YELLOW phase.
     const lightState = {};
     for (const dir of this.roadKeys) {
       lightState[dir] = canEnter[dir] === false ? 'RED' : 'GREEN';
@@ -245,3 +289,4 @@ export class RoundaboutSim {
     };
   }
 }
+

@@ -7,7 +7,7 @@ export const DEFAULT_PARAMS = {
   theme: 'dark'
 };
 
-export const createDefaultData = (intersectionType = 'cross') => {
+export const createDefaultData = () => {
   const count = 1;
 
   return {
@@ -15,6 +15,7 @@ export const createDefaultData = (intersectionType = 'cross') => {
       roads: { north: [[], []], south: [[], []], east: [[], []], west: [[], []] },
       light_state: 'N_GREEN'
     })),
-    metrics: { accidents: 0, avg_speed: 0, throughput: 0 }
+    metrics: { accidents: 0, avg_speed: 0, throughput: 0, active_count: 0, efficiency: 100, wait_time: 0 }
   };
 };
+

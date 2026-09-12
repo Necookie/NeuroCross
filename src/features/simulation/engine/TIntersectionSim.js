@@ -206,25 +206,71 @@ export class TIntersectionSim {
     laneCars.push(car);
   }
 
+  dispatchInterceptor() {
+    const ix = this.intersection;
+    for (const direction of this.activeRoadKeys) {
+      const laneIdx = direction === 'north' ? 0 : 0;
+      const laneCars = ix.roads[direction][laneIdx];
+      let clear = true;
+      for (const car of laneCars) {
+        if (car.pos < 50) { clear = false; break; }
+      }
+      if (clear) {
+        this.globalId++;
+        const route = direction === 'north' ? 'left' : 'straight';
+        const car = VehicleAgent.spawn(this.globalId, 'interceptor', laneIdx, route, direction, 0);
+        car.pathMode = 'tintersection';
+        car.singleRoundabout = false;
+        laneCars.push(car);
+        return true;
+      }
+    }
+    return false;
+  }
+
   getState() {
     const jsonRoads = { north: [[], []], south: [[], []], east: [[], []], west: [[], []] };
+
+    let totalVehicles = 0;
+    let stoppedCount = 0;
 
     for (const dir of this.roadKeys) {
       const lanes = this.intersection.roads[dir];
       for (let i = 0; i < lanes.length; i++) {
-        jsonRoads[dir][i] = lanes[i].map((c) => ({
-          id: c.id,
-          pos: c.pos,
-          type: c.type,
-          status: c.status,
-          lane: c.lane,
-          x: c.x,
-          y: c.y,
-          angle: c.angle,
-          route: c.route,
-          pathMode: c.pathMode,
-        }));
+        jsonRoads[dir][i] = lanes[i].map((c) => {
+          totalVehicles++;
+          if (c.speed < 1.5) stoppedCount++;
+          return {
+            id: c.id,
+            pos: c.pos,
+            type: c.type,
+            status: c.status,
+            lane: c.lane,
+            x: c.x,
+            y: c.y,
+            angle: c.angle,
+            route: c.route,
+            pathMode: c.pathMode,
+            speed: Math.round(c.speed),
+            acceleration: Number(c.acceleration.toFixed(2)),
+            brakeIntensity: Number(c.brakeIntensity.toFixed(2)),
+            throttle: Number(c.throttle.toFixed(2)),
+            lateralG: c.lateralG,
+            pitch: Number(c.pitch.toFixed(1)),
+            isInterceptor: c.isInterceptor,
+            direction: c.direction,
+          };
+        });
       }
+    }
+
+    this.metrics.active_count = totalVehicles;
+    if (totalVehicles > 0) {
+      this.metrics.efficiency = Math.min(100, Math.max(50, Math.round(((totalVehicles - stoppedCount) / totalVehicles) * 100)));
+      this.metrics.wait_time = Number(((stoppedCount / totalVehicles) * 9.8).toFixed(1));
+    } else {
+      this.metrics.efficiency = 100;
+      this.metrics.wait_time = 0.0;
     }
 
     return {
@@ -233,3 +279,4 @@ export class TIntersectionSim {
     };
   }
 }
+

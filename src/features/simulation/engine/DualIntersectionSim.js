@@ -23,10 +23,11 @@ export class DualIntersectionSim {
             roads: { north: [[], []], south: [[], []], east: [[], []], west: [[], []] },
             state: 'N_GREEN',
             timer: 0.0,
+            phaseTime: 0.0,
         };
         this.roadKeys = ['north', 'south', 'east', 'west'];
         this.globalId = 0;
-        this.metrics = { accidents: 0, throughput: 0, avg_speed: 0 };
+        this.metrics = { accidents: 0, throughput: 0, avg_speed: 0, active_count: 0, efficiency: 98, wait_time: 0 };
     }
 
     step(params) {
@@ -34,9 +35,11 @@ export class DualIntersectionSim {
         const friction = params.weather === 'rain' ? RAIN_BRAKE_GRIP : 1.0;
         const ix = this.intersection;
         ix.timer += dt;
+        ix.phaseTime += dt;
 
         let totalSpeed = 0;
         let carCount = 0;
+        let stoppedCount = 0;
 
         this._updateLights(ix, params.mode);
         this._spawnTraffic(ix, params, dt);
@@ -57,6 +60,7 @@ export class DualIntersectionSim {
                     cars[i].singleCross = true;
                     cars[i].updatePhysics(dt, leader, stopTarget, friction);
                     if (cars[i].emergencyBrake) this.metrics.accidents += 1;
+                    if (cars[i].speed < 1.5) stoppedCount += 1;
                     totalSpeed += cars[i].speed;
                     carCount++;
                     leader = cars[i];
@@ -79,57 +83,96 @@ export class DualIntersectionSim {
             }
         }
 
+        this.metrics.active_count = carCount;
         if (carCount > 0) {
             this.metrics.avg_speed = Math.floor(totalSpeed / carCount);
+            const movingRatio = (carCount - stoppedCount) / carCount;
+            this.metrics.efficiency = Math.min(100, Math.max(50, Math.round(movingRatio * 100)));
+            this.metrics.wait_time = Number(((stoppedCount / carCount) * 12.5).toFixed(1));
+        } else {
+            this.metrics.avg_speed = 0;
+            this.metrics.efficiency = 100;
+            this.metrics.wait_time = 0.0;
         }
 
         return this.getState();
     }
 
     _updateLights(ix, mode) {
-        const isFixed = mode === 'fixed';
-        const GREEN_DUR = isFixed ? 18 : 12;
-        const YELLOW_DUR = isFixed ? 3 : 2;
-        const RED_DUR = isFixed ? 2 : 4;
+        const isSmart = mode === 'smart';
+        
+        // Smart adaptive timing adjusts green time dynamically based on queue length
+        let greenDur = 14;
+        let yellowDur = 2.5;
+        let redDur = 2.0;
+
+        if (isSmart) {
+            const currentDir = this._getActiveDirection(ix.state);
+            const queueAtActive = this._getQueueCount(ix, currentDir);
+            // If cars are waiting, extend green up to 22s; if none, truncate to 8s
+            greenDur = Math.max(7, Math.min(22, 8 + (queueAtActive * 2.2)));
+        } else {
+            greenDur = 16;
+            yellowDur = 3.0;
+            redDur = 2.5;
+        }
 
         switch (ix.state) {
             case 'N_GREEN':
-                if (ix.timer > GREEN_DUR) { ix.state = 'N_YELLOW'; ix.timer = 0; }
+                if (ix.phaseTime > greenDur) { ix.state = 'N_YELLOW'; ix.phaseTime = 0; }
                 break;
             case 'N_YELLOW':
-                if (ix.timer > YELLOW_DUR) { ix.state = 'N_ALL_RED'; ix.timer = 0; }
+                if (ix.phaseTime > yellowDur) { ix.state = 'N_ALL_RED'; ix.phaseTime = 0; }
                 break;
             case 'N_ALL_RED':
-                if ((!isFixed && this._isClear(ix, ['north'])) || ix.timer > RED_DUR) { ix.state = 'S_GREEN'; ix.timer = 0; }
+                if ((isSmart && this._isClear(ix, ['north'])) || ix.phaseTime > redDur) { ix.state = 'S_GREEN'; ix.phaseTime = 0; }
                 break;
             case 'S_GREEN':
-                if (ix.timer > GREEN_DUR) { ix.state = 'S_YELLOW'; ix.timer = 0; }
+                if (ix.phaseTime > greenDur) { ix.state = 'S_YELLOW'; ix.phaseTime = 0; }
                 break;
             case 'S_YELLOW':
-                if (ix.timer > YELLOW_DUR) { ix.state = 'S_ALL_RED'; ix.timer = 0; }
+                if (ix.phaseTime > yellowDur) { ix.state = 'S_ALL_RED'; ix.phaseTime = 0; }
                 break;
             case 'S_ALL_RED':
-                if ((!isFixed && this._isClear(ix, ['south'])) || ix.timer > RED_DUR) { ix.state = 'E_GREEN'; ix.timer = 0; }
+                if ((isSmart && this._isClear(ix, ['south'])) || ix.phaseTime > redDur) { ix.state = 'E_GREEN'; ix.phaseTime = 0; }
                 break;
             case 'E_GREEN':
-                if (ix.timer > GREEN_DUR) { ix.state = 'E_YELLOW'; ix.timer = 0; }
+                if (ix.phaseTime > greenDur) { ix.state = 'E_YELLOW'; ix.phaseTime = 0; }
                 break;
             case 'E_YELLOW':
-                if (ix.timer > YELLOW_DUR) { ix.state = 'E_ALL_RED'; ix.timer = 0; }
+                if (ix.phaseTime > yellowDur) { ix.state = 'E_ALL_RED'; ix.phaseTime = 0; }
                 break;
             case 'E_ALL_RED':
-                if ((!isFixed && this._isClear(ix, ['east'])) || ix.timer > RED_DUR) { ix.state = 'W_GREEN'; ix.timer = 0; }
+                if ((isSmart && this._isClear(ix, ['east'])) || ix.phaseTime > redDur) { ix.state = 'W_GREEN'; ix.phaseTime = 0; }
                 break;
             case 'W_GREEN':
-                if (ix.timer > GREEN_DUR) { ix.state = 'W_YELLOW'; ix.timer = 0; }
+                if (ix.phaseTime > greenDur) { ix.state = 'W_YELLOW'; ix.phaseTime = 0; }
                 break;
             case 'W_YELLOW':
-                if (ix.timer > YELLOW_DUR) { ix.state = 'W_ALL_RED'; ix.timer = 0; }
+                if (ix.phaseTime > yellowDur) { ix.state = 'W_ALL_RED'; ix.phaseTime = 0; }
                 break;
             case 'W_ALL_RED':
-                if ((!isFixed && this._isClear(ix, ['west'])) || ix.timer > RED_DUR) { ix.state = 'N_GREEN'; ix.timer = 0; }
+                if ((isSmart && this._isClear(ix, ['west'])) || ix.phaseTime > redDur) { ix.state = 'N_GREEN'; ix.phaseTime = 0; }
                 break;
         }
+    }
+
+    _getActiveDirection(state) {
+        if (state.startsWith('N_')) return 'north';
+        if (state.startsWith('S_')) return 'south';
+        if (state.startsWith('E_')) return 'east';
+        return 'west';
+    }
+
+    _getQueueCount(ix, direction) {
+        let count = 0;
+        const lanes = ix.roads[direction];
+        for (const lane of lanes) {
+            for (const car of lane) {
+                if (car.pos < STOP_LINE && car.speed < 12) count++;
+            }
+        }
+        return count;
     }
 
     _isClear(ix, directions) {
@@ -175,9 +218,32 @@ export class DualIntersectionSim {
         }
     }
 
+    dispatchInterceptor() {
+        const ix = this.intersection;
+        // Spawn an emergency interceptor vehicle on an available approach
+        for (const direction of ['north', 'south', 'east', 'west']) {
+            const laneIdx = 1; // inner fast lane
+            const laneCars = ix.roads[direction][laneIdx];
+            let clear = true;
+            for (const car of laneCars) {
+                if (car.pos < 50) { clear = false; break; }
+            }
+            if (clear) {
+                this.globalId++;
+                const car = VehicleAgent.spawn(this.globalId, 'interceptor', laneIdx, 'straight', direction, 0);
+                car.pathMode = 'cross';
+                car.singleRoundabout = false;
+                car.singleCross = true;
+                laneCars.push(car);
+                return true;
+            }
+        }
+        return false;
+    }
+
     _trySpawn(ix, direction, laneIdx) {
         const laneCars = ix.roads[direction][laneIdx];
-        const minSpawnGap = 40;
+        const minSpawnGap = 42;
         for (const car of laneCars) {
             if ((car.pos - car.length / 2) < minSpawnGap) return;
         }
@@ -189,10 +255,11 @@ export class DualIntersectionSim {
         let routes;
         let routeProbs;
         if (laneIdx === 1) {
-            // 2 lanes: lane 0 = outer (straight/right), lane 1 = inner (straight/left)
+            // Lane 1 = inner (straight / left)
             routes = ['straight', 'left'];
             routeProbs = [0.65, 0.35];
         } else {
+            // Lane 0 = outer (straight / right)
             routes = ['straight', 'right'];
             routeProbs = [0.65, 0.35];
         }
@@ -224,6 +291,14 @@ export class DualIntersectionSim {
                     angle: c.angle,
                     route: c.route,
                     pathMode: c.pathMode,
+                    speed: Math.round(c.speed),
+                    acceleration: Number(c.acceleration.toFixed(2)),
+                    brakeIntensity: Number(c.brakeIntensity.toFixed(2)),
+                    throttle: Number(c.throttle.toFixed(2)),
+                    lateralG: c.lateralG,
+                    pitch: Number(c.pitch.toFixed(1)),
+                    isInterceptor: c.isInterceptor,
+                    direction: c.direction,
                 }));
             }
         }
@@ -234,3 +309,4 @@ export class DualIntersectionSim {
         };
     }
 }
+
